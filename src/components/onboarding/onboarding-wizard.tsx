@@ -200,7 +200,15 @@ export function OnboardingWizard() {
 
         {currentStep.id === "notification-settings" && (
           <NotificationSettingsStep
-            data={formData.notificationSettings}
+            data={{
+              ...formData.notificationSettings,
+              emailSettings: {
+                ...formData.notificationSettings.emailSettings,
+                sendCancellationNotices: false,
+                sendNoShowNotifications: false,
+                sendFollowUpEmails: false,
+              },
+            }}
             onUpdate={(data) => updateFormData("notificationSettings", data)}
           />
         )}

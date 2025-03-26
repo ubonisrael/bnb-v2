@@ -11,7 +11,8 @@ export async function completeOnboarding(data: any) {
   await new Promise((resolve) => setTimeout(resolve, 1500))
 
   // Update the user cookie with onboarding data
-  const userCookie = cookies().get("banknbook-user")
+  const cookieStore = await cookies()
+  const userCookie = cookieStore.get("banknbook-user")
 
   if (!userCookie) {
     throw new Error("User not found")
@@ -37,7 +38,7 @@ export async function completeOnboarding(data: any) {
     }
 
     // Update the cookie
-    cookies().set("banknbook-user", JSON.stringify(updatedUser), {
+    cookieStore.set("banknbook-user", JSON.stringify(updatedUser), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24 * 7, // 1 week

@@ -34,7 +34,7 @@ type Service = {
   categoryId: string
   price: number
   duration: number
-  description: string
+  description?: string
   availableDays: string[]
 }
 
@@ -101,10 +101,9 @@ export function ServicesSetupStep({ data, onUpdate }: ServicesSetupStepProps) {
   })
 
   // Service form
-  const serviceForm = useForm<Service>({
+  const serviceForm = useForm<Omit<Service, "id">>({
     resolver: zodResolver(serviceSchema),
     defaultValues: {
-      id: "",
       name: "",
       categoryId: "",
       price: 0,

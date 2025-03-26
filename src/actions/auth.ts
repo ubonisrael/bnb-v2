@@ -8,6 +8,7 @@ export async function registerUser(data: {
   email: string
   password: string
 }) {
+  const cookieStore = await cookies()
   // This would be where you'd connect to a database or API to create the user
   // For demo purposes, we'll just simulate the registration process
   console.log("Registering user:", data)
@@ -16,7 +17,7 @@ export async function registerUser(data: {
   await new Promise((resolve) => setTimeout(resolve, 1000))
 
   // Set a cookie to "authenticate" the user for this demo
-  cookies().set(
+  cookieStore.set(
     "banknbook-user",
     JSON.stringify({
       id: "user_" + Math.random().toString(36).substring(2, 11),
@@ -40,6 +41,7 @@ export async function loginUser(data: {
   password: string
   remember?: boolean
 }) {
+  const cookieStore = await cookies()
   // This would be where you'd connect to a database or API to validate the user
   // For demo purposes, we'll just simulate the login process
   console.log("Logging in user:", data)
@@ -48,7 +50,7 @@ export async function loginUser(data: {
   await new Promise((resolve) => setTimeout(resolve, 1000))
 
   // Set a cookie to "authenticate" the user for this demo
-  cookies().set(
+  cookieStore.set(
     "banknbook-user",
     JSON.stringify({
       id: "user_" + Math.random().toString(36).substring(2, 11),
@@ -67,12 +69,14 @@ export async function loginUser(data: {
 }
 
 export async function logoutUser() {
-  cookies().delete("banknbook-user")
+  const cookieStore = await cookies()
+  cookieStore.delete("banknbook-user")
   redirect("/auth/login")
 }
 
 export async function getCurrentUser() {
-  const userCookie = cookies().get("banknbook-user")
+  const cookieStore = await cookies()
+  const userCookie = cookieStore.get("banknbook-user")
 
   if (!userCookie) {
     return null

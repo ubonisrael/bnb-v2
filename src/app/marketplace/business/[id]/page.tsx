@@ -22,7 +22,7 @@ import {
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-export default function BusinessPage({ params }: { params: { id: string } }) {
+export default function BusinessPage() {
   const [date, setDate] = useState<Date | undefined>(new Date())
 
   return (

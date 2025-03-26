@@ -73,7 +73,7 @@ export function CampaignCreator({ onBack, onSave }: CampaignCreatorProps) {
           Back to campaigns
         </Button>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => onSave({ ...campaignName, status: "draft" })}>
+          <Button variant="outline" onClick={() => onSave({ status: "draft" })}>
             Save as Draft
           </Button>
           <Button onClick={handleSave}>
