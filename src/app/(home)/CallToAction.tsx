@@ -17,7 +17,7 @@ const CallToAction = () => {
                 Get Started For Free <ArrowRight className="ml-2 h-5 w-5" />
               </a>
             </Button>
-            <Button variant="outline" className="text-md px-8 py-6 border-white/30 text-white hover:bg-brand-600 hover:border-white/50 rounded-lg">
+            <Button variant="outline" className="text-md px-8 py-6 border-white/30 text-black hover:bg-brand-600 hover:border-white/50 rounded-lg">
               <a href="#">Contact Sales</a>
             </Button>
           </div>

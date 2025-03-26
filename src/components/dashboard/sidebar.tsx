@@ -16,6 +16,7 @@ import {
   MessageSquare,
   Mail,
   DollarSign,
+  FileText,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -49,24 +50,14 @@ const sidebarItems = [
     icon: CreditCard,
   },
   {
-    title: "Marketing",
-    href: "/dashboard/marketing",
-    icon: Mail,
-  },
-  {
-    title: "Messages",
-    href: "/dashboard/messages",
-    icon: MessageSquare,
+    title: "Templates",
+    href: "/dashboard/templates",
+    icon: FileText,
   },
   {
     title: "Analytics",
     href: "/dashboard/analytics",
     icon: BarChart3,
-  },
-  {
-    icon: DollarSign,
-    title: "Payments",
-    href: "/dashboard/payments",
   },
   {
     title: "Settings",
