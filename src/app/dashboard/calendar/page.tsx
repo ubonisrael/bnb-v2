@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { CalendarIcon, ChevronLeft, ChevronRight, Filter, MoreHorizontal, Plus } from "lucide-react"
+import { CalendarIcon, ChevronLeft, ChevronRight, Filter, MoreHorizontal, Plus, X } from "lucide-react"
 import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from "date-fns"
 
 import { Button } from "@/components/ui/button"
@@ -106,6 +106,13 @@ const timeSlots = [
   "5:30 PM",
 ]
 
+// Add filter types
+type FilterType = {
+  staff: number[]
+  status: string[]
+  service: string[]
+}
+
 export default function CalendarPage() {
   const [date, setDate] = useState<Date>(new Date())
   const [view, setView] = useState<"day" | "week">("day")
@@ -115,11 +122,27 @@ export default function CalendarPage() {
     time?: string
     staffId?: number
   }>({})
+  const [filters, setFilters] = useState<FilterType>({
+    staff: [],
+    status: [],
+    service: [],
+  })
 
   // Calculate the days to display in week view
   const weekStart = startOfWeek(date, { weekStartsOn: 1 })
   const weekEnd = endOfWeek(date, { weekStartsOn: 1 })
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd })
+
+  // Get unique services from appointments
+  const uniqueServices = Array.from(new Set(appointments.map(apt => apt.service)))
+
+  // Filter appointments based on selected filters
+  const filteredAppointments = appointments.filter(appointment => {
+    const staffMatch = filters.staff.length === 0 || filters.staff.includes(appointment.staffId)
+    const statusMatch = filters.status.length === 0 || filters.status.includes(appointment.status)
+    const serviceMatch = filters.service.length === 0 || filters.service.includes(appointment.service)
+    return staffMatch && statusMatch && serviceMatch
+  })
 
   // Function to get appointment color
   const getAppointmentColor = (color: string) => {
@@ -209,10 +232,99 @@ export default function CalendarPage() {
             Today
           </Button>
         </div>
-        <Button variant="outline" className="gap-2 border-[#E0E0E5] bg-white text-[#121212]">
-          <Filter className="h-4 w-4" />
-          Filter
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="gap-2 border-[#E0E0E5] bg-white text-[#121212]">
+              <Filter className="h-4 w-4" />
+              Filter
+              {(filters.staff.length > 0 || filters.status.length > 0 || filters.service.length > 0) && (
+                <Badge variant="secondary" className="ml-2">
+                  {filters.staff.length + filters.status.length + filters.service.length}
+                </Badge>
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-72">
+            <DropdownMenuLabel className="text-base font-semibold">Filter by Staff</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {staff.map((person) => (
+              <DropdownMenuItem
+                key={person.id}
+                className="flex items-center gap-3 py-2"
+                onSelect={(e) => {
+                  e.preventDefault()
+                  setFilters(prev => ({
+                    ...prev,
+                    staff: prev.staff.includes(person.id)
+                      ? prev.staff.filter(id => id !== person.id)
+                      : [...prev.staff, person.id]
+                  }))
+                }}
+              >
+                <div className="flex h-5 w-5 items-center justify-center rounded border">
+                  {filters.staff.includes(person.id) && <X className="h-4 w-4" />}
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-medium">{person.name}</span>
+                  <span className="text-xs text-muted-foreground">{person.role}</span>
+                </div>
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="text-base font-semibold">Filter by Status</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {["confirmed", "pending", "cancelled"].map((status) => (
+              <DropdownMenuItem
+                key={status}
+                className="flex items-center gap-3 py-2"
+                onSelect={(e) => {
+                  e.preventDefault()
+                  setFilters(prev => ({
+                    ...prev,
+                    status: prev.status.includes(status)
+                      ? prev.status.filter(s => s !== status)
+                      : [...prev.status, status]
+                  }))
+                }}
+              >
+                <div className="flex h-5 w-5 items-center justify-center rounded border">
+                  {filters.status.includes(status) && <X className="h-4 w-4" />}
+                </div>
+                <span className="font-medium">{status.charAt(0).toUpperCase() + status.slice(1)}</span>
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="text-base font-semibold">Filter by Service</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {uniqueServices.map((service) => (
+              <DropdownMenuItem
+                key={service}
+                className="flex items-center gap-3 py-2"
+                onSelect={(e) => {
+                  e.preventDefault()
+                  setFilters(prev => ({
+                    ...prev,
+                    service: prev.service.includes(service)
+                      ? prev.service.filter(s => s !== service)
+                      : [...prev.service, service]
+                  }))
+                }}
+              >
+                <div className="flex h-5 w-5 items-center justify-center rounded border">
+                  {filters.service.includes(service) && <X className="h-4 w-4" />}
+                </div>
+                <span className="font-medium">{service}</span>
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-destructive py-2"
+              onSelect={() => setFilters({ staff: [], status: [], service: [] })}
+            >
+              Clear all filters
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <Card className="overflow-hidden border-0 bg-white shadow-card">
@@ -270,7 +382,7 @@ export default function CalendarPage() {
 
                 {/* Appointments */}
                 <div className="absolute left-16 top-0 w-[calc(100%-4rem)]">
-                  {appointments.map((appointment) => {
+                  {filteredAppointments.map((appointment) => {
                     const staffIndex = staff.findIndex((s) => s.id === appointment.staffId)
                     const startTimeIndex = getTimeSlotIndex(appointment.startTime)
                     const endTimeIndex = getTimeSlotIndex(appointment.endTime)
@@ -345,27 +457,47 @@ export default function CalendarPage() {
           ) : (
             <div className="min-w-[800px]">
               {/* Week view header */}
-              <div className="grid grid-cols-7 border-b border-[#E0E0E5]">
+              <div className="grid grid-cols-8 border-b border-[#E0E0E5]">
+                <div
+                  className={cn(
+                    "h-14 p-2 text-center font-medium",
+                    "text-[#121212]",
+                  )}
+                ></div>
                 {weekDays.map((day) => (
                   <div
                     key={day.toString()}
                     className={cn(
-                      "h-12 p-2 text-center font-medium",
+                      "h-14 p-2 text-center font-medium",
                       isSameDay(day, new Date()) ? "bg-[#7B68EE]/10 text-[#7B68EE]" : "text-[#121212]",
                     )}
                   >
-                    <div>{format(day, "EEE")}</div>
-                    <div className="text-sm">{format(day, "d")}</div>
+                    <div className="text-sm">{format(day, "EEE")}</div>
+                    <div className="text-base font-bold">{format(day, "d")}</div>
                   </div>
                 ))}
               </div>
 
               {/* Week view time slots */}
-              <div className="grid grid-cols-7">
+              <div className="grid grid-cols-8">
+                <div className="border-r border-[#E0E0E5]">
+                  {timeSlots.map((time, timeIndex) => (
+                    <div
+                      id={`${time}`}
+                      key={`${time}`}
+                      className={cn(
+                        "h-12 flex items-center justify-center border-b border-[#E0E0E5] cursor-pointer hover:bg-[#F5F5F7]/50",
+                        timeIndex % 2 === 0 ? "bg-white" : "bg-[#F5F5F7]/30",
+                      )}
+                    >{time}</div>
+                  ))}
+                </div>
                 {weekDays.map((day, dayIndex) => (
                   <div key={day.toString()} className="border-r border-[#E0E0E5]">
+
                     {timeSlots.map((time, timeIndex) => (
                       <div
+                        id={`${day}-${time}`}
                         key={`${day}-${time}`}
                         className={cn(
                           "h-12 border-b border-[#E0E0E5] cursor-pointer hover:bg-[#F5F5F7]/50",

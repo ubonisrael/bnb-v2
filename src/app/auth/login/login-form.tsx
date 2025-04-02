@@ -1,18 +1,20 @@
 "use client"
 
-import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { ArrowRight, Loader2 } from "lucide-react"
+import { ArrowRight, Loader2, Eye, EyeOff } from "lucide-react"
+import { useMutation } from "@tanstack/react-query"
+import ApiService from "@/services/api-service"
+import toast from "react-hot-toast"
+import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { loginUser } from "@/actions/auth"
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -23,8 +25,8 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>
 
 export function LoginForm() {
-  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const [showPassword, setShowPassword] = useState(false)
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -35,16 +37,30 @@ export function LoginForm() {
     },
   })
 
-  async function onSubmit(data: LoginFormValues) {
-    setIsLoading(true)
-
-    try {
-      await loginUser(data)
+  const loginMutation = useMutation({
+    mutationFn: (data: LoginFormValues) => {
+      toast.loading("Signing in...", { id: "login-loading" })
+      return new ApiService().post('/auth/login/email', data)
+    },
+    onSuccess: (data: any) => {
+      toast.dismiss("login-loading")
+      toast.success("Signed in successfully", { id: "login-success" })
       router.push("/dashboard")
-    } catch (error) {
+    },
+    onError: (error: any) => {
+      toast.dismiss("login-loading")
       console.error("Login failed:", error)
-    } finally {
-      setIsLoading(false)
+      toast.error("Invalid email or password", { id: "login-error" })
+    },
+  })
+
+  async function onSubmit(data: LoginFormValues) {
+    try {
+      loginMutation.mutate(data)
+    } catch (error: any) {
+      toast.dismiss("login-loading")
+      console.error("Login failed:", error)
+      toast.error("Invalid email or password", { id: "login-error" })
     }
   }
 
@@ -77,7 +93,24 @@ export function LoginForm() {
                 </Link>
               </div>
               <FormControl>
-                <Input type="password" placeholder="Enter your password" {...field} />
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    {...field}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -100,8 +133,8 @@ export function LoginForm() {
         />
 
         <div>
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? (
+          <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+            {loginMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Signing in...

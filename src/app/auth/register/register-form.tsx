@@ -1,27 +1,30 @@
 "use client";
 
-import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { ArrowRight, Loader2 } from "lucide-react"
+import { useMutation } from "@tanstack/react-query"
+import ApiService from "@/services/api-service"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { registerUser } from "@/actions/auth"
+import toast from "react-hot-toast";
 
 const registerSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
+  phone: z.string().min(10, { message: "Please enter a valid phone number" }),
+  bio: z.string().min(10, { message: "Bio must be at least 10 characters" }).optional(),
   password: z.string().min(8, { message: "Password must be at least 8 characters" }),
 })
 
 type RegisterFormValues = z.infer<typeof registerSchema>
 
 export function RegisterForm() {
-  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
   const form = useForm<RegisterFormValues>({
@@ -29,20 +32,37 @@ export function RegisterForm() {
     defaultValues: {
       name: "",
       email: "",
+      phone: "",
+      bio: "",
       password: "",
     },
   })
 
-  async function onSubmit(data: RegisterFormValues) {
-    setIsLoading(true)
-
-    try {
-      await registerUser(data)
+  const registerMutation = useMutation({
+    mutationFn: (data: RegisterFormValues) => {
+      toast.loading("Creating account...", { id: "register-loading" })
+      return new ApiService().post('/auth/signup', data)
+    },
+    onSuccess: (data: any) => {
+      console.log(data)
+      toast.dismiss("register-loading")
+      toast.success("Account created successfully", { id: "register-success" })
       router.push("/onboarding")
-    } catch (error) {
+    },
+    onError: (error: any) => {
+      toast.dismiss("register-loading")
       console.error("Registration failed:", error)
-    } finally {
-      setIsLoading(false)
+      toast.error("Error creating account", { id: "register-error" })
+    },
+  })
+
+  async function onSubmit(data: RegisterFormValues) {
+    try {
+      registerMutation.mutate(data)
+    } catch (error: any) {
+      toast.dismiss("register-loading")
+      console.error("Registration failed:", error)
+      toast.error("Error creating account", { id: "register-error" })
     }
   }
 
@@ -79,6 +99,38 @@ export function RegisterForm() {
 
         <FormField
           control={form.control}
+          name="phone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone Number</FormLabel>
+              <FormControl>
+                <Input type="tel" placeholder="Enter your phone number" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="bio"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Bio (Optional)</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Tell us about yourself..."
+                  className="min-h-[100px] resize-none"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="password"
           render={({ field }) => (
             <FormItem>
@@ -92,8 +144,8 @@ export function RegisterForm() {
         />
 
         <div>
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? (
+          <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
+            {registerMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Creating account...

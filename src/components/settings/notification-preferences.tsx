@@ -153,62 +153,7 @@ export function NotificationPreferences() {
           />
         </div>
 
-        <Separator />
 
-        <div>
-          <h3 className="text-lg font-medium">SMS Notifications</h3>
-          <p className="text-sm text-muted-foreground">Manage the text messages you receive from us</p>
-        </div>
-
-        <div className="space-y-4">
-          <FormField
-            control={form.control}
-            name="sms.bookingConfirmations"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                <div className="space-y-0.5">
-                  <FormLabel>Booking Confirmations</FormLabel>
-                  <FormDescription>Receive SMS when a booking is confirmed</FormDescription>
-                </div>
-                <FormControl>
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="sms.bookingReminders"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                <div className="space-y-0.5">
-                  <FormLabel>Booking Reminders</FormLabel>
-                  <FormDescription>Receive SMS reminders before appointments</FormDescription>
-                </div>
-                <FormControl>
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="sms.bookingCancellations"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                <div className="space-y-0.5">
-                  <FormLabel>Booking Cancellations</FormLabel>
-                  <FormDescription>Receive SMS when a booking is cancelled</FormDescription>
-                </div>
-                <FormControl>
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        </div>
 
         <Separator />
 

@@ -1,0 +1,1 @@
+export const BANKNBOOK_AUTH_COOKIE_NAME = 'banknbook_auth';

@@ -1,6 +1,7 @@
 "use client";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const Hero = () => {
   return (
@@ -22,12 +23,12 @@ const Hero = () => {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button className="w-full sm:w-auto text-md px-8 py-6 bg-brand-500 hover:bg-brand-600 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all">
-              <a href="#get-started" className="flex items-center">
+              <Link href="/auth/register" className="flex items-center">
                 Get Started <ArrowRight className="ml-2 h-5 w-5" />
-              </a>
+              </Link>
             </Button>
             <Button variant="outline" className="w-full sm:w-auto text-md px-8 py-6 border-brand-200 text-brand-700 hover:bg-brand-50 rounded-lg">
-              <a href="#demo">View Demo</a>
+              <Link href="/demo">View Demo</Link>
             </Button>
           </div>
         </div>

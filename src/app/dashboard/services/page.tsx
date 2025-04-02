@@ -1,7 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Plus, Filter, MoreHorizontal, Clock, DollarSign, Edit, Trash2 } from "lucide-react"
+import { Search, Plus, Filter, MoreHorizontal, Clock, DollarSign, Edit, Trash2, FolderPlus } from "lucide-react"
+import { z } from "zod"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -95,8 +99,32 @@ const services = [
   },
 ]
 
+// Add category schema
+const categorySchema = z.object({
+  name: z.string().min(1, { message: "Category name is required" }),
+  description: z.string().optional(),
+})
+
+type CategoryFormValues = z.infer<typeof categorySchema>
+
 export default function ServicesPage() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [showCategoryModal, setShowCategoryModal] = useState(false)
+
+  const categoryForm = useForm<CategoryFormValues>({
+    resolver: zodResolver(categorySchema),
+    defaultValues: {
+      name: "",
+      description: "",
+    },
+  })
+
+  const onSubmitCategory = (data: CategoryFormValues) => {
+    // Here you would typically make an API call to save the category
+    console.log("Category data:", data)
+    setShowCategoryModal(false)
+    categoryForm.reset()
+  }
 
   const filteredServices = services.filter(
     (service) =>
@@ -113,6 +141,53 @@ export default function ServicesPage() {
           <p className="text-muted-foreground">Manage your service offerings.</p>
         </div>
         <div className="flex gap-2">
+          <Dialog open={showCategoryModal} onOpenChange={setShowCategoryModal}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <FolderPlus className="mr-2 h-4 w-4" />
+                Add Category
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Add New Category</DialogTitle>
+                <DialogDescription>Create a new category for your services.</DialogDescription>
+              </DialogHeader>
+              <Form {...categoryForm}>
+                <form onSubmit={categoryForm.handleSubmit(onSubmitCategory)} className="space-y-4">
+                  <FormField
+                    control={categoryForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Category Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter category name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={categoryForm.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter category description" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <DialogFooter>
+                    <Button type="submit">Add Category</Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
           <Dialog>
             <DialogTrigger asChild>
               <Button>
