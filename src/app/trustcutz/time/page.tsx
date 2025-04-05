@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from 'react'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -25,61 +26,63 @@ const TimePage = () => {
                 <span>Confirm</span>
             </div>
 
-            <div className="mx-auto max-w-4xl">
+            <div className="mx-auto max-w-6xl">
                 <h1 className="mb-12 text-2xl font-bold">Select Time & Date</h1>
 
-                {/* Time Display */}
-                <div className="mb-12 text-center">
-                    <div className="font-mono text-[200px] font-bold leading-none tracking-tighter">
-                        {selectedTime || "00:00"}
-                    </div>
-                </div>
-
-                {/* Calendar */}
-                <div className="mb-8 rounded-lg bg-white p-6 shadow-card">
-                    {/* Calendar Header */}
-                    <div className="mb-6 flex items-center justify-between">
-                        <button className="rounded-full p-1 hover:bg-gray-100">
-                            <ChevronLeft className="h-5 w-5" />
-                        </button>
-                        <h2 className="text-lg font-semibold">February 2021</h2>
-                        <button className="rounded-full p-1 hover:bg-gray-100">
-                            <ChevronRight className="h-5 w-5" />
-                        </button>
+                <div className="flex mb-12 justify-between items-center gap-12">
+                    {/* Time Display */}
+                    <div className=" text-center">
+                        <div className="font-mono text-[200px] font-bold leading-none tracking-tighter">
+                            {selectedTime || "00:00"}
+                        </div>
                     </div>
 
-                    {/* Calendar Grid */}
-                    <div className="grid grid-cols-7 gap-1">
-                        {/* Day Headers */}
-                        {daysOfWeek.map((day) => (
-                            <div
-                                key={day}
-                                className="pb-2 text-center text-sm font-medium text-gray-500"
-                            >
-                                {day}
-                            </div>
-                        ))}
+                    {/* Calendar */}
+                    <div className=" w-[486px] rounded-lg bg-white p-6 shadow-card">
+                        {/* Calendar Header */}
+                        <div className="mb-6 flex items-center justify-between">
+                            <button className="rounded-full p-1 hover:bg-gray-100">
+                                <ChevronLeft className="h-5 w-5" />
+                            </button>
+                            <h2 className="text-lg font-semibold">February 2021</h2>
+                            <button className="rounded-full p-1 hover:bg-gray-100">
+                                <ChevronRight className="h-5 w-5" />
+                            </button>
+                        </div>
 
-                        {/* Calendar Days */}
-                        {allDays.map((day, index) => (
-                            <button
-                                key={index}
-                                disabled={!day}
-                                onClick={() => day && setSelectedDate(day)}
-                                className={`
+                        {/* Calendar Grid */}
+                        <div className="grid grid-cols-7 gap-1">
+                            {/* Day Headers */}
+                            {daysOfWeek.map((day) => (
+                                <div
+                                    key={day}
+                                    className="pb-2 text-center text-sm font-medium text-gray-500"
+                                >
+                                    {day}
+                                </div>
+                            ))}
+
+                            {/* Calendar Days */}
+                            {allDays.map((day, index) => (
+                                <button
+                                    key={index}
+                                    disabled={!day}
+                                    onClick={() => day && setSelectedDate(day)}
+                                    className={`
                   aspect-square rounded-full p-2 text-sm
                   ${!day ? 'invisible' : 'hover:bg-gray-100'}
                   ${selectedDate === day ? 'bg-black text-white hover:bg-black' : ''}
                 `}
-                            >
-                                {day}
-                            </button>
-                        ))}
+                                >
+                                    {day}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
                 {/* Time Slots */}
-                <div className="grid grid-cols-4 gap-3">
+                <div className="grid grid-cols-4 mb-12 gap-3">
                     {['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30'].map((time) => (
                         <button
                             key={time}

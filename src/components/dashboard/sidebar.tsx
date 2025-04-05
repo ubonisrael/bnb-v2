@@ -34,11 +34,7 @@ const sidebarItems = [
     href: "/dashboard/calendar",
     icon: Calendar,
   },
-  {
-    title: "Clients",
-    href: "/dashboard/clients",
-    icon: Users,
-  },
+
   {
     title: "Services",
     href: "/dashboard/services",

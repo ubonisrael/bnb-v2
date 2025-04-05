@@ -104,6 +104,15 @@ const config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        'bounce': {
+          '0%, 100%': {
+            transform: 'translateY(-5px)', 'animation-timing-function': 'cubic-bezier(0.0, 0, 0.2, 1)'
+          },
+          '50%': {
+            transform: 'translateY(5px)',
+            'animation-timing-function': 'cubic-bezier(0, 0, 0.2, 1)'
+          }
+        },
         'fade-in': {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' }
