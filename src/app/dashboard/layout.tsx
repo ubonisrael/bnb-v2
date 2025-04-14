@@ -4,6 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Header } from "@/components/dashboard/header"
+import { Providers } from "../providers"
 
 export default function DashboardLayout({
   children,
@@ -34,11 +35,14 @@ export default function DashboardLayout({
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar />
-      <div className="flex flex-1 flex-col transition-all duration-300" style={{ marginLeft: sidebarWidth }}>
-        <Header />
-        <main className="flex-1 p-6">{children}</main>
-      </div>
+      <Providers>
+        <Sidebar />
+        <div className="flex flex-1 flex-col transition-all duration-300" style={{ marginLeft: sidebarWidth }}>
+          <Header />
+          <main className="flex-1 p-6">{children}</main>
+        </div>
+      </Providers>
+
     </div>
   )
 }

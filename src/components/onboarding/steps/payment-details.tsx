@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { OnboardingFormData } from "../type"
+import { useEffect } from "react"
 
 const paymentDetailsSchema = z.object({
   provider: z.string().min(1, { message: "Please select a payment provider" }),
@@ -20,7 +22,7 @@ const paymentDetailsSchema = z.object({
 type PaymentDetailsData = z.infer<typeof paymentDetailsSchema>
 
 interface PaymentDetailsStepProps {
-  data: PaymentDetailsData
+  data: OnboardingFormData
   onUpdate: (data: PaymentDetailsData) => void
 }
 
@@ -28,8 +30,21 @@ export function PaymentDetailsStep({ data, onUpdate }: PaymentDetailsStepProps) 
   const form = useForm<PaymentDetailsData>({
     resolver: zodResolver(paymentDetailsSchema),
     defaultValues: {
-      provider: data.provider || "",
-      accountDetails: data.accountDetails || {},
+      provider: data.paymentDetails.provider || "",
+      accountDetails: {
+        stripeAccountId: data.paymentDetails.accountDetails?.stripeAccountId || "",
+        stripePublishableKey: data.paymentDetails.accountDetails?.stripePublishableKey || "",
+        requireFullPayment: data.paymentDetails.accountDetails?.requireFullPayment || false,
+        allowDeposits: data.paymentDetails.accountDetails?.allowDeposits || false,
+        paypalEmail: data.paymentDetails.accountDetails?.paypalEmail || "",
+        paypalClientId: data.paymentDetails.accountDetails?.paypalClientId || "",
+        squareAccessToken: data.paymentDetails.accountDetails?.squareAccessToken || "",
+        squareLocationId: data.paymentDetails.accountDetails?.squareLocationId || "",
+        currency: data.paymentDetails.accountDetails?.currency || "USD",
+        acceptCashPayments: data.paymentDetails.accountDetails?.acceptCashPayments || false,
+        collectTaxes: data.paymentDetails.accountDetails?.collectTaxes || false,
+        taxRate: data.paymentDetails.accountDetails?.taxRate || "0.00",
+      },
     },
   })
 
@@ -37,15 +52,14 @@ export function PaymentDetailsStep({ data, onUpdate }: PaymentDetailsStepProps) 
     onUpdate(values)
   }
 
-  // Update form data on every change for continuous saving
-  const watchedValues = form.watch()
-  if (
-    JSON.stringify(watchedValues) !== JSON.stringify(data) &&
-    form.formState.isValid &&
-    !form.formState.isSubmitting
-  ) {
-    onUpdate(watchedValues)
-  }
+  useEffect(() => {
+    const subscription = form.watch((values) => {
+      if (values && form.formState.isValid && !form.formState.isSubmitting) {
+        onUpdate(values as PaymentDetailsData)
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [form, onUpdate])
 
   // Get the selected payment provider
   const selectedProvider = form.watch("provider")
@@ -89,11 +103,10 @@ export function PaymentDetailsStep({ data, onUpdate }: PaymentDetailsStepProps) 
                   ].map((provider) => (
                     <div
                       key={provider.value}
-                      className={`relative rounded-lg border p-4 ${
-                        field.value === provider.value
-                          ? "border-[#7B68EE] bg-[#7B68EE]/5"
-                          : "border-[#E0E0E5] hover:border-[#E0E0E5]/80"
-                      }`}
+                      className={`relative rounded-lg border p-4 ${field.value === provider.value
+                        ? "border-[#7B68EE] bg-[#7B68EE]/5"
+                        : "border-[#E0E0E5] hover:border-[#E0E0E5]/80"
+                        }`}
                     >
                       {field.value === provider.value && (
                         <div className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-[#7B68EE]">

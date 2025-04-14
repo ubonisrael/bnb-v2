@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Plus, Filter, MoreHorizontal, Clock, DollarSign, Edit, Trash2, FolderPlus } from "lucide-react"
+import { Search, Plus, Filter, MoreHorizontal, Clock, DollarSign, Edit, Trash2, FolderPlus, Calendar } from "lucide-react"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -31,9 +31,10 @@ import {
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 
 // Mock data for services
-const services = [
+const services: Service[] = [
   {
     id: 1,
     name: "Haircut & Styling",
@@ -42,6 +43,13 @@ const services = [
     price: "$65",
     description: "Professional haircut and styling service tailored to your preferences.",
     popularity: "High",
+    availability: {
+      monday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      tuesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      wednesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      thursday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      friday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+    },
   },
   {
     id: 2,
@@ -51,6 +59,13 @@ const services = [
     price: "$35",
     description: "Precision beard trimming and shaping for a clean, polished look.",
     popularity: "Medium",
+    availability: {
+      monday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      tuesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      wednesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      thursday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      friday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+    },
   },
   {
     id: 3,
@@ -60,6 +75,13 @@ const services = [
     price: "$40",
     description: "Complete nail care service including cuticle treatment, shaping, and polish.",
     popularity: "High",
+    availability: {
+      monday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      tuesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      wednesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      thursday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      friday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+    },
   },
   {
     id: 4,
@@ -69,6 +91,13 @@ const services = [
     price: "$55",
     description: "Relaxing foot treatment including soak, exfoliation, massage, and polish.",
     popularity: "Medium",
+    availability: {
+      monday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      tuesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      wednesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      thursday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      friday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+    },
   },
   {
     id: 5,
@@ -78,6 +107,13 @@ const services = [
     price: "$90",
     description: "Customized facial treatment to address your specific skin concerns.",
     popularity: "High",
+    availability: {
+      monday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      tuesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      wednesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      thursday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      friday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+    },
   },
   {
     id: 6,
@@ -87,6 +123,15 @@ const services = [
     price: "$85",
     description: "Relaxing full-body massage to reduce tension and improve circulation.",
     popularity: "High",
+    availability: {
+      monday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      tuesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      wednesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      thursday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      friday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      saturday: { isAvailable: false, startTime: "09:00", endTime: "17:00" },
+      sunday: { isAvailable: false, startTime: "09:00", endTime: "17:00" },
+    },
   },
   {
     id: 7,
@@ -96,6 +141,15 @@ const services = [
     price: "$120",
     description: "Professional hair coloring service with premium products.",
     popularity: "Medium",
+    availability: {
+      monday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      tuesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      wednesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      thursday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      friday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      saturday: { isAvailable: false, startTime: "09:00", endTime: "17:00" },
+      sunday: { isAvailable: false, startTime: "09:00", endTime: "17:00" },
+    },
   },
 ]
 
@@ -107,9 +161,53 @@ const categorySchema = z.object({
 
 type CategoryFormValues = z.infer<typeof categorySchema>
 
+interface ServiceAvailability {
+  [key: string]: {
+    isAvailable: boolean
+    startTime: string
+    endTime: string
+  }
+}
+
+interface ServiceFormData {
+  name: string
+  category: string
+  duration: string
+  price: string
+  description: string
+
+  availability: ServiceAvailability
+}
+
+interface Service extends ServiceFormData {
+  id: number
+  popularity: string
+  availability: ServiceAvailability
+}
+
 export default function ServicesPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [showCategoryModal, setShowCategoryModal] = useState(false)
+  const [showServiceModal, setShowServiceModal] = useState(false)
+  const [showAvailabilityModal, setShowAvailabilityModal] = useState(false)
+  const [editingService, setEditingService] = useState<Service | null>(null)
+  const [currentStep, setCurrentStep] = useState<"details" | "availability">("details")
+  const [serviceFormData, setServiceFormData] = useState<ServiceFormData>({
+    name: "",
+    category: "",
+    duration: "",
+    price: "",
+    description: "",
+    availability: {
+      monday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      tuesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      wednesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      thursday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      friday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+      saturday: { isAvailable: false, startTime: "09:00", endTime: "17:00" },
+      sunday: { isAvailable: false, startTime: "09:00", endTime: "17:00" },
+    },
+  })
 
   const categoryForm = useForm<CategoryFormValues>({
     resolver: zodResolver(categorySchema),
@@ -124,6 +222,76 @@ export default function ServicesPage() {
     console.log("Category data:", data)
     setShowCategoryModal(false)
     categoryForm.reset()
+  }
+
+  const handleServiceAvailabilityChange = (day: string, field: keyof ServiceAvailability[string], value: any) => {
+    setServiceFormData((prev) => ({
+      ...prev,
+      availability: {
+        ...prev.availability,
+        [day]: {
+          ...prev.availability[day],
+          [field]: value,
+        },
+      },
+    }))
+  }
+
+  const handleServiceDetailsSubmit = () => {
+    setCurrentStep("availability")
+  }
+
+  const handleServiceSubmit = () => {
+    if (editingService) {
+      // TODO: Implement service update
+      console.log("Updating service:", { ...editingService, ...serviceFormData })
+    } else {
+      // TODO: Implement service creation
+      console.log("Creating service:", serviceFormData)
+    }
+    setShowServiceModal(false)
+    setShowAvailabilityModal(false)
+    setEditingService(null)
+    setServiceFormData({
+      name: "",
+      category: "",
+      duration: "",
+      price: "",
+      description: "",
+      availability: {
+        monday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+        tuesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+        wednesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+        thursday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+        friday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
+        saturday: { isAvailable: false, startTime: "09:00", endTime: "17:00" },
+        sunday: { isAvailable: false, startTime: "09:00", endTime: "17:00" },
+      },
+    })
+  }
+
+  const handleEditService = (service: Service) => {
+    setEditingService(service)
+    setServiceFormData({
+      name: service.name,
+      category: service.category,
+      duration: service.duration,
+      price: service.price,
+      description: service.description,
+      availability: service.availability,
+    })
+    setShowServiceModal(true)
+    setCurrentStep("details")
+  }
+
+  const handleEditAvailability = (service: Service) => {
+    setEditingService(service)
+
+    setServiceFormData((prev) => ({
+      ...prev,
+      availability: service.availability,
+    }))
+    setShowAvailabilityModal(true)
   }
 
   const filteredServices = services.filter(
@@ -188,78 +356,223 @@ export default function ServicesPage() {
               </Form>
             </DialogContent>
           </Dialog>
-          <Dialog>
+          <Dialog open={showServiceModal} onOpenChange={setShowServiceModal}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Service
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[550px]">
+            <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
-                <DialogTitle>Add New Service</DialogTitle>
-                <DialogDescription>Create a new service to offer to your clients.</DialogDescription>
+                <DialogTitle>{editingService ? "Edit Service" : "Add New Service"}</DialogTitle>
+                <DialogDescription>
+                  {currentStep === "details"
+                    ? "Enter the basic details of your service"
+                    : "Set the availability for this service"}
+                </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="name">Service Name</Label>
-                    <Input id="name" placeholder="Enter service name" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="category">Category</Label>
-                    <Select>
-                      <SelectTrigger id="category">
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="hair">Hair</SelectItem>
-                        <SelectItem value="nails">Nails</SelectItem>
-                        <SelectItem value="skin">Skin</SelectItem>
-                        <SelectItem value="massage">Massage</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="duration">Duration</Label>
-                    <Select>
-                      <SelectTrigger id="duration">
-                        <SelectValue placeholder="Select duration" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="15">15 minutes</SelectItem>
-                        <SelectItem value="30">30 minutes</SelectItem>
-                        <SelectItem value="45">45 minutes</SelectItem>
-                        <SelectItem value="60">60 minutes</SelectItem>
-                        <SelectItem value="75">75 minutes</SelectItem>
-                        <SelectItem value="90">90 minutes</SelectItem>
-                        <SelectItem value="120">120 minutes</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="price">Price</Label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input id="price" type="number" className="pl-8" placeholder="0.00" />
+              {currentStep === "details" ? (
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="name">Service Name</Label>
+                      <Input
+                        id="name"
+                        placeholder="Enter service name"
+                        value={serviceFormData.name}
+                        onChange={(e) => setServiceFormData((prev) => ({ ...prev, name: e.target.value }))}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="category">Category</Label>
+                      <Select
+                        value={serviceFormData.category}
+                        onValueChange={(value) => setServiceFormData((prev) => ({ ...prev, category: value }))}
+                      >
+                        <SelectTrigger id="category">
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="hair">Hair</SelectItem>
+                          <SelectItem value="nails">Nails</SelectItem>
+                          <SelectItem value="skin">Skin</SelectItem>
+                          <SelectItem value="massage">Massage</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="duration">Duration</Label>
+                      <Select
+                        value={serviceFormData.duration}
+                        onValueChange={(value) => setServiceFormData((prev) => ({ ...prev, duration: value }))}
+                      >
+                        <SelectTrigger id="duration">
+                          <SelectValue placeholder="Select duration" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="15">15 minutes</SelectItem>
+                          <SelectItem value="30">30 minutes</SelectItem>
+                          <SelectItem value="45">45 minutes</SelectItem>
+                          <SelectItem value="60">60 minutes</SelectItem>
+                          <SelectItem value="75">75 minutes</SelectItem>
+                          <SelectItem value="90">90 minutes</SelectItem>
+                          <SelectItem value="120">120 minutes</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="price">Price</Label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="price"
+                          type="number"
+                          className="pl-8"
+                          placeholder="0.00"
+                          value={serviceFormData.price}
+                          onChange={(e) => setServiceFormData((prev) => ({ ...prev, price: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Input
+                      id="description"
+                      placeholder="Enter service description"
+                      value={serviceFormData.description}
+                      onChange={(e) => setServiceFormData((prev) => ({ ...prev, description: e.target.value }))}
+                    />
+                  </div>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Input id="description" placeholder="Enter service description" />
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    <Label>Service Availability</Label>
+                  </div>
+                  <div className="space-y-4 rounded-lg border p-4">
+                    {Object.entries(serviceFormData.availability).map(([day, settings]) => (
+                      <div key={day} className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <Switch
+                            checked={settings.isAvailable}
+                            onCheckedChange={(checked) =>
+                              handleServiceAvailabilityChange(day, "isAvailable", checked)
+                            }
+                          />
+                          <Label className="text-sm font-medium capitalize">{day}</Label>
+                        </div>
+                        {settings.isAvailable && (
+                          <div className="flex items-center space-x-2">
+                            <Input
+                              type="time"
+                              value={settings.startTime}
+                              onChange={(e) =>
+                                handleServiceAvailabilityChange(day, "startTime", e.target.value)
+                              }
+                              className="w-32"
+                            />
+                            <span className="text-sm text-muted-foreground">to</span>
+                            <Input
+                              type="time"
+                              value={settings.endTime}
+                              onChange={(e) =>
+                                handleServiceAvailabilityChange(day, "endTime", e.target.value)
+                              }
+                              className="w-32"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
               <DialogFooter>
-                <Button type="submit">Add Service</Button>
+                {currentStep === "details" ? (
+                  <>
+                    <Button variant="outline" onClick={() => setShowServiceModal(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleServiceDetailsSubmit}>Next</Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="outline" onClick={() => setCurrentStep("details")}>
+                      Back
+                    </Button>
+                    <Button onClick={handleServiceSubmit}>
+                      {editingService ? "Update Service" : "Create Service"}
+                    </Button>
+                  </>
+                )}
               </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
       </div>
+
+      <Dialog open={showAvailabilityModal} onOpenChange={setShowAvailabilityModal}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Edit Service Availability</DialogTitle>
+            <DialogDescription>Set the availability for {editingService?.name}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              <Label>Service Availability</Label>
+            </div>
+            <div className="space-y-4 rounded-lg border p-4">
+              {Object.entries(serviceFormData.availability).map(([day, settings]) => (
+                <div key={day} className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <Switch
+                      checked={settings.isAvailable}
+                      onCheckedChange={(checked) =>
+                        handleServiceAvailabilityChange(day, "isAvailable", checked)
+                      }
+                    />
+                    <Label className="text-sm font-medium capitalize">{day}</Label>
+                  </div>
+                  {settings.isAvailable && (
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        type="time"
+                        value={settings.startTime}
+                        onChange={(e) =>
+                          handleServiceAvailabilityChange(day, "startTime", e.target.value)
+                        }
+                        className="w-32"
+                      />
+                      <span className="text-sm text-muted-foreground">to</span>
+                      <Input
+                        type="time"
+                        value={settings.endTime}
+                        onChange={(e) =>
+                          handleServiceAvailabilityChange(day, "endTime", e.target.value)
+                        }
+                        className="w-32"
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAvailabilityModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleServiceSubmit}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Card className="shadow-card">
         <CardHeader className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
@@ -376,7 +689,12 @@ export default function ServicesPage() {
                             <DropdownMenuContent align="end">
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem>Edit service</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEditService(service)}>
+                                Edit service
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEditAvailability(service)}>
+                                Edit availability
+                              </DropdownMenuItem>
                               <DropdownMenuItem>Duplicate service</DropdownMenuItem>
                               <DropdownMenuItem>View bookings</DropdownMenuItem>
                               <DropdownMenuSeparator />

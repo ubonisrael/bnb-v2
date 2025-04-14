@@ -41,7 +41,7 @@ const Header = () => {
           <a href="#templates" className="text-sm font-medium text-foreground hover:text-brand-600 transition-colors">Templates</a>
           <a href="#demo" className="text-sm font-medium text-foreground hover:text-brand-600 transition-colors">Demo</a>
 
-          <Button asChild className="bg-brand-500 hover:bg-brand-600 text-white" onClick={() => navigate.push('/auth/register')}>
+          <Button asChild className="bg-brand-500 cursor-pointer hover:bg-brand-600 text-white" onClick={() => navigate.push('/auth/register')}>
             <a>Get Started</a>
           </Button>
         </nav>

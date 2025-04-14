@@ -132,7 +132,7 @@ export default function DashboardPage() {
 
         <Card className="border-0 shadow-card">
           <CardHeader>
-            <CardTitle className="text-xl font-bold text-[#121212]">Recent Clients</CardTitle>
+            <CardTitle className="text-xl font-bold text-[#121212]">Recent Services</CardTitle>
             <CardDescription className="text-[#6E6E73]">New clients this week</CardDescription>
           </CardHeader>
           <CardContent>
@@ -148,7 +148,7 @@ export default function DashboardPage() {
                       <Users className="h-5 w-5 text-[#6E6E73]" />
                     </div>
                     <div>
-                      <div className="font-medium text-[#121212]">Client Name {i}</div>
+                      <div className="font-medium text-[#121212]">Sevice name {i}</div>
                       <div className="text-sm text-[#6E6E73]">First visit: Today</div>
                     </div>
                   </div>
@@ -158,7 +158,7 @@ export default function DashboardPage() {
           </CardContent>
           <CardFooter className="border-t border-[#E0E0E5] pt-4">
             <Button variant="outline" className="w-full gap-2 border-[#E0E0E5] bg-white text-[#121212]">
-              View All Clients
+              View All Services
               <ArrowUpRight className="h-4 w-4" />
             </Button>
           </CardFooter>

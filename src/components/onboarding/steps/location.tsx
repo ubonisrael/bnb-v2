@@ -7,6 +7,8 @@ import { useForm } from "react-hook-form"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { OnboardingFormData } from "../type"
+import { useEffect } from "react"
 
 const countries = [
   { value: "us", label: "United States" },
@@ -29,14 +31,14 @@ const locationSchema = z.object({
 type LocationData = z.infer<typeof locationSchema>
 
 interface LocationStepProps {
-  data: LocationData
+  data: OnboardingFormData
   onUpdate: (data: LocationData) => void
 }
 
 export function LocationStep({ data, onUpdate }: LocationStepProps) {
   const form = useForm<LocationData>({
     resolver: zodResolver(locationSchema),
-    defaultValues: data,
+    defaultValues: data.location,
   })
 
   function onSubmit(values: LocationData) {
@@ -44,14 +46,23 @@ export function LocationStep({ data, onUpdate }: LocationStepProps) {
   }
 
   // Update form data on every change for continuous saving
-  const watchedValues = form.watch()
-  if (
-    JSON.stringify(watchedValues) !== JSON.stringify(data) &&
-    form.formState.isValid &&
-    !form.formState.isSubmitting
-  ) {
-    onUpdate(watchedValues)
-  }
+  // const watchedValues = form.watch()
+  // if (
+  //   JSON.stringify(watchedValues) !== JSON.stringify(data) &&
+  //   form.formState.isValid &&
+  //   !form.formState.isSubmitting
+  // ) {
+  //   onUpdate(watchedValues)
+  // }
+
+  useEffect(() => {
+    const subscription = form.watch((values) => {
+      if (values && form.formState.isValid && !form.formState.isSubmitting) {
+        onUpdate(values as LocationData)
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [form, onUpdate])
 
   return (
     <Form {...form}>

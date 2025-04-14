@@ -22,12 +22,12 @@ const Hero = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button className="w-full sm:w-auto text-md px-8 py-6 bg-brand-500 hover:bg-brand-600 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all">
-              <Link href="/auth/register" className="flex items-center">
+            <Button className="w-full cursor-pointer sm:w-auto text-md px-8 py-6 bg-brand-500 hover:bg-brand-600 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all">
+              <Link href="/auth/register" className="flex cursor-pointer items-center">
                 Get Started <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
-            <Button variant="outline" className="w-full sm:w-auto text-md px-8 py-6 border-brand-200 text-brand-700 hover:bg-brand-50 rounded-lg">
+            <Button variant="outline" className="w-full cursor-pointer sm:w-auto text-md px-8 py-6 border-brand-200 text-brand-700 hover:bg-brand-50 rounded-lg">
               <Link href="/demo">View Demo</Link>
             </Button>
           </div>

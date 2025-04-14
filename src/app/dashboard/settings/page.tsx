@@ -8,6 +8,7 @@ import { SocialMediaSettings } from "@/components/settings/social-media-settings
 import { ProfileSettings } from "@/components/settings/profile-settings"
 import { NotificationPreferences } from "@/components/settings/notification-preferences"
 import { UserSettingsProvider } from "@/contexts/user-settings-context"
+import { BookingDaysSettings } from "@/components/settings/booking-days-settings"
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("profile")
@@ -21,11 +22,12 @@ export default function SettingsPage() {
         </div>
 
         <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
             <TabsTrigger value="social">Social Media</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="booking-days">Booking Days</TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile">
@@ -72,6 +74,18 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent>
                 <NotificationPreferences />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="booking-days">
+            <Card className="border-0 shadow-card">
+              <CardHeader>
+                <CardTitle>Booking Days & Hours</CardTitle>
+                <CardDescription>Set up your business working hours and availability</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <BookingDaysSettings />
               </CardContent>
             </Card>
           </TabsContent>

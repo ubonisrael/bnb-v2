@@ -8,7 +8,8 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Switch } from "@/components/ui/switch"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
+import { OnboardingFormData } from "../type"
+import { useEffect } from "react"
 const notificationSettingsSchema = z.object({
   cancelNoticeHours: z.coerce.number().min(0, { message: "Must be a positive number" }),
   emailSettings: z.object({
@@ -25,7 +26,7 @@ const notificationSettingsSchema = z.object({
 type NotificationSettingsData = z.infer<typeof notificationSettingsSchema>
 
 interface NotificationSettingsStepProps {
-  data: NotificationSettingsData
+  data: OnboardingFormData
   onUpdate: (data: NotificationSettingsData) => void
 }
 
@@ -33,15 +34,15 @@ export function NotificationSettingsStep({ data, onUpdate }: NotificationSetting
   const form = useForm<NotificationSettingsData>({
     resolver: zodResolver(notificationSettingsSchema),
     defaultValues: {
-      cancelNoticeHours: data.cancelNoticeHours || 24,
+      cancelNoticeHours: data.notificationSettings.cancelNoticeHours || 24,
       emailSettings: {
-        sendBookingConfirmations: data.emailSettings?.sendBookingConfirmations ?? true,
-        sendReminders: data.emailSettings?.sendReminders ?? true,
-        reminderHours: data.emailSettings?.reminderHours || 24,
-        sendCancellationNotices: data.emailSettings?.sendCancellationNotices ?? true,
-        sendNoShowNotifications: data.emailSettings?.sendNoShowNotifications ?? true,
-        sendFollowUpEmails: data.emailSettings?.sendFollowUpEmails ?? false,
-        followUpDelayHours: data.emailSettings?.followUpDelayHours || 48,
+        sendBookingConfirmations: data.notificationSettings.emailSettings.sendBookingConfirmations ?? true,
+        sendReminders: data.notificationSettings.emailSettings.sendReminders ?? true,
+        reminderHours: data.notificationSettings.emailSettings.reminderHours || 24,
+        sendCancellationNotices: data.notificationSettings.emailSettings.sendCancellationNotices ?? true,
+        sendNoShowNotifications: data.notificationSettings.emailSettings.sendNoShowNotifications ?? true,
+        sendFollowUpEmails: data.notificationSettings.emailSettings.sendFollowUpEmails ?? false,
+        followUpDelayHours: data.notificationSettings.emailSettings.followUpDelayHours || 48,
       },
     },
   })
@@ -50,15 +51,14 @@ export function NotificationSettingsStep({ data, onUpdate }: NotificationSetting
     onUpdate(values)
   }
 
-  // Update form data on every change for continuous saving
-  const watchedValues = form.watch()
-  if (
-    JSON.stringify(watchedValues) !== JSON.stringify(data) &&
-    form.formState.isValid &&
-    !form.formState.isSubmitting
-  ) {
-    onUpdate(watchedValues)
-  }
+
+  useEffect(() => {
+    const subscription = form.watch((values) => {
+      if (values && form.formState.isValid && !form.formState.isSubmitting) {
+        onUpdate(values as NotificationSettingsData)
+      }
+    })
+  }, [form, onUpdate])
 
   return (
     <Form {...form}>

@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
+import { OnboardingFormData } from "../type"
 
 // Define types for our data
 type ServiceCategory = {
@@ -44,7 +45,7 @@ type ServicesSetupData = {
 }
 
 interface ServicesSetupStepProps {
-  data: ServicesSetupData
+  data: OnboardingFormData
   onUpdate: (data: ServicesSetupData) => void
 }
 
@@ -122,7 +123,10 @@ export function ServicesSetupStep({ data, onUpdate }: ServicesSetupStepProps) {
 
     onUpdate({
       ...data,
-      categories: [...data.categories, newCategory],
+
+      services: data.servicesSetup.services,
+      categories: [...data.servicesSetup.categories, newCategory],
+
     })
 
     categoryForm.reset()
@@ -133,12 +137,12 @@ export function ServicesSetupStep({ data, onUpdate }: ServicesSetupStepProps) {
   const handleAddService = (values: Omit<Service, "id">) => {
     if (editingService) {
       // Update existing service
-      const updatedServices = data.services.map((service) =>
+      const updatedServices = data.servicesSetup.services.map((service) =>
         service.id === editingService.id ? { ...values, id: service.id } : service,
       )
 
       onUpdate({
-        ...data,
+        ...data.servicesSetup,
         services: updatedServices,
       })
     } else {
@@ -149,8 +153,8 @@ export function ServicesSetupStep({ data, onUpdate }: ServicesSetupStepProps) {
       }
 
       onUpdate({
-        ...data,
-        services: [...data.services, newService],
+        ...data.servicesSetup,
+        services: [...data.servicesSetup.services, newService],
       })
     }
 
@@ -162,8 +166,8 @@ export function ServicesSetupStep({ data, onUpdate }: ServicesSetupStepProps) {
   // Delete a service
   const handleDeleteService = (serviceId: string) => {
     onUpdate({
-      ...data,
-      services: data.services.filter((service) => service.id !== serviceId),
+      ...data.servicesSetup,
+      services: data.servicesSetup.services.filter((service) => service.id !== serviceId),
     })
   }
 
@@ -176,7 +180,7 @@ export function ServicesSetupStep({ data, onUpdate }: ServicesSetupStepProps) {
 
   // Get category name by ID
   const getCategoryName = (categoryId: string) => {
-    const category = data.categories.find((cat) => cat.id === categoryId)
+    const category = data.servicesSetup.categories.find((cat) => cat.id === categoryId)
     return category ? category.name : "Uncategorized"
   }
 
@@ -232,17 +236,17 @@ export function ServicesSetupStep({ data, onUpdate }: ServicesSetupStepProps) {
           </Dialog>
         </div>
 
-        {data.categories.length === 0 ? (
+        {data.servicesSetup.categories.length === 0 ? (
           <div className="rounded-md border border-dashed border-[#E0E0E5] p-6 text-center">
             <p className="text-sm text-[#6E6E73]">No categories yet. Add your first service category.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
-            {data.categories.map((category) => (
+            {data.servicesSetup.categories.map((category) => (
               <div key={category.id} className="rounded-md border border-[#E0E0E5] bg-[#F5F5F7]/50 p-3">
                 <div className="font-medium">{category.name}</div>
                 <div className="mt-1 text-xs text-[#6E6E73]">
-                  {data.services.filter((svc) => svc.categoryId === category.id).length} services
+                  {data.servicesSetup.services.filter((svc) => svc.categoryId === category.id).length} services
                 </div>
               </div>
             ))}
@@ -267,8 +271,8 @@ export function ServicesSetupStep({ data, onUpdate }: ServicesSetupStepProps) {
             <DialogTrigger asChild>
               <Button
                 size="sm"
-                disabled={data.categories.length === 0}
-                title={data.categories.length === 0 ? "Add a category first" : "Add a service"}
+                disabled={data.servicesSetup.categories.length === 0}
+                title={data.servicesSetup.categories.length === 0 ? "Add a category first" : "Add a service"}
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Add Service
@@ -312,7 +316,7 @@ export function ServicesSetupStep({ data, onUpdate }: ServicesSetupStepProps) {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {data.categories.map((category) => (
+                            {data.servicesSetup.categories.map((category) => (
                               <SelectItem key={category.id} value={category.id}>
                                 {category.name}
                               </SelectItem>
@@ -446,18 +450,18 @@ export function ServicesSetupStep({ data, onUpdate }: ServicesSetupStepProps) {
           </Dialog>
         </div>
 
-        {data.services.length === 0 ? (
+        {data.servicesSetup.services.length === 0 ? (
           <div className="rounded-md border border-dashed border-[#E0E0E5] p-6 text-center">
             <p className="text-sm text-[#6E6E73]">
-              {data.categories.length === 0
+              {data.servicesSetup.categories.length === 0
                 ? "Add a category first, then add your services"
                 : "No services yet. Add your first service."}
             </p>
           </div>
         ) : (
           <div className="space-y-4">
-            {data.categories.map((category) => {
-              const categoryServices = data.services.filter((svc) => svc.categoryId === category.id)
+            {data.servicesSetup.categories.map((category) => {
+              const categoryServices = data.servicesSetup.services.filter((svc) => svc.categoryId === category.id)
               if (categoryServices.length === 0) return null
 
               return (

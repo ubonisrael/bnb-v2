@@ -21,6 +21,7 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans antialiased`}>
         <Providers>
           {children}
+          <Toaster />
         </Providers>
       </body>
     </html>
@@ -30,3 +31,4 @@ export default function RootLayout({
 
 
 import './globals.css'
+import { Toaster } from "react-hot-toast"

@@ -1,3 +1,4 @@
+"use client"
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -39,7 +40,7 @@ const CardForm = () => {
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 bg-white rounded-3xl p-8">
             <div>
                 <label htmlFor="cardNumber" className="block text-sm font-medium text-gray-700">
                     Card number
@@ -49,7 +50,7 @@ const CardForm = () => {
                     type="text"
                     id="cardNumber"
                     placeholder="0000 0000 0000 0000"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="mt-1 block border px-4 py-3 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 />
                 {errors.cardNumber && <p className="text-red-500 text-sm mt-1">{errors.cardNumber.message}</p>}
             </div>
@@ -64,7 +65,7 @@ const CardForm = () => {
                         type="text"
                         id="expiryDate"
                         placeholder="MM/YY"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        className="mt-1 px-4 py-3 border block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     />
                     {errors.expiryDate && <p className="text-red-500 text-sm mt-1">{errors.expiryDate.message}</p>}
                 </div>
@@ -78,7 +79,7 @@ const CardForm = () => {
                         type="text"
                         id="cvc"
                         placeholder="CVC"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        className="mt-1 px-4 py-3 border block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     />
                     {errors.cvc && <p className="text-red-500 text-sm mt-1">{errors.cvc.message}</p>}
                 </div>
@@ -93,7 +94,7 @@ const CardForm = () => {
                     type="text"
                     id="cardholderName"
                     placeholder="Cardholder name"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="mt-1 px-4 py-3 border block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 />
                 {errors.cardholderName && <p className="text-red-500 text-sm mt-1">{errors.cardholderName.message}</p>}
             </div>

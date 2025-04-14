@@ -15,10 +15,11 @@ import { BookingTemplateStep } from "./steps/booking-template"
 import { PaymentDetailsStep } from "./steps/payment-details"
 import { NotificationSettingsStep } from "./steps/notification-settings"
 import { completeOnboarding } from "@/actions/onboarding"
+import { OnboardingFormData } from "./type"
 
 const steps = [
   { id: "business-info", title: "Business Information" },
-  { id: "business-type", title: "Business Type" },
+  // { id: "business-type", title: "Business Type" },
   { id: "location", title: "Location" },
   // { id: "team-size", title: "Team Size" },
   { id: "visual-settings", title: "Visual Settings" },
@@ -28,18 +29,24 @@ const steps = [
   { id: "notification-settings", title: "Notifications" },
 ]
 
+
+
+
+
 export function OnboardingWizard() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<OnboardingFormData>({
     businessInfo: {
       name: "",
       email: "",
       phone: "",
+      description: "",
+      category: ""
     },
-    businessType: {
-      category: "",
-      services: [],
-    },
+    // businessType: {
+    //   category: "",
+    //   services: [],
+    // },
     location: {
       address: "",
       city: "",
@@ -88,9 +95,12 @@ export function OnboardingWizard() {
       ...prev,
       [stepId]: data,
     }))
+    // console.log(stepId, data)
   }
 
   const goToNextStep = () => {
+    console.log(currentStepIndex)
+    console.log(steps.length)
     if (currentStepIndex < steps.length - 1) {
       setCurrentStepIndex(currentStepIndex + 1)
       window.scrollTo(0, 0)
@@ -164,15 +174,15 @@ export function OnboardingWizard() {
 
         <div className="px-6 py-6">
           {currentStep.id === "business-info" && (
-            <BusinessInfoStep data={formData.businessInfo} onUpdate={(data) => updateFormData("businessInfo", data)} />
+            <BusinessInfoStep data={formData} onUpdate={(data) => updateFormData("businessInfo", data)} />
           )}
 
-          {currentStep.id === "business-type" && (
+          {/* {currentStep.id === "business-type" && (
             <BusinessTypeStep data={formData.businessType} onUpdate={(data) => updateFormData("businessType", data)} />
-          )}
+          )} */}
 
           {currentStep.id === "location" && (
-            <LocationStep data={formData.location} onUpdate={(data) => updateFormData("location", data)} />
+            <LocationStep data={formData} onUpdate={(data) => updateFormData("location", data)} />
           )}
 
           {/* {currentStep.id === "team-size" && (
@@ -187,7 +197,7 @@ export function OnboardingWizard() {
           )}
 
           {currentStep.id === "services-setup" && (
-            <ServicesSetupStep data={formData.servicesSetup} onUpdate={(data) => updateFormData("servicesSetup", data)} />
+            <ServicesSetupStep data={formData} onUpdate={(data) => updateFormData("servicesSetup", data)} />
           )}
 
           {/* {currentStep.id === "booking-template" && (
@@ -199,14 +209,14 @@ export function OnboardingWizard() {
 
           {currentStep.id === "payment-details" && (
             <PaymentDetailsStep
-              data={formData.paymentDetails}
+              data={formData}
               onUpdate={(data) => updateFormData("paymentDetails", data)}
             />
           )}
 
           {currentStep.id === "notification-settings" && (
             <NotificationSettingsStep
-              data={formData.notificationSettings}
+              data={formData}
               onUpdate={(data) => updateFormData("notificationSettings", data)}
             />
           )}
