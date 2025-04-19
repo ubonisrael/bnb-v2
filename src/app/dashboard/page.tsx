@@ -5,9 +5,17 @@ import { CalendarDays, Clock, DollarSign, Users, Plus, ArrowUpRight } from "luci
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AppointmentDialog } from "@/components/appointments/appointment-dialog"
+import { AnalyticsResponse } from "@/types/response"
+import { useQuery } from "@tanstack/react-query"
+import ApiService from "@/services/api-service"
 
 export default function DashboardPage() {
   const [appointmentDialogOpen, setAppointmentDialogOpen] = useState(false)
+
+  const { data: analytics } = useQuery({
+    queryKey: ["analytics"],
+    queryFn: () => new ApiService().get<AnalyticsResponse>("/booking/analytics"),
+  })
 
   return (
     <div className="space-y-6">
@@ -29,7 +37,7 @@ export default function DashboardPage() {
         <Card className="border-0 shadow-card">
           <CardHeader className="pb-2">
             <CardDescription className="text-[#6E6E73]">Total Revenue</CardDescription>
-            <CardTitle className="text-3xl font-bold text-[#121212]">$12,548</CardTitle>
+            <CardTitle className="text-3xl font-bold text-[#121212]">${analytics?.data.summary.total_earnings}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-sm font-medium text-[#4CD964]">+12.5% from last month</div>
@@ -45,7 +53,7 @@ export default function DashboardPage() {
         <Card className="border-0 shadow-card">
           <CardHeader className="pb-2">
             <CardDescription className="text-[#6E6E73]">Total Appointments</CardDescription>
-            <CardTitle className="text-3xl font-bold text-[#121212]">248</CardTitle>
+            <CardTitle className="text-3xl font-bold text-[#121212]">{analytics?.data.summary.total_bookings}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-sm font-medium text-[#4CD964]">+8.2% from last month</div>
@@ -61,7 +69,7 @@ export default function DashboardPage() {
         <Card className="border-0 shadow-card">
           <CardHeader className="pb-2">
             <CardDescription className="text-[#6E6E73]">Total Clients</CardDescription>
-            <CardTitle className="text-3xl font-bold text-[#121212]">156</CardTitle>
+            <CardTitle className="text-3xl font-bold text-[#121212]">{analytics?.data.summary.total_unique_customers}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-sm font-medium text-[#4CD964]">+4.6% from last month</div>
@@ -96,7 +104,7 @@ export default function DashboardPage() {
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-xl font-bold text-[#121212]">Today's Appointments</CardTitle>
-              <CardDescription className="text-[#6E6E73]">You have 8 appointments today</CardDescription>
+              <CardDescription className="text-[#6E6E73]">You have {analytics?.data.summary.total_bookings} appointments today</CardDescription>
             </div>
             <Button variant="outline" className="gap-2 border-[#E0E0E5] bg-white text-[#121212]">
               View All

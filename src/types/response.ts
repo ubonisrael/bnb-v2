@@ -1,0 +1,145 @@
+export interface AnalyticsResponse {
+    status: boolean;
+    message: string;
+    data: AnalyticsData;
+}
+
+export interface Summary {
+    total_bookings: number;
+    total_earnings: number;
+    total_unique_customers: number;
+    total_upcoming_bookings: number;
+}
+
+export interface AnalyticsData {
+    summary: Summary;
+    ageCategory: any[];
+    gender: any[];
+    topCustomers: any[];
+}
+
+export interface SettingsResponse {
+    status: boolean;
+    message: string;
+    data: SettingsData;
+}
+
+export interface SettingsData {
+    url: string;
+    minimum_notice: number;
+    maximum_notice: number;
+    time_zone: string;
+    welcome_message: string;
+    sunday_enabled: boolean;
+    sunday_opening: number;
+    sunday_closing: number;
+    monday_enabled: boolean;
+    monday_opening: number;
+    monday_closing: number;
+    tuesday_enabled: boolean;
+    tuesday_opening: number;
+    tuesday_closing: number;
+    wednesday_enabled: boolean;
+    wednesday_opening: number;
+    wednesday_closing: number;
+    thursday_enabled: boolean;
+    thursday_opening: number;
+    thursday_closing: number;
+    friday_enabled: boolean;
+    friday_opening: number;
+    friday_closing: number;
+    saturday_enabled: boolean;
+    saturday_opening: number;
+    saturday_closing: number;
+}
+
+export interface BusinessDataResponse {
+    status: boolean;
+    message: string;
+    data: BusinessData;
+}
+
+export interface BusinessData {
+    name: string;
+    type: string;
+    email: string;
+    phone: string;
+    logo: null;
+    desc: string;
+    address: string;
+    city: string;
+    state: string;
+    country: string;
+    postal_code: string;
+    cancellation_policy: number;
+    email_confirmation: boolean;
+    appointment_reminders: boolean;
+    reminder_time: number;
+    cancellation_notices: boolean;
+    no_show_notifications: boolean;
+    follow_up_emails: boolean;
+    follow_up_delay: number;
+    primary_clr: string;
+    accent_clr: null;
+    website_url: null;
+    facebook_url: null;
+    linkedin_url: null;
+    twitter_url: null;
+    instagram_url: null;
+    tiktok_url: null;
+    youtube_url: null;
+    uuid: string;
+}
+
+export interface SignupResponse {
+    status: boolean;
+    message: string;
+    token: string;
+}
+
+export interface UserResponse {
+    status: boolean;
+    message: string;
+    data: UserData;
+}
+
+export interface UserData {
+    uuid: string;
+    name: string;
+    email: string;
+    has_google: boolean;
+    has_password: boolean;
+}
+
+export interface SignoutResponse {
+    status: boolean;
+    message: string;
+}
+
+export interface AuthResponse {
+    status: boolean;
+    message: string;
+    data: Data;
+    token: Token;
+}
+
+export interface Data {
+    uuid: string;
+    name: string;
+    email: string;
+}
+
+export interface Token {
+    token: string;
+    tokenExpires: number;
+    refreshToken: string;
+    refreshTokenExpires: number;
+}
+
+export interface ErrorResponse {
+    status: boolean;
+    errors: {
+        field: string;
+        message: string;
+    }[]
+}

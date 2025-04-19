@@ -22,6 +22,9 @@ import {
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useQuery } from "@tanstack/react-query"
+import ApiService from "@/services/api-service"
+import { BusinessDataResponse } from "@/types/response"
 
 const sidebarItems = [
   {
@@ -50,11 +53,11 @@ const sidebarItems = [
     href: "/dashboard/templates",
     icon: FileText,
   },
-  {
-    title: "Analytics",
-    href: "/dashboard/analytics",
-    icon: BarChart3,
-  },
+  // {
+  //   title: "Analytics",
+  //   href: "/dashboard/analytics",
+  //   icon: BarChart3,
+  // },
   {
     title: "Settings",
     href: "/dashboard/settings",
@@ -65,6 +68,11 @@ const sidebarItems = [
 export function Sidebar() {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
+
+  // const { data: business } = useQuery({
+  //   queryKey: ["business"],
+  //   queryFn: () => new ApiService().get<BusinessDataResponse>("/my-business"),
+  // })
 
   // Check for saved state on mount
   useEffect(() => {
@@ -142,9 +150,11 @@ export function Sidebar() {
       <div className="mt-auto p-4">
         {!collapsed ? (
           <div className="flex items-center gap-3 rounded-lg bg-[#2a3352] p-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white">SB</div>
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white">
+              {/* {business?.data.name.charAt(0)} */}
+            </div>
             <div>
-              <p className="text-sm font-medium">Salon Beautiful</p>
+              {/* <p className="text-sm font-medium">{business?.data.name}</p> */}
               <p className="text-xs text-[#a4b0d3]">Business Account</p>
             </div>
           </div>

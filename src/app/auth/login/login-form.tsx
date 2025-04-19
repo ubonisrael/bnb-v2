@@ -15,6 +15,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { ErrorResponse, AuthResponse } from "@/types/response"
+import CookieService from "@/services/cookie-service"
+import { BANKNBOOK_AUTH_COOKIE_NAME, BANKNBOOK_AUTH_REFRESH_COOKIE_NAME } from "@/utils/strings"
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -37,26 +40,29 @@ export function LoginForm() {
     },
   })
 
-  const loginMutation = useMutation({
+  const loginMutation = useMutation<AuthResponse, ErrorResponse, LoginFormValues>({
     mutationFn: (data: LoginFormValues) => {
       toast.loading("Signing in...", { id: "login-loading" })
       return new ApiService().post('/auth/login/email', data)
     },
-    onSuccess: (data: any) => {
+    onSuccess: (data: AuthResponse) => {
       toast.dismiss("login-loading")
-      toast.success("Signed in successfully", { id: "login-success" })
+      toast.remove("login-loading")
+      new CookieService().setCookieWithExpiry(BANKNBOOK_AUTH_COOKIE_NAME, data.token.token, data.token.tokenExpires)
+      new CookieService().setCookieWithExpiry(BANKNBOOK_AUTH_REFRESH_COOKIE_NAME, data.token.refreshToken, data.token.refreshTokenExpires)
+      toast.success(data.message, { id: "login-success" })
       router.push("/dashboard")
     },
-    onError: (error: any) => {
+    onError: (error: ErrorResponse) => {
       toast.dismiss("login-loading")
-      console.error("Login failed:", error)
-      toast.error("Invalid email or password", { id: "login-error" })
+      toast.remove("login-loading")
+      toast.error(error.errors[0].message, { id: "login-error" })
     },
   })
 
   async function onSubmit(data: LoginFormValues) {
     try {
-      loginMutation.mutate(data)
+      await loginMutation.mutateAsync(data)
     } catch (error: any) {
       toast.dismiss("login-loading")
       console.error("Login failed:", error)

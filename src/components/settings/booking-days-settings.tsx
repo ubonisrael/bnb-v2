@@ -7,6 +7,12 @@ import { Switch } from "@/components/ui/switch"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import ApiService from "@/services/api-service"
+import { SettingsResponse } from "@/types/response"
+import { useMutation } from "@tanstack/react-query"
+import { minutesToTimeString, timeStringToMinutes } from "@/utils/time"
+import toast from "react-hot-toast"
+import { Loader2 } from "lucide-react"
 
 interface WorkingHours {
     isOpen: boolean
@@ -21,15 +27,19 @@ interface BookingDaysSettingsProps {
 }
 
 export function BookingDaysSettings({ initialData }: BookingDaysSettingsProps) {
+    // const { data: settings } = useQuery({
+    //     queryKey: ["settings"],
+    //     queryFn: () => new ApiService().get<SettingsResponse>("/booking/settings"),
+    // })
     const [workingHours, setWorkingHours] = useState<{ [key: string]: WorkingHours }>(
         initialData || {
-            monday: { isOpen: true, startTime: "09:00", endTime: "17:00" },
-            tuesday: { isOpen: true, startTime: "09:00", endTime: "17:00" },
-            wednesday: { isOpen: true, startTime: "09:00", endTime: "17:00" },
-            thursday: { isOpen: true, startTime: "09:00", endTime: "17:00" },
-            friday: { isOpen: true, startTime: "09:00", endTime: "17:00" },
-            saturday: { isOpen: false, startTime: "09:00", endTime: "17:00" },
-            sunday: { isOpen: false, startTime: "09:00", endTime: "17:00" },
+            monday: { isOpen: false, startTime: minutesToTimeString(540), endTime: minutesToTimeString(1020) },
+            tuesday: { isOpen: false, startTime: minutesToTimeString(540), endTime: minutesToTimeString(1020) },
+            wednesday: { isOpen: false, startTime: minutesToTimeString(540), endTime: minutesToTimeString(1020) },
+            thursday: { isOpen: false, startTime: minutesToTimeString(540), endTime: minutesToTimeString(1020) },
+            friday: { isOpen: false, startTime: minutesToTimeString(540), endTime: minutesToTimeString(1020) },
+            saturday: { isOpen: false, startTime: minutesToTimeString(540), endTime: minutesToTimeString(1020) },
+            sunday: { isOpen: false, startTime: minutesToTimeString(540), endTime: minutesToTimeString(1020) },
         }
     )
 
@@ -43,9 +53,64 @@ export function BookingDaysSettings({ initialData }: BookingDaysSettingsProps) {
         }))
     }
 
+    const updateBookingDaysMutation = useMutation({
+        mutationFn: async (data: { [key: string]: WorkingHours }) => {
+            const controller = new AbortController();
+            const signal = controller.signal;
+
+            try {
+                const response = await new ApiService().post<SettingsResponse>(
+                    '/booking/settings/days',
+                    {
+                        monday_enabled: data.monday.isOpen,
+                        monday_opening: timeStringToMinutes(data.monday.startTime),
+                        monday_closing: timeStringToMinutes(data.monday.endTime),
+                        tuesday_enabled: data.tuesday.isOpen,
+                        tuesday_opening: timeStringToMinutes(data.tuesday.startTime),
+                        tuesday_closing: timeStringToMinutes(data.tuesday.endTime),
+                        wednesday_enabled: data.wednesday.isOpen,
+                        wednesday_opening: timeStringToMinutes(data.wednesday.startTime),
+                        wednesday_closing: timeStringToMinutes(data.wednesday.endTime),
+                        thursday_enabled: data.thursday.isOpen,
+                        thursday_opening: timeStringToMinutes(data.thursday.startTime),
+                        thursday_closing: timeStringToMinutes(data.thursday.endTime),
+                        friday_enabled: data.friday.isOpen,
+                        friday_opening: timeStringToMinutes(data.friday.startTime),
+                        friday_closing: timeStringToMinutes(data.friday.endTime),
+                        saturday_enabled: data.saturday.isOpen,
+                        saturday_opening: timeStringToMinutes(data.saturday.startTime),
+                        saturday_closing: timeStringToMinutes(data.saturday.endTime),
+                        sunday_enabled: data.sunday.isOpen,
+                        sunday_opening: timeStringToMinutes(data.sunday.startTime),
+                        sunday_closing: timeStringToMinutes(data.sunday.endTime),
+                    },
+                    { signal }
+                );
+                return response;
+            } catch (error: unknown) {
+                if (error instanceof Error && error.name === 'AbortError') {
+                    toast.error('Request was cancelled');
+                }
+                throw error;
+            }
+        },
+        onMutate: () => {
+            toast.loading('Saving booking days...', { id: 'booking-days-save' });
+        },
+        onSuccess: (response) => {
+            toast.success('Booking days updated successfully', { id: 'booking-days-save' });
+        },
+        onError: (error: Error) => {
+            toast.error(error?.message || 'Failed to update booking days', { id: 'booking-days-save' });
+        },
+    });
+
     const handleSave = async () => {
-        // TODO: Implement save functionality
-        console.log("Saving working hours:", workingHours)
+        try {
+            await updateBookingDaysMutation.mutateAsync(workingHours);
+        } catch (error) {
+            console.error('Error saving booking days:', error);
+        }
     }
 
     const days = [
@@ -98,7 +163,19 @@ export function BookingDaysSettings({ initialData }: BookingDaysSettingsProps) {
             </div>
 
             <div className="flex justify-end">
-                <Button onClick={handleSave}>Save Changes</Button>
+                <Button
+                    onClick={handleSave}
+                    disabled={updateBookingDaysMutation.isPending}
+                >
+                    {updateBookingDaysMutation.isPending ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Saving...
+                        </>
+                    ) : (
+                        'Save Changes'
+                    )}
+                </Button>
             </div>
         </div>
     )

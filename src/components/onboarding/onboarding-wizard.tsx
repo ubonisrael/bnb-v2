@@ -16,6 +16,7 @@ import { PaymentDetailsStep } from "./steps/payment-details"
 import { NotificationSettingsStep } from "./steps/notification-settings"
 import { completeOnboarding } from "@/actions/onboarding"
 import { OnboardingFormData } from "./type"
+import { useOnboardingMutation } from '@/hooks/use-onboarding-mutation';
 
 const steps = [
   { id: "business-info", title: "Business Information" },
@@ -28,10 +29,6 @@ const steps = [
   { id: "payment-details", title: "Payment Details" },
   { id: "notification-settings", title: "Notifications" },
 ]
-
-
-
-
 
 export function OnboardingWizard() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
@@ -85,8 +82,8 @@ export function OnboardingWizard() {
       },
     },
   })
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
+  const onboardingMutation = useOnboardingMutation()
 
   const currentStep = steps[currentStepIndex]
 
@@ -115,15 +112,10 @@ export function OnboardingWizard() {
   }
 
   const handleFinish = async () => {
-    setIsSubmitting(true)
-
     try {
-      await completeOnboarding(formData)
-      router.push("/onboarding/complete")
+      await onboardingMutation.mutateAsync(formData)
     } catch (error) {
       console.error("Failed to complete onboarding:", error)
-    } finally {
-      setIsSubmitting(false)
     }
   }
 
@@ -234,8 +226,8 @@ export function OnboardingWizard() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           ) : (
-            <Button onClick={handleFinish} disabled={isSubmitting}>
-              {isSubmitting ? (
+            <Button onClick={handleFinish} disabled={onboardingMutation.isPending}>
+              {onboardingMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Finishing up...

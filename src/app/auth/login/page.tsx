@@ -9,7 +9,7 @@ export default function LoginPage() {
         <div className="mx-auto w-full max-w-sm lg:w-96">
           <div className="flex flex-col items-center">
             <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[#7B68EE]">
-              <span className="text-xl font-bold text-white">B</span>
+              <Image src="/logo.png" alt="logo" width={100} height={100} />
             </div>
             <h2 className="mt-6 text-2xl font-bold tracking-tight text-[#121212]">Sign in to your account</h2>
             <p className="mt-2 text-sm text-[#6E6E73]">

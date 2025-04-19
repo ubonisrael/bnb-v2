@@ -1,4 +1,4 @@
-import { Bell, Search, Calendar, ChevronDown, User, Settings } from "lucide-react"
+import { Bell, Search, Calendar, ChevronDown, User, Settings, LogOut, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,6 +12,10 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { useLogoutMutation } from '@/hooks/use-logout-mutation'
+import { useQuery } from "@tanstack/react-query"
+import ApiService from "@/services/api-service"
+import { UserResponse } from "@/types/response"
 
 export function Header() {
   const today = new Date()
@@ -21,9 +25,16 @@ export function Header() {
     day: "numeric",
     year: "numeric",
   })
+  const logoutMutation = useLogoutMutation()
+
+  // const { data: user } = useQuery({
+  //   queryKey: ["user"],
+  //   staleTime: 60 * 1000,
+  //   queryFn: () => new ApiService().get<UserResponse>("/user/profile"),
+  // })
 
   return (
-    <header className="flex h-16 items-center gap-4 border-b bg-white px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
       <div className="hidden items-center gap-2 md:flex">
         <Calendar className="h-5 w-5 text-primary" />
         <span className="font-medium">{formattedDate}</span>
@@ -99,8 +110,8 @@ export function Header() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full">
               <Avatar className="h-8 w-8 border-2 border-white">
-                <AvatarImage src="/placeholder.svg" alt="User" />
-                <AvatarFallback>SB</AvatarFallback>
+                {/* <AvatarImage src={user?.profilePicture || "/placeholder.svg"} alt="User" /> */}
+                {/* <AvatarFallback>{user?.data.name.charAt(0)}</AvatarFallback> */}
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
@@ -116,7 +127,22 @@ export function Header() {
               Settings
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Log out</DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => logoutMutation.mutate()}
+              disabled={logoutMutation.isPending}
+            >
+              {logoutMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Logging out...
+                </>
+              ) : (
+                <>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log out
+                </>
+              )}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

@@ -4,21 +4,22 @@ import { useRouter } from "next/navigation"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { ArrowRight, Loader2 } from "lucide-react"
+import { ArrowRight, Loader2, Eye, EyeOff } from "lucide-react"
 import { useMutation } from "@tanstack/react-query"
 import ApiService from "@/services/api-service"
-
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import toast from "react-hot-toast";
+import { ErrorResponse, AuthResponse, SignupResponse } from "@/types/response";
+import CookieService from "@/services/cookie-service";
+import { BANKNBOOK_AUTH_COOKIE_NAME, BANKNBOOK_AUTH_REFRESH_COOKIE_NAME } from "@/utils/strings";
 
 const registerSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
-  phone: z.string().min(10, { message: "Please enter a valid phone number" }),
-  bio: z.string().optional(),
   password: z.string().min(8, { message: "Password must be at least 8 characters" }),
 })
 
@@ -26,42 +27,56 @@ type RegisterFormValues = z.infer<typeof registerSchema>
 
 export function RegisterForm() {
   const router = useRouter()
+  const [showPassword, setShowPassword] = useState(false)
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       name: "",
       email: "",
-      phone: "",
-      bio: "",
       password: "",
     },
   })
 
-  const registerMutation = useMutation({
+  const verifyEmailMutation = useMutation<AuthResponse, ErrorResponse, { token: string }>({
+    mutationFn: (data: { token: string }) => {
+      return new ApiService().post<AuthResponse>('/auth/verify-email', data)
+    },
+    onSuccess: (data: AuthResponse) => {
+      new CookieService().setCookieWithExpiry(BANKNBOOK_AUTH_COOKIE_NAME, data.token.token, data.token.tokenExpires)
+      new CookieService().setCookieWithExpiry(BANKNBOOK_AUTH_REFRESH_COOKIE_NAME, data.token.refreshToken, data.token.refreshTokenExpires)
+      toast.success(data.message, { id: "register-success" })
+      toast.remove("register-loading")
+      router.push("/auth/login")
+    },
+    onError: (error: ErrorResponse) => {
+      toast.error(error.errors[0].message, { id: "register-error" })
+    },
+  })
+
+  const registerMutation = useMutation<SignupResponse, ErrorResponse, RegisterFormValues>({
     mutationFn: (data: RegisterFormValues) => {
       toast.loading("Creating account...", { id: "register-loading" })
-      return new ApiService().post('/auth/signup', data)
+      return new ApiService().post<SignupResponse>('/auth/signup', data)
     },
-    onSuccess: (data: any) => {
-      console.log(data)
+    onSuccess: async (data: SignupResponse) => {
+      toast.loading("Setting up account...", { id: "register-loading" })
       toast.dismiss("register-loading")
-      toast.success("Account created successfully", { id: "register-success" })
-      router.push("/onboarding")
+      await verifyEmailMutation.mutateAsync({ token: data.token })
+
     },
-    onError: (error: any) => {
+    onError: (error: ErrorResponse) => {
       toast.dismiss("register-loading")
-      console.error("Registration failed:", error)
-      toast.error("Error creating account", { id: "register-error" })
+      toast.remove("register-loading")
+      toast.error(error.errors[0].message, { id: "register-error" })
     },
   })
 
   async function onSubmit(data: RegisterFormValues) {
     try {
-      registerMutation.mutate(data)
+      registerMutation.mutateAsync(data)
     } catch (error: any) {
       toast.dismiss("register-loading")
-      console.error("Registration failed:", error)
       toast.error("Error creating account", { id: "register-error" })
     }
   }
@@ -99,44 +114,31 @@ export function RegisterForm() {
 
         <FormField
           control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Phone Number</FormLabel>
-              <FormControl>
-                <Input type="tel" placeholder="Enter your phone number" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="bio"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Bio (Optional)</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Tell us about yourself..."
-                  className="min-h-[100px] resize-none"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
           name="password"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="Create a password" {...field} />
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Create a password"
+                    {...field}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
