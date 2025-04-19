@@ -27,7 +27,7 @@ interface BookingDaysSettingsProps {
 }
 
 export function BookingDaysSettings({ initialData }: BookingDaysSettingsProps) {
-    // const { data: settings } = useQuery({
+    // const { dgata: settings } = useQuery({
     //     queryKey: ["settings"],
     //     queryFn: () => new ApiService().get<SettingsResponse>("/booking/settings"),
     // })
