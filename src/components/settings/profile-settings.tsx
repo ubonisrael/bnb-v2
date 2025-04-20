@@ -8,13 +8,16 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Loader2, Upload, X } from "lucide-react"
 import Image from "next/image"
+import { useMutation, useQuery } from "@tanstack/react-query"
+import toast from "react-hot-toast"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { toast } from "@/components/ui/use-toast"
 import { useUserSettings } from "@/contexts/user-settings-context"
+import ApiService from "@/services/api-service"
+import { BusinessDataResponse, SettingsResponse } from "@/types/response"
 
 const profileSchema = z.object({
   businessName: z.string().min(2, "Business name must be at least 2 characters"),
@@ -32,61 +35,116 @@ const profileSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileSchema>
 
 export function ProfileSettings() {
-  const { settings, updateSettings, isLoading: settingsLoading } = useUserSettings()
-  const [isSaving, setIsSaving] = useState(false)
-  const [logoUrl, setLogoUrl] = useState<string | null>(settings.profile.logoUrl)
+  // const { settings, updateSettings, isLoading: settingsLoading } = useUserSettings()
+
+  const [isUploading, setIsUploading] = useState(false)
+
+  const { data: business, isLoading } = useQuery<BusinessDataResponse>({
+    queryKey: ["business"],
+    queryFn: () => new ApiService().get("/my-business"),
+  })
+
+  const [logoUrl, setLogoUrl] = useState<string | null>(business?.data.logo || null)
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      ...settings.profile,
-      logoUrl: settings.profile.logoUrl || "",
+      address: business?.data.address,
+      city: business?.data.city,
+      state: business?.data.state,
+      postalCode: business?.data.postal_code,
+      country: business?.data.country,
+      bio: business?.data.desc,
+      businessName: business?.data.name,
+      email: business?.data.email,
+      phone: business?.data.phone,
+      logoUrl: business?.data.logo,
     },
   })
 
-  async function onSubmit(values: ProfileFormValues) {
-    setIsSaving(true)
+  // Handle logo upload
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
 
+    setIsUploading(true)
     try {
-      // Include the logo URL in the form values
-      const updatedValues = {
-        ...values,
-        logoUrl: logoUrl || "",
+      toast.loading('Uploading logo...', { id: 'logo-upload' })
+
+      // Create form data
+      const formData = new FormData()
+      formData.append('file', file)
+
+      // Upload to IPFS via API route
+      const response = await fetch('/api/ipfs/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to upload logo')
       }
 
-      await updateSettings("profile", updatedValues)
+      const data = await response.json()
 
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully.",
-      })
-    } catch (error) {
-      console.error("Failed to update profile:", error)
-      toast({
-        title: "Error",
-        description: "Failed to update your profile. Please try again.",
-        variant: "destructive",
-      })
+      // Update local state
+      setLogoUrl(data.url)
+      form.setValue("logoUrl", data.url)
+
+      toast.success('Logo uploaded successfully', { id: 'logo-upload' })
+    } catch (error: unknown) {
+      console.error("Failed to upload logo:", error)
+      toast.error('Failed to upload logo', { id: 'logo-upload' })
     } finally {
-      setIsSaving(false)
-    }
-  }
-
-  // Handle logo upload
-  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      // In a real app, you would upload this to a server and get back a URL
-      // For demo purposes, we're using a local object URL
-      const objectUrl = URL.createObjectURL(file)
-      setLogoUrl(objectUrl)
-      form.setValue("logoUrl", objectUrl)
+      setIsUploading(false)
     }
   }
 
   const removeLogo = () => {
     setLogoUrl(null)
     form.setValue("logoUrl", "")
+  }
+
+  const updateProfileMutation = useMutation({
+    mutationFn: async (values: ProfileFormValues) => {
+      const controller = new AbortController();
+      const signal = controller.signal;
+
+      try {
+        const response = await new ApiService().patch<SettingsResponse>(
+          '/my-business-info',
+          {
+            ...values,
+            logoUrl: logoUrl || "",
+          },
+          { signal }
+        );
+        return response;
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          toast.error('Request was cancelled');
+        }
+        throw error;
+      }
+    },
+    onMutate: () => {
+      toast.loading('Saving profile...', { id: 'profile-save' });
+    },
+    onSuccess: (response) => {
+      toast.success('Profile updated successfully', { id: 'profile-save' });
+      // updateSettings("profile", response.data);
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || 'Failed to update profile', { id: 'profile-save' });
+    },
+  });
+
+  async function onSubmit(values: ProfileFormValues) {
+    try {
+      await updateProfileMutation.mutateAsync(values);
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+    }
   }
 
   return (
@@ -98,7 +156,6 @@ export function ProfileSettings() {
         </div>
 
         <div className="space-y-4">
-          {/* Use FormField for the logo to fix the context issue */}
           <FormField
             control={form.control}
             name="logoUrl"
@@ -109,7 +166,7 @@ export function ProfileSettings() {
                   {logoUrl ? (
                     <div className="relative h-40 w-40">
                       <Image
-                        src={logoUrl || "/placeholder.svg"}
+                        src={logoUrl}
                         alt="Business Logo"
                         fill
                         className="rounded-md object-contain"
@@ -120,6 +177,7 @@ export function ProfileSettings() {
                         size="icon"
                         className="absolute -right-2 -top-2 h-7 w-7 rounded-full border-gray-200 bg-white"
                         onClick={removeLogo}
+                        disabled={isUploading}
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -141,6 +199,7 @@ export function ProfileSettings() {
                               accept="image/*"
                               className="sr-only"
                               onChange={handleLogoUpload}
+                              disabled={isUploading}
                             />
                           </label>
                           <p className="pl-1">or drag and drop</p>
@@ -288,8 +347,11 @@ export function ProfileSettings() {
         </div>
 
         <div className="flex justify-end">
-          <Button type="submit" disabled={isSaving || settingsLoading}>
-            {isSaving ? (
+          <Button
+            type="submit"
+            disabled={updateProfileMutation.isPending || isUploading}
+          >
+            {updateProfileMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Saving...

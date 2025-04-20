@@ -5,12 +5,15 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Instagram, Facebook, Twitter, Linkedin, Youtube, TwitterIcon as TikTok, Globe, Loader2 } from "lucide-react"
+import { useMutation } from "@tanstack/react-query"
+import toast from "react-hot-toast"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { toast } from "@/components/ui/use-toast"
 import { useUserSettings } from "@/contexts/user-settings-context"
+import ApiService from "@/services/api-service"
+import { BusinessDataResponse } from "@/types/response"
 
 const socialMediaSchema = z.object({
   website: z.string().url("Please enter a valid URL").or(z.string().length(0)),
@@ -26,32 +29,56 @@ type SocialMediaFormValues = z.infer<typeof socialMediaSchema>
 
 export function SocialMediaSettings() {
   const { settings, updateSettings, isLoading: settingsLoading } = useUserSettings()
-  const [isSaving, setIsSaving] = useState(false)
 
   const form = useForm<SocialMediaFormValues>({
     resolver: zodResolver(socialMediaSchema),
     defaultValues: settings.socialMedia,
   })
 
+  const updateSocialMediaMutation = useMutation({
+    mutationFn: async (values: SocialMediaFormValues) => {
+      const controller = new AbortController();
+      const signal = controller.signal;
+
+      try {
+        const response = await new ApiService().patch<BusinessDataResponse>(
+          '/my-business-socials',
+          {
+            website: values.website,
+            instagram: values.instagram,
+            facebook: values.facebook,
+            twitter: values.twitter,
+            linkedin: values.linkedin,
+            youtube: values.youtube,
+            tiktok: values.tiktok,
+          },
+          { signal }
+        );
+        return response;
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          toast.error('Request was cancelled');
+        }
+        throw error;
+      }
+    },
+    onMutate: () => {
+      toast.loading('Saving social media links...', { id: 'social-media-save' });
+    },
+    onSuccess: (response) => {
+      toast.success('Social media links updated successfully', { id: 'social-media-save' });
+      updateSettings("socialMedia", response.data);
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || 'Failed to update social media links', { id: 'social-media-save' });
+    },
+  });
+
   async function onSubmit(values: SocialMediaFormValues) {
-    setIsSaving(true)
-
     try {
-      await updateSettings("socialMedia", values)
-
-      toast({
-        title: "Social media links updated",
-        description: "Your social media links have been saved successfully.",
-      })
+      await updateSocialMediaMutation.mutateAsync(values);
     } catch (error) {
-      console.error("Failed to save social media links:", error)
-      toast({
-        title: "Error",
-        description: "Failed to save your social media links. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsSaving(false)
+      console.error("Failed to save social media links:", error);
     }
   }
 
@@ -192,8 +219,11 @@ export function SocialMediaSettings() {
         </div>
 
         <div className="flex justify-end">
-          <Button type="submit" disabled={isSaving || settingsLoading}>
-            {isSaving ? (
+          <Button
+            type="submit"
+            disabled={updateSocialMediaMutation.isPending || settingsLoading}
+          >
+            {updateSocialMediaMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Saving...

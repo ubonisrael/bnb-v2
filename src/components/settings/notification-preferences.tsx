@@ -5,14 +5,17 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Loader2 } from "lucide-react"
+import { useMutation } from "@tanstack/react-query"
+import toast from "react-hot-toast"
 
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
-import { toast } from "@/components/ui/use-toast"
 import { useUserSettings } from "@/contexts/user-settings-context"
+import ApiService from "@/services/api-service"
+import { BusinessDataResponse } from "@/types/response"
 
 const notificationSchema = z.object({
   email: z.object({
@@ -34,32 +37,52 @@ type NotificationFormValues = z.infer<typeof notificationSchema>
 
 export function NotificationPreferences() {
   const { settings, updateSettings, isLoading: settingsLoading } = useUserSettings()
-  const [isSaving, setIsSaving] = useState(false)
 
   const form = useForm<NotificationFormValues>({
     resolver: zodResolver(notificationSchema),
     defaultValues: settings.notifications,
   })
 
+  const updateNotificationMutation = useMutation({
+    mutationFn: async (values: NotificationFormValues) => {
+      const controller = new AbortController();
+      const signal = controller.signal;
+
+      try {
+        const response = await new ApiService().patch<BusinessDataResponse>(
+          '/my-business-notifications',
+          {
+            email: values.email,
+            sms: values.sms,
+            reminderTiming: values.reminderTiming,
+          },
+          { signal }
+        );
+        return response;
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          toast.error('Request was cancelled');
+        }
+        throw error;
+      }
+    },
+    onMutate: () => {
+      toast.loading('Saving notification preferences...', { id: 'notification-save' });
+    },
+    onSuccess: (response) => {
+      toast.success('Notification preferences updated successfully', { id: 'notification-save' });
+      updateSettings("notifications", response.data);
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || 'Failed to update notification preferences', { id: 'notification-save' });
+    },
+  });
+
   async function onSubmit(values: NotificationFormValues) {
-    setIsSaving(true)
-
     try {
-      await updateSettings("notifications", values)
-
-      toast({
-        title: "Preferences updated",
-        description: "Your notification preferences have been saved.",
-      })
+      await updateNotificationMutation.mutateAsync(values);
     } catch (error) {
-      console.error("Failed to save notification preferences:", error)
-      toast({
-        title: "Error",
-        description: "Failed to save your preferences. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsSaving(false)
+      console.error("Failed to save notification preferences:", error);
     }
   }
 
@@ -153,8 +176,6 @@ export function NotificationPreferences() {
           />
         </div>
 
-
-
         <Separator />
 
         <div>
@@ -190,8 +211,11 @@ export function NotificationPreferences() {
         />
 
         <div className="flex justify-end">
-          <Button type="submit" disabled={isSaving || settingsLoading}>
-            {isSaving ? (
+          <Button
+            type="submit"
+            disabled={updateNotificationMutation.isPending || settingsLoading}
+          >
+            {updateNotificationMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Saving...

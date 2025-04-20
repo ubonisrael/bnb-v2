@@ -5,6 +5,9 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Loader2, Shield, KeyRound, Smartphone } from "lucide-react"
+import { useMutation } from "@tanstack/react-query"
+import toast from "react-hot-toast"
+import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,9 +23,9 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { toast } from "@/components/ui/use-toast"
 import { useUserSettings } from "@/contexts/user-settings-context"
 import { Label } from "@/components/ui/label"
+import ApiService from "@/services/api-service"
 
 const passwordSchema = z
   .object({
@@ -37,11 +40,13 @@ const passwordSchema = z
   })
 
 export function SecuritySettings() {
+  const router = useRouter()
   const { settings, updateSettings, isLoading: settingsLoading } = useUserSettings()
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [is2FADialogOpen, setIs2FADialogOpen] = useState(false)
   const [verificationCode, setVerificationCode] = useState("")
   const [isVerifying, setIsVerifying] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   const passwordForm = useForm<z.infer<typeof passwordSchema>>({
     resolver: zodResolver(passwordSchema),
@@ -62,17 +67,10 @@ export function SecuritySettings() {
       console.log("Password changed:", values)
 
       passwordForm.reset()
-      toast({
-        title: "Password updated",
-        description: "Your password has been changed successfully.",
-      })
+      toast.success("Your password has been changed successfully.")
     } catch (error) {
       console.error("Failed to change password:", error)
-      toast({
-        title: "Error",
-        description: "Failed to change your password. Please try again.",
-        variant: "destructive",
-      })
+      toast.error("Failed to change your password. Please try again.")
     } finally {
       setIsChangingPassword(false)
     }
@@ -84,17 +82,10 @@ export function SecuritySettings() {
     } else {
       try {
         await updateSettings("security", { twoFactorEnabled: false })
-        toast({
-          title: "Two-factor authentication disabled",
-          description: "Two-factor authentication has been disabled for your account.",
-        })
+        toast.success("Two-factor authentication has been disabled for your account.")
       } catch (error) {
         console.error("Failed to disable 2FA:", error)
-        toast({
-          title: "Error",
-          description: "Failed to disable two-factor authentication. Please try again.",
-          variant: "destructive",
-        })
+        toast.error("Failed to disable two-factor authentication. Please try again.")
       }
     }
   }
@@ -109,28 +100,51 @@ export function SecuritySettings() {
       if (verificationCode === "123456") {
         await updateSettings("security", { twoFactorEnabled: true })
         setIs2FADialogOpen(false)
-        toast({
-          title: "Two-factor authentication enabled",
-          description: "Two-factor authentication has been enabled for your account.",
-        })
+        toast.success("Two-factor authentication has been enabled for your account.")
       } else {
-        toast({
-          title: "Invalid code",
-          description: "The verification code you entered is invalid. Please try again.",
-          variant: "destructive",
-        })
+        toast.error("The verification code you entered is invalid. Please try again.")
       }
     } catch (error) {
       console.error("Failed to verify 2FA code:", error)
-      toast({
-        title: "Error",
-        description: "Failed to verify two-factor authentication. Please try again.",
-        variant: "destructive",
-      })
+      toast.error("Failed to verify two-factor authentication. Please try again.")
     } finally {
       setIsVerifying(false)
     }
   }
+
+  const deleteBusinessMutation = useMutation({
+    mutationFn: async () => {
+      const controller = new AbortController();
+      const signal = controller.signal;
+
+      try {
+        await new ApiService().delete('/my-business', { signal });
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          toast('Request was cancelled', { icon: '❌' });
+        }
+        throw error;
+      }
+    },
+    onMutate: () => {
+      toast.loading('Deleting business...', { id: 'delete-business' });
+    },
+    onSuccess: () => {
+      toast.success('Business deleted successfully', { id: 'delete-business' });
+      router.push('/auth/login');
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || 'Failed to delete business', { id: 'delete-business' });
+    },
+  });
+
+  const handleDeleteBusiness = async () => {
+    try {
+      await deleteBusinessMutation.mutateAsync();
+    } catch (error) {
+      console.error("Failed to delete business:", error);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -314,9 +328,59 @@ export function SecuritySettings() {
           </AlertDescription>
         </Alert>
 
-        <Button variant="destructive" className="mt-4">
-          Delete Account
+        <Button
+          variant="destructive"
+          className="mt-4"
+          onClick={() => setIsDeleteDialogOpen(true)}
+          disabled={deleteBusinessMutation.isPending}
+        >
+          {deleteBusinessMutation.isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Deleting...
+            </>
+          ) : (
+            "Delete Account"
+          )}
         </Button>
+
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Business</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete your business? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+
+            <Alert variant="destructive" className="mt-4">
+              <AlertTitle>Warning</AlertTitle>
+              <AlertDescription>
+                This will permanently delete your business account and all associated data.
+              </AlertDescription>
+            </Alert>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteBusiness}
+                disabled={deleteBusinessMutation.isPending}
+              >
+                {deleteBusinessMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete Business"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )

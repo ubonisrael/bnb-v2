@@ -1,3 +1,8 @@
+export interface VoidResponse {
+    status: boolean;
+    message: string;
+}
+
 export interface AnalyticsResponse {
     status: boolean;
     message: string;
@@ -64,7 +69,7 @@ export interface BusinessData {
     type: string;
     email: string;
     phone: string;
-    logo: null;
+    logo: string | undefined;
     desc: string;
     address: string;
     city: string;
