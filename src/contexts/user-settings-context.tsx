@@ -106,27 +106,27 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   // Load settings on mount ?? settings will be added on login
-  // useEffect(() => {
-  //   const loadSettings = async () => {
-  //     try {
-  //       // get user data
-  //       // check if csrftoken exists
-  //       const businessData = await api.get("/sp");
-  //       console.log(businessData);
-  //       if (businessData) {
-  //         setSettings(businessData as UserSettings);
-  //       }
-  //     } catch (error) {
-  //       // check if error is a 401 error
-  //       toast.error(error as string);
-  //       console.error("Failed to load settings:", error);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        // get user data
+        // check if csrftoken exists
+        const businessData = await api.get("/sp");
+        console.log(businessData);
+        if (businessData) {
+          setSettings(businessData as UserSettings);
+        }
+      } catch (error) {
+        // check if error is a 401 error
+        toast.error(error as string);
+        console.error("Failed to load settings:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  //   loadSettings();
-  // }, []);
+    loadSettings();
+  }, []);
 
   // Update settings
   const updateSettings = async (section: keyof UserSettings, data: any) => {
