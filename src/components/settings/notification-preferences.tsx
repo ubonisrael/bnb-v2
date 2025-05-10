@@ -14,7 +14,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { useUserSettings } from "@/contexts/user-settings-context"
-import ApiService from "@/services/api-service"
+import api from "@/services/api-service"
 import { BusinessDataResponse } from "@/types/response"
 
 const notificationSchema = z.object({
@@ -40,7 +40,7 @@ export function NotificationPreferences() {
 
   const form = useForm<NotificationFormValues>({
     resolver: zodResolver(notificationSchema),
-    defaultValues: settings.notifications,
+    defaultValues: settings?.notifications,
   })
 
   const updateNotificationMutation = useMutation({
@@ -49,7 +49,7 @@ export function NotificationPreferences() {
       const signal = controller.signal;
 
       try {
-        const response = await new ApiService().patch<BusinessDataResponse>(
+        const response = await api.patch<BusinessDataResponse>(
           '/my-business-notifications',
           {
             email: values.email,
