@@ -21,6 +21,7 @@ const Header = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+  const businessName = "BankNBook"
 
   return (
     <header
@@ -32,7 +33,7 @@ const Header = () => {
       <div className="container mx-auto px-4 flex items-center justify-between">
         <div className="flex items-center">
           <a href="/" className="flex items-center space-x-2">
-            <span className="text-xl md:text-2xl font-serif font-semibold text-brand-700">Bank n' Book</span>
+            <span className="text-xl md:text-2xl font-serif font-semibold text-brand-700">{businessName}</span>
           </a>
         </div>
 

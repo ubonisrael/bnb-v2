@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbo",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -44,7 +44,9 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^4.1.0",
+    "dayjs": "^1.11.13",
     "embla-carousel-react": "^8.5.2",
+    "firebase": "9.17",
     "framer-motion": "^12.7.1",
     "input-otp": "^1.4.2",
     "ipfs-http-client": "^60.0.1",

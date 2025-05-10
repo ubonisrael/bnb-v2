@@ -3,34 +3,18 @@
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { useEffect } from "react"
+import { useEffect, Ref, useImperativeHandle } from "react"
 
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { OnboardingFormData } from "../type"
-
-const businessTypes = [
-  { value: "hair-salon", label: "Hair Salon" },
-  { value: "barber-shop", label: "Barber Shop" },
-  { value: "nail-salon", label: "Nail Salon" },
-  { value: "spa", label: "Spa & Wellness" },
-  { value: "beauty-salon", label: "Beauty Salon" },
-  { value: "makeup-studio", label: "Makeup Studio" },
-  { value: "massage-therapy", label: "Massage Therapy" },
-  { value: "waxing-salon", label: "Waxing Salon" },
-  { value: "brow-lash", label: "Brow & Lash" },
-  { value: "tanning-salon", label: "Tanning Salon" },
-  { value: "other", label: "Other" },
-]
 
 const businessInfoSchema = z.object({
   name: z.string().min(2, { message: "Business name must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
   phone: z.string().min(10, { message: "Please enter a valid phone number" }),
-  description: z.string().min(2, { message: "Description must be at least 2 characters" }),
-  category: z.string().min(2, { message: "Description must be at least 2 characters" }),
+  description: z.string().min(24, { message: "Description must be at least 24 characters" }).max(500, { message: "Description must be at most 500 characters" })
 })
 
 type BusinessInfoData = z.infer<typeof businessInfoSchema>
@@ -38,17 +22,28 @@ type BusinessInfoData = z.infer<typeof businessInfoSchema>
 interface BusinessInfoStepProps {
   data: OnboardingFormData
   onUpdate: (data: BusinessInfoData) => void
+  ref: Ref<{ validate: () => Promise<boolean> }>
 }
 
-export function BusinessInfoStep({ data, onUpdate }: BusinessInfoStepProps) {
+export function BusinessInfoStep({ data, onUpdate, ref }: BusinessInfoStepProps) {
   const form = useForm<BusinessInfoData>({
     resolver: zodResolver(businessInfoSchema),
     defaultValues: data.businessInfo,
   })
 
-  function onSubmit(values: BusinessInfoData) {
-    onUpdate(values)
-  }
+  // function onSubmit(values: BusinessInfoData) {
+  //   onUpdate(values)
+  // }
+
+  useImperativeHandle(ref, () => ({
+    async validate() {
+      const isValid = await form.trigger(); // runs validation
+      if (isValid) {
+        onUpdate(form.getValues());
+      }
+      return isValid;
+    },
+  }));
 
   // Use useEffect to handle form updates
   useEffect(() => {
@@ -62,7 +57,7 @@ export function BusinessInfoStep({ data, onUpdate }: BusinessInfoStepProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form className="space-y-6">
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-[#121212]">Business Information</h2>
           <p className="text-sm text-[#6E6E73]">Tell us about your business</p>
@@ -127,34 +122,7 @@ export function BusinessInfoStep({ data, onUpdate }: BusinessInfoStepProps) {
             </FormItem>
           )}
         />
-
-        <FormField
-          control={form.control}
-          name="category"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Business Category</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a business type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {businessTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormDescription>This helps clients find the right type of business</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
       </form>
     </Form>
   )
 }
-

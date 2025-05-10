@@ -1,16 +1,35 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Search, Plus, Filter, MoreHorizontal, Clock, DollarSign, Edit, Trash2, FolderPlus, Calendar } from "lucide-react"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { useState } from "react";
+import {
+  Search,
+  Plus,
+  Filter,
+  MoreHorizontal,
+  Clock,
+  DollarSign,
+  Edit,
+  Trash2,
+  FolderPlus,
+  Calendar,
+} from "lucide-react";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +37,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -27,286 +46,173 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Service } from "@/components/onboarding/type";
+import {
+  categorySchema,
+  daysOfWeek,
+  durationOptions,
+  serviceSchema,
+} from "@/components/onboarding/steps/services-setup";
+import toast from "react-hot-toast";
+import { useMutation } from "@tanstack/react-query";
+import api from "@/services/api-service";
+import { useUserSettings } from "@/contexts/user-settings-context";
+import { Checkbox } from "@/components/ui/checkbox";
 
-// Mock data for services
-const services: Service[] = [
-  {
-    id: 1,
-    name: "Haircut & Styling",
-    category: "Hair",
-    duration: "60 min",
-    price: "$65",
-    description: "Professional haircut and styling service tailored to your preferences.",
-    popularity: "High",
-    availability: {
-      monday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      tuesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      wednesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      thursday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      friday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-    },
-  },
-  {
-    id: 2,
-    name: "Beard Trim",
-    category: "Hair",
-    duration: "30 min",
-    price: "$35",
-    description: "Precision beard trimming and shaping for a clean, polished look.",
-    popularity: "Medium",
-    availability: {
-      monday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      tuesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      wednesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      thursday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      friday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-    },
-  },
-  {
-    id: 3,
-    name: "Manicure",
-    category: "Nails",
-    duration: "45 min",
-    price: "$40",
-    description: "Complete nail care service including cuticle treatment, shaping, and polish.",
-    popularity: "High",
-    availability: {
-      monday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      tuesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      wednesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      thursday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      friday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-    },
-  },
-  {
-    id: 4,
-    name: "Pedicure",
-    category: "Nails",
-    duration: "60 min",
-    price: "$55",
-    description: "Relaxing foot treatment including soak, exfoliation, massage, and polish.",
-    popularity: "Medium",
-    availability: {
-      monday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      tuesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      wednesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      thursday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      friday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-    },
-  },
-  {
-    id: 5,
-    name: "Facial Treatment",
-    category: "Skin",
-    duration: "75 min",
-    price: "$90",
-    description: "Customized facial treatment to address your specific skin concerns.",
-    popularity: "High",
-    availability: {
-      monday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      tuesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      wednesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      thursday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      friday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-    },
-  },
-  {
-    id: 6,
-    name: "Swedish Massage",
-    category: "Massage",
-    duration: "60 min",
-    price: "$85",
-    description: "Relaxing full-body massage to reduce tension and improve circulation.",
-    popularity: "High",
-    availability: {
-      monday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      tuesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      wednesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      thursday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      friday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      saturday: { isAvailable: false, startTime: "09:00", endTime: "17:00" },
-      sunday: { isAvailable: false, startTime: "09:00", endTime: "17:00" },
-    },
-  },
-  {
-    id: 7,
-    name: "Hair Coloring",
-    category: "Hair",
-    duration: "120 min",
-    price: "$120",
-    description: "Professional hair coloring service with premium products.",
-    popularity: "Medium",
-    availability: {
-      monday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      tuesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      wednesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      thursday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      friday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      saturday: { isAvailable: false, startTime: "09:00", endTime: "17:00" },
-      sunday: { isAvailable: false, startTime: "09:00", endTime: "17:00" },
-    },
-  },
-]
-
-// Add category schema
-const categorySchema = z.object({
-  name: z.string().min(1, { message: "Category name is required" }),
-  description: z.string().optional(),
-})
-
-type CategoryFormValues = z.infer<typeof categorySchema>
-
-interface ServiceAvailability {
-  [key: string]: {
-    isAvailable: boolean
-    startTime: string
-    endTime: string
-  }
-}
-
-interface ServiceFormData {
-  name: string
-  category: string
-  duration: string
-  price: string
-  description: string
-
-  availability: ServiceAvailability
-}
-
-interface Service extends ServiceFormData {
-  id: number
-  popularity: string
-  availability: ServiceAvailability
-}
 
 export default function ServicesPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [showCategoryModal, setShowCategoryModal] = useState(false)
-  const [showServiceModal, setShowServiceModal] = useState(false)
-  const [showAvailabilityModal, setShowAvailabilityModal] = useState(false)
-  const [editingService, setEditingService] = useState<Service | null>(null)
-  const [currentStep, setCurrentStep] = useState<"details" | "availability">("details")
-  const [serviceFormData, setServiceFormData] = useState<ServiceFormData>({
-    name: "",
-    category: "",
-    duration: "",
-    price: "",
-    description: "",
-    availability: {
-      monday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      tuesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      wednesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      thursday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      friday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-      saturday: { isAvailable: false, startTime: "09:00", endTime: "17:00" },
-      sunday: { isAvailable: false, startTime: "09:00", endTime: "17:00" },
-    },
-  })
+  const { settings, updateSettings } = useUserSettings();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showServiceModal, setShowServiceModal] = useState(false);
+  const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
+  const [isAddingService, setIsAddingService] = useState(false);
+  const [editingService, setEditingService] = useState<Service | null>(null);
 
-  const categoryForm = useForm<CategoryFormValues>({
+  // Category form
+  const categoryForm = useForm<{ name: string }>({
     resolver: zodResolver(categorySchema),
     defaultValues: {
       name: "",
-      description: "",
     },
-  })
+  });
 
-  const onSubmitCategory = (data: CategoryFormValues) => {
-    // Here you would typically make an API call to save the category
-    console.log("Category data:", data)
-    setShowCategoryModal(false)
-    categoryForm.reset()
-  }
-
-  const handleServiceAvailabilityChange = (day: string, field: keyof ServiceAvailability[string], value: any) => {
-    setServiceFormData((prev) => ({
-      ...prev,
-      availability: {
-        ...prev.availability,
-        [day]: {
-          ...prev.availability[day],
-          [field]: value,
-        },
-      },
-    }))
-  }
-
-  const handleServiceDetailsSubmit = () => {
-    setCurrentStep("availability")
-  }
-
-  const handleServiceSubmit = () => {
-    if (editingService) {
-      // TODO: Implement service update
-      console.log("Updating service:", { ...editingService, ...serviceFormData })
-    } else {
-      // TODO: Implement service creation
-      console.log("Creating service:", serviceFormData)
-    }
-    setShowServiceModal(false)
-    setShowAvailabilityModal(false)
-    setEditingService(null)
-    setServiceFormData({
+  // Service form
+  const serviceForm = useForm<Omit<Service, "id">>({
+    resolver: zodResolver(serviceSchema),
+    defaultValues: {
       name: "",
-      category: "",
-      duration: "",
-      price: "",
+      categoryId: "",
+      price: 0,
+      duration: 60,
       description: "",
-      availability: {
-        monday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-        tuesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-        wednesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-        thursday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-        friday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-        saturday: { isAvailable: false, startTime: "09:00", endTime: "17:00" },
-        sunday: { isAvailable: false, startTime: "09:00", endTime: "17:00" },
-      },
-    })
-  }
+      availableDays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+    },
+  });
 
-  const handleEditService = (service: Service) => {
-    setEditingService(service)
-    setServiceFormData({
-      name: service.name,
-      category: service.category,
-      duration: service.duration,
-      price: service.price,
-      description: service.description,
-      availability: service.availability,
-    })
-    setShowServiceModal(true)
-    setCurrentStep("details")
-  }
+  const createCategoryMutation = useMutation({
+    mutationFn: async (values: z.infer<typeof categorySchema>) => {
+      const controller = new AbortController();
+      const signal = controller.signal;
 
-  const handleEditAvailability = (service: Service) => {
-    setEditingService(service)
+      try {
+        const response = await api.post(
+          "/sp/categories",
+          {
+            ...values,
+          },
+          { signal }
+        );
+        return response;
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name === "AbortError") {
+          toast.error("Request was cancelled");
+        }
+        throw error;
+      }
+    },
+    onMutate: () => {
+      toast.loading("Creating category...", { id: "create-category" });
+    },
+    onSuccess: (response: any) => {
+      toast.success("Category updated successfully", { id: "create-category" });
+      console.log(response.data);
+      if (settings) {
+        updateSettings("categories", [...settings.categories, response.data]);
+      }
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || "Failed to create new category", {
+        id: "create-category",
+      });
+    },
+  });
 
-    setServiceFormData((prev) => ({
-      ...prev,
-      availability: service.availability,
-    }))
-    setShowAvailabilityModal(true)
-  }
+  const onSubmitCategory = async (data: z.infer<typeof categorySchema>) => {
+    // Here you would typically make an API call to save the category
+    // console.log("Category data:", data);
+    try {
+      await createCategoryMutation.mutateAsync(data);
+      setShowCategoryModal(false);
+      categoryForm.reset();
+    } catch (error) {
+      console.error("Failed to create category:", error);
+    }
+  };
 
-  const filteredServices = services.filter(
-    (service) =>
-      service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      service.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      service.description.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  const createServiceMutation = useMutation({
+    mutationFn: async (values: z.infer<typeof serviceSchema>) => {
+      const controller = new AbortController();
+      const signal = controller.signal;
+
+      try {
+        const response = await api.post(
+          "/sp/services",
+          {
+            ...values,
+          },
+          { signal }
+        );
+        return response;
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name === "AbortError") {
+          toast.error("Request was cancelled");
+        }
+        throw error;
+      }
+    },
+    onMutate: () => {
+      toast.loading("Creating service...", { id: "create-service" });
+    },
+    onSuccess: (response: any) => {
+      toast.success("Service created successfully", { id: "create-service" });
+      console.log(response.data);
+      if (settings) {
+        updateSettings("services", [...settings.services, response.data]);
+      }
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || "Failed to create new service", {
+        id: "create-service",
+      });
+    },
+  });
+
+  const handleServiceSubmit = async (data: z.infer<typeof serviceSchema>) => {
+    // TODO: Implement service creation
+    console.log("Creating service:", serviceForm.getValues());
+    try {
+      await createServiceMutation.mutateAsync(data);
+    } catch (e) {
+      // console.error(error);
+    }
+    setShowServiceModal(false);
+    setShowAvailabilityModal(false);
+    setEditingService(null);
+    serviceForm.reset();
+  };
+
+  const handleEditService = (service: Service) => {};
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1>Services</h1>
-          <p className="text-muted-foreground">Manage your service offerings.</p>
+          <p className="text-muted-foreground">
+            Manage your service offerings.
+          </p>
         </div>
         <div className="flex gap-2">
           <Dialog open={showCategoryModal} onOpenChange={setShowCategoryModal}>
@@ -319,10 +225,15 @@ export default function ServicesPage() {
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
                 <DialogTitle>Add New Category</DialogTitle>
-                <DialogDescription>Create a new category for your services.</DialogDescription>
+                <DialogDescription>
+                  Create a new category for your services.
+                </DialogDescription>
               </DialogHeader>
               <Form {...categoryForm}>
-                <form onSubmit={categoryForm.handleSubmit(onSubmitCategory)} className="space-y-4">
+                <form
+                  onSubmit={categoryForm.handleSubmit(onSubmitCategory)}
+                  className="space-y-4"
+                >
                   <FormField
                     control={categoryForm.control}
                     name="name"
@@ -331,19 +242,6 @@ export default function ServicesPage() {
                         <FormLabel>Category Name</FormLabel>
                         <FormControl>
                           <Input placeholder="Enter category name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={categoryForm.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description (Optional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter category description" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -365,214 +263,217 @@ export default function ServicesPage() {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
-                <DialogTitle>{editingService ? "Edit Service" : "Add New Service"}</DialogTitle>
+                <DialogTitle>
+                  {editingService ? "Edit Service" : "Add New Service"}
+                </DialogTitle>
                 <DialogDescription>
-                  {currentStep === "details"
-                    ? "Enter the basic details of your service"
-                    : "Set the availability for this service"}
+                  Enter the basic details of your service
                 </DialogDescription>
               </DialogHeader>
-              {currentStep === "details" ? (
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="name">Service Name</Label>
-                      <Input
-                        id="name"
-                        placeholder="Enter service name"
-                        value={serviceFormData.name}
-                        onChange={(e) => setServiceFormData((prev) => ({ ...prev, name: e.target.value }))}
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="category">Category</Label>
-                      <Select
-                        value={serviceFormData.category}
-                        onValueChange={(value) => setServiceFormData((prev) => ({ ...prev, category: value }))}
-                      >
-                        <SelectTrigger id="category">
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="hair">Hair</SelectItem>
-                          <SelectItem value="nails">Nails</SelectItem>
-                          <SelectItem value="skin">Skin</SelectItem>
-                          <SelectItem value="massage">Massage</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="duration">Duration</Label>
-                      <Select
-                        value={serviceFormData.duration}
-                        onValueChange={(value) => setServiceFormData((prev) => ({ ...prev, duration: value }))}
-                      >
-                        <SelectTrigger id="duration">
-                          <SelectValue placeholder="Select duration" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="15">15 minutes</SelectItem>
-                          <SelectItem value="30">30 minutes</SelectItem>
-                          <SelectItem value="45">45 minutes</SelectItem>
-                          <SelectItem value="60">60 minutes</SelectItem>
-                          <SelectItem value="75">75 minutes</SelectItem>
-                          <SelectItem value="90">90 minutes</SelectItem>
-                          <SelectItem value="120">120 minutes</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="price">Price</Label>
-                      <div className="relative">
-                        <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="price"
-                          type="number"
-                          className="pl-8"
-                          placeholder="0.00"
-                          value={serviceFormData.price}
-                          onChange={(e) => setServiceFormData((prev) => ({ ...prev, price: e.target.value }))}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Input
-                      id="description"
-                      placeholder="Enter service description"
-                      value={serviceFormData.description}
-                      onChange={(e) => setServiceFormData((prev) => ({ ...prev, description: e.target.value }))}
+              <Form {...serviceForm}>
+                <form
+                  onSubmit={serviceForm.handleSubmit(handleServiceSubmit)}
+                  className="space-y-4"
+                >
+                  <FormField
+                    control={serviceForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Service Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="e.g., Haircut, Manicure"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={serviceForm.control}
+                    name="categoryId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Category</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a category" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {settings?.categories.map((category) => (
+                              <SelectItem key={category.id} value={category.id}>
+                                {category.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <FormField
+                      control={serviceForm.control}
+                      name="price"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Price</FormLabel>
+                          <div className="relative">
+                            <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="1"
+                                step="0.01"
+                                placeholder="0.00"
+                                className="pl-8"
+                                {...field}
+                              />
+                            </FormControl>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={serviceForm.control}
+                      name="duration"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Duration</FormLabel>
+                          <Select
+                            onValueChange={(value) =>
+                              field.onChange(Number.parseInt(value))
+                            }
+                            defaultValue={field.value.toString()}
+                            value={field.value.toString()}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select duration" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {durationOptions.map((option) => (
+                                <SelectItem
+                                  key={option.value}
+                                  value={option.value}
+                                >
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    <Label>Service Availability</Label>
-                  </div>
-                  <div className="space-y-4 rounded-lg border p-4">
-                    {Object.entries(serviceFormData.availability).map(([day, settings]) => (
-                      <div key={day} className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <Switch
-                            checked={settings.isAvailable}
-                            onCheckedChange={(checked) =>
-                              handleServiceAvailabilityChange(day, "isAvailable", checked)
-                            }
+
+                  <FormField
+                    control={serviceForm.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Brief description of the service"
+                            {...field}
                           />
-                          <Label className="text-sm font-medium capitalize">{day}</Label>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={serviceForm.control}
+                    name="availableDays"
+                    render={() => (
+                      <FormItem>
+                        <div className="mb-2">
+                          <FormLabel>Available Days</FormLabel>
+                          <FormDescription>
+                            Select the days when this service is available
+                          </FormDescription>
                         </div>
-                        {settings.isAvailable && (
-                          <div className="flex items-center space-x-2">
-                            <Input
-                              type="time"
-                              value={settings.startTime}
-                              onChange={(e) =>
-                                handleServiceAvailabilityChange(day, "startTime", e.target.value)
-                              }
-                              className="w-32"
+                        <div className="flex flex-wrap gap-2">
+                          {daysOfWeek.map((day) => (
+                            <FormField
+                              key={day.id}
+                              control={serviceForm.control}
+                              name="availableDays"
+                              render={({ field }) => {
+                                return (
+                                  <FormItem
+                                    key={day.id}
+                                    className="flex items-center space-x-1 space-y-0"
+                                  >
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value?.includes(day.id)}
+                                        onCheckedChange={(checked) => {
+                                          return checked
+                                            ? field.onChange([
+                                                ...field.value,
+                                                day.id,
+                                              ])
+                                            : field.onChange(
+                                                field.value?.filter(
+                                                  (value) => value !== day.id
+                                                )
+                                              );
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormLabel className="text-xs font-normal">
+                                      {day.label}
+                                    </FormLabel>
+                                  </FormItem>
+                                );
+                              }}
                             />
-                            <span className="text-sm text-muted-foreground">to</span>
-                            <Input
-                              type="time"
-                              value={settings.endTime}
-                              onChange={(e) =>
-                                handleServiceAvailabilityChange(day, "endTime", e.target.value)
-                              }
-                              className="w-32"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              <DialogFooter>
-                {currentStep === "details" ? (
-                  <>
-                    <Button variant="outline" onClick={() => setShowServiceModal(false)}>
+                          ))}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <DialogFooter>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setIsAddingService(false);
+                        setEditingService(null);
+                        serviceForm.reset();
+                      }}
+                    >
                       Cancel
                     </Button>
-                    <Button onClick={handleServiceDetailsSubmit}>Next</Button>
-                  </>
-                ) : (
-                  <>
-                    <Button variant="outline" onClick={() => setCurrentStep("details")}>
-                      Back
+                    <Button type="submit">
+                      {editingService ? "Update Service" : "Add Service"}
                     </Button>
-                    <Button onClick={handleServiceSubmit}>
-                      {editingService ? "Update Service" : "Create Service"}
-                    </Button>
-                  </>
-                )}
-              </DialogFooter>
+                  </DialogFooter>
+                </form>
+              </Form>
             </DialogContent>
           </Dialog>
         </div>
       </div>
-
-      <Dialog open={showAvailabilityModal} onOpenChange={setShowAvailabilityModal}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Edit Service Availability</DialogTitle>
-            <DialogDescription>Set the availability for {editingService?.name}</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <Label>Service Availability</Label>
-            </div>
-            <div className="space-y-4 rounded-lg border p-4">
-              {Object.entries(serviceFormData.availability).map(([day, settings]) => (
-                <div key={day} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <Switch
-                      checked={settings.isAvailable}
-                      onCheckedChange={(checked) =>
-                        handleServiceAvailabilityChange(day, "isAvailable", checked)
-                      }
-                    />
-                    <Label className="text-sm font-medium capitalize">{day}</Label>
-                  </div>
-                  {settings.isAvailable && (
-                    <div className="flex items-center space-x-2">
-                      <Input
-                        type="time"
-                        value={settings.startTime}
-                        onChange={(e) =>
-                          handleServiceAvailabilityChange(day, "startTime", e.target.value)
-                        }
-                        className="w-32"
-                      />
-                      <span className="text-sm text-muted-foreground">to</span>
-                      <Input
-                        type="time"
-                        value={settings.endTime}
-                        onChange={(e) =>
-                          handleServiceAvailabilityChange(day, "endTime", e.target.value)
-                        }
-                        className="w-32"
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAvailabilityModal(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleServiceSubmit}>Save Changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <Card className="shadow-card">
         <CardHeader className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
@@ -596,27 +497,143 @@ export default function ServicesPage() {
           <Tabs defaultValue="all">
             <TabsList className="mb-4">
               <TabsTrigger value="all">All Services</TabsTrigger>
-              <TabsTrigger value="hair">Hair</TabsTrigger>
-              <TabsTrigger value="nails">Nails</TabsTrigger>
-              <TabsTrigger value="skin">Skin</TabsTrigger>
-              <TabsTrigger value="massage">Massage</TabsTrigger>
+              {settings?.categories.map((cat) => (
+                <TabsTrigger key={cat.id} value={cat.id}>
+                  {cat.name}
+                </TabsTrigger>
+              ))}
             </TabsList>
+            {settings?.categories.map((cat) => (
+              <TabsContent key={cat.id} value={cat.id} className="m-0">
+                <div className="rounded-md border">
+                  <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:hidden">
+                    {settings?.services.filter((service) => service.categoryId === cat.id).map((service) => (
+                      <Card key={service.id} className="shadow-card">
+                        <CardContent className="p-4">
+                          <div className="flex justify-between">
+                            <div className="font-medium">{service.name}</div>
+                            <Badge variant="outline">
+                              {cat.name}
+                            </Badge>
+                          </div>
+                          <div className="mt-2 text-sm text-muted-foreground">
+                            {service.description}
+                          </div>
+                          <div className="mt-4 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm">
+                                  {service.duration} minutes
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm">{service.price}</span>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button variant="outline" size="icon">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button variant="outline" size="icon">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                  <table className="hidden w-full md:table">
+                    <thead>
+                      <tr className="border-b bg-muted/50 text-left text-sm font-medium">
+                        <th className="px-4 py-3">Service</th>
+                        <th className="px-4 py-3">Category</th>
+                        <th className="px-4 py-3">Duration</th>
+                        <th className="px-4 py-3">Price</th>
+                        <th className="px-4 py-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {settings?.services.filter((service) => service.categoryId === cat.id).map((service) => (
+                        <tr key={service.id} className="border-b">
+                          <td className="px-4 py-3">
+                            <div>
+                              <div className="font-medium">{service.name}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {service.description}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <Badge variant="outline">
+                              {service.categoryId}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-4 w-4 text-muted-foreground" />
+                              {service.duration}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">{service.price}</td>
+                          <td className="px-4 py-3 text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                  <span className="sr-only">Actions</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() => handleEditService(service)}
+                                >
+                                  Edit service
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  Duplicate service
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  View bookings
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem className="text-destructive">
+                                  Delete service
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </TabsContent>
+            ))}
             <TabsContent value="all" className="m-0">
               <div className="rounded-md border">
                 <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:hidden">
-                  {filteredServices.map((service) => (
+                  {settings?.services.map((service) => (
                     <Card key={service.id} className="shadow-card">
                       <CardContent className="p-4">
                         <div className="flex justify-between">
                           <div className="font-medium">{service.name}</div>
-                          <Badge variant="outline">{service.category}</Badge>
+                          <Badge variant="outline">{settings.categories.find((cat) => cat.id === service.categoryId)?.name}</Badge>
                         </div>
-                        <div className="mt-2 text-sm text-muted-foreground">{service.description}</div>
+                        <div className="mt-2 text-sm text-muted-foreground">
+                          {service.description}
+                        </div>
                         <div className="mt-4 flex items-center justify-between">
                           <div className="flex items-center gap-4">
                             <div className="flex items-center gap-1">
                               <Clock className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm">{service.duration}</span>
+                              <span className="text-sm">
+                                {service.duration}
+                              </span>
                             </div>
                             <div className="flex items-center gap-1">
                               <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -643,21 +660,22 @@ export default function ServicesPage() {
                       <th className="px-4 py-3">Category</th>
                       <th className="px-4 py-3">Duration</th>
                       <th className="px-4 py-3">Price</th>
-                      <th className="px-4 py-3">Popularity</th>
                       <th className="px-4 py-3 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredServices.map((service) => (
+                    {settings?.services.map((service) => (
                       <tr key={service.id} className="border-b">
                         <td className="px-4 py-3">
                           <div>
                             <div className="font-medium">{service.name}</div>
-                            <div className="text-xs text-muted-foreground">{service.description}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {service.description}
+                            </div>
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <Badge variant="outline">{service.category}</Badge>
+                          <Badge variant="outline">{settings.categories.find((cat) => cat.id === service.categoryId)?.name}</Badge>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1">
@@ -666,18 +684,6 @@ export default function ServicesPage() {
                           </div>
                         </td>
                         <td className="px-4 py-3">{service.price}</td>
-                        <td className="px-4 py-3">
-                          <Badge
-                            variant="outline"
-                            className={
-                              service.popularity === "High"
-                                ? "border-primary/30 bg-primary/10 text-primary"
-                                : "border-muted bg-muted/50"
-                            }
-                          >
-                            {service.popularity}
-                          </Badge>
-                        </td>
                         <td className="px-4 py-3 text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -689,16 +695,19 @@ export default function ServicesPage() {
                             <DropdownMenuContent align="end">
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => handleEditService(service)}>
+                              <DropdownMenuItem
+                                onClick={() => handleEditService(service)}
+                              >
                                 Edit service
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleEditAvailability(service)}>
-                                Edit availability
+                              <DropdownMenuItem>
+                                Duplicate service
                               </DropdownMenuItem>
-                              <DropdownMenuItem>Duplicate service</DropdownMenuItem>
                               <DropdownMenuItem>View bookings</DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-destructive">Delete service</DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive">
+                                Delete service
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </td>
@@ -708,22 +717,9 @@ export default function ServicesPage() {
                 </table>
               </div>
             </TabsContent>
-            <TabsContent value="hair" className="m-0">
-              {/* Similar table for hair services */}
-            </TabsContent>
-            <TabsContent value="nails" className="m-0">
-              {/* Similar table for nail services */}
-            </TabsContent>
-            <TabsContent value="skin" className="m-0">
-              {/* Similar table for skin services */}
-            </TabsContent>
-            <TabsContent value="massage" className="m-0">
-              {/* Similar table for massage services */}
-            </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

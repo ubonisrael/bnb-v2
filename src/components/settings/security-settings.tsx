@@ -25,16 +25,16 @@ import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useUserSettings } from "@/contexts/user-settings-context"
 import { Label } from "@/components/ui/label"
-import ApiService from "@/services/api-service"
+import api from "@/services/api-service"
 
 const passwordSchema = z
   .object({
-    currentPassword: z.string().min(1, "Current password is required"),
-    newPassword: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string().min(8, "Password must be at least 8 characters"),
+    old_password: z.string().min(1, "Current password is required"),
+    new_password: z.string().min(8, "Password must be at least 8 characters"),
+    confirm_password: z.string().min(8, "Password must be at least 8 characters"),
     verificationCode: z.string().optional(),
   })
-  .refine((data) => data.newPassword === data.confirmPassword, {
+  .refine((data) => data.new_password === data.confirm_password, {
     message: "Passwords don't match",
     path: ["confirmPassword"],
   })
@@ -43,40 +43,23 @@ export function SecuritySettings() {
   const router = useRouter()
   const { settings, updateSettings, isLoading: settingsLoading } = useUserSettings()
   const [isChangingPassword, setIsChangingPassword] = useState(false)
-  const [is2FADialogOpen, setIs2FADialogOpen] = useState(false)
-  const [verificationCode, setVerificationCode] = useState("")
+  //const [is2FADialogOpen, setIs2FADialogOpen] = useState(false)
+ // const [verificationCode, setVerificationCode] = useState("")
   const [isVerifying, setIsVerifying] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   const passwordForm = useForm<z.infer<typeof passwordSchema>>({
     resolver: zodResolver(passwordSchema),
     defaultValues: {
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
+      old_password: "",
+      new_password: "",
+      confirm_password: "",
       verificationCode: "",
     },
   })
 
-  async function onChangePassword(values: z.infer<typeof passwordSchema>) {
-    setIsChangingPassword(true)
 
-    try {
-      // This would be a server action in a real app
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      console.log("Password changed:", values)
-
-      passwordForm.reset()
-      toast.success("Your password has been changed successfully.")
-    } catch (error) {
-      console.error("Failed to change password:", error)
-      toast.error("Failed to change your password. Please try again.")
-    } finally {
-      setIsChangingPassword(false)
-    }
-  }
-
-  async function handleToggle2FA(enabled: boolean) {
+  /* async function handleToggle2FA(enabled: boolean) {
     if (enabled) {
       setIs2FADialogOpen(true)
     } else {
@@ -88,7 +71,7 @@ export function SecuritySettings() {
         toast.error("Failed to disable two-factor authentication. Please try again.")
       }
     }
-  }
+  } 
 
   async function handleVerify2FA() {
     setIsVerifying(true)
@@ -110,7 +93,34 @@ export function SecuritySettings() {
     } finally {
       setIsVerifying(false)
     }
-  }
+  }*/
+const updatePasswordMutation = useMutation({
+mutationFn: async (values: z.infer<typeof passwordSchema>) => {
+      const controller = new AbortController();
+      const signal = controller.signal;
+
+      try {
+        await api.post('/user/password/change', {
+			...values },
+			{ signal });
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          toast('Request was cancelled', { icon: '❌' });
+        }
+        throw error;
+      }
+    },
+    onMutate: () => {
+      toast.loading('Updating password...', { id: 'update-passwd' });
+    },
+    onSuccess: () => {
+      toast.success('Password successfully changed', { id: 'update-passwd' });
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || 'Failed to update password', { id: 'update-passwd' });
+    },
+  });
+
 
   const deleteBusinessMutation = useMutation({
     mutationFn: async () => {
@@ -118,7 +128,7 @@ export function SecuritySettings() {
       const signal = controller.signal;
 
       try {
-        await new ApiService().delete('/my-business', { signal });
+        await api.delete('/sp', { signal });
       } catch (error: unknown) {
         if (error instanceof Error && error.name === 'AbortError') {
           toast('Request was cancelled', { icon: '❌' });
@@ -145,6 +155,16 @@ export function SecuritySettings() {
       console.error("Failed to delete business:", error);
     }
   };
+const onChangePassword = async (values: z.infer<typeof passwordSchema>) => {
+	setIsChangingPassword(true);
+    try {
+      await updatePasswordMutation.mutateAsync(values);
+    } catch (error) {
+      console.error("Failed to update password:", error);
+    }
+	setIsChangingPassword(false);
+  };
+
 
   return (
     <div className="space-y-6">
@@ -157,7 +177,7 @@ export function SecuritySettings() {
         <form onSubmit={passwordForm.handleSubmit(onChangePassword)} className="space-y-4">
           <FormField
             control={passwordForm.control}
-            name="currentPassword"
+            name="old_password"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Current Password</FormLabel>
@@ -171,7 +191,7 @@ export function SecuritySettings() {
 
           <FormField
             control={passwordForm.control}
-            name="newPassword"
+            name="new_password"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>New Password</FormLabel>
@@ -186,7 +206,7 @@ export function SecuritySettings() {
 
           <FormField
             control={passwordForm.control}
-            name="confirmPassword"
+            name="confirm_password"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Confirm New Password</FormLabel>
@@ -213,7 +233,7 @@ export function SecuritySettings() {
 
       <Separator />
 
-      <div>
+      {/* <div>
         <h3 className="text-lg font-medium">Two-Factor Authentication</h3>
         <p className="text-sm text-muted-foreground">Add an extra layer of security to your account</p>
 
@@ -245,7 +265,6 @@ export function SecuritySettings() {
 
             <div className="flex flex-col items-center space-y-4 py-4">
               <div className="h-48 w-48 bg-[#F5F5F7] flex items-center justify-center">
-                {/* This would be a real QR code in a production app */}
                 <KeyRound className="h-12 w-12 text-[#7B68EE]" />
               </div>
 
@@ -255,7 +274,6 @@ export function SecuritySettings() {
               </div>
 
               <div className="w-full space-y-2">
-                {/* Use Label instead of FormLabel since this is outside a form */}
                 <Label htmlFor="verification-code">Verification Code</Label>
                 <Input
                   id="verification-code"
@@ -314,7 +332,7 @@ export function SecuritySettings() {
         </Button>
       </div>
 
-      <Separator />
+      <Separator /> */}
 
       <div>
         <h3 className="text-lg font-medium text-destructive">Danger Zone</h3>

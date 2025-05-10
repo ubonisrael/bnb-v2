@@ -1,30 +1,29 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Calendar,
-  Users,
   Scissors,
   CreditCard,
-  BarChart3,
   Settings,
   ChevronLeft,
   ChevronRight,
   LayoutDashboard,
-  MessageSquare,
-  Mail,
-  DollarSign,
   FileText,
-} from "lucide-react"
+  BarChart3,
+} from "lucide-react";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { useQuery } from "@tanstack/react-query"
-import ApiService from "@/services/api-service"
-import { BusinessDataResponse } from "@/types/response"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useUserSettings } from "@/contexts/user-settings-context";
 
 const sidebarItems = [
   {
@@ -43,16 +42,16 @@ const sidebarItems = [
     href: "/dashboard/services",
     icon: Scissors,
   },
-  {
-    title: "Payments",
-    href: "/dashboard/payments",
-    icon: CreditCard,
-  },
-  {
-    title: "Templates",
-    href: "/dashboard/templates",
-    icon: FileText,
-  },
+  // {
+  //   title: "Payments",
+  //   href: "/dashboard/payments",
+  //   icon: CreditCard,
+  // },
+  // {
+  //   title: "Templates",
+  //   href: "/dashboard/templates",
+  //   icon: FileText,
+  // },
   // {
   //   title: "Analytics",
   //   href: "/dashboard/analytics",
@@ -63,61 +62,65 @@ const sidebarItems = [
     href: "/dashboard/settings",
     icon: Settings,
   },
-]
+];
 
 export function Sidebar() {
-  const pathname = usePathname()
-  const [collapsed, setCollapsed] = useState(false)
-
-  // const { data: business } = useQuery({
-  //   queryKey: ["business"],
-  //   queryFn: () => new ApiService().get<BusinessDataResponse>("/my-business"),
-  // })
+  const { settings } = useUserSettings();
+  const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(false);
 
   // Check for saved state on mount
   useEffect(() => {
-    const savedState = localStorage.getItem("sidebar-collapsed")
+    const savedState = localStorage.getItem("sidebar-collapsed");
     if (savedState) {
-      setCollapsed(savedState === "true")
+      setCollapsed(savedState === "true");
     }
-  }, [])
+  }, []);
 
   const toggleSidebar = () => {
-    const newState = !collapsed
-    setCollapsed(newState)
-    localStorage.setItem("sidebar-collapsed", String(newState))
+    const newState = !collapsed;
+    setCollapsed(newState);
+    localStorage.setItem("sidebar-collapsed", String(newState));
     // Dispatch storage event for the layout to detect
     window.dispatchEvent(
       new StorageEvent("storage", {
         key: "sidebar-collapsed",
         newValue: String(newState),
-      }),
-    )
-  }
+      })
+    );
+  };
 
   return (
     <div
       className={cn(
         "fixed left-0 top-0 z-40 flex h-screen flex-col border-r bg-[#1a1f36] text-white transition-all duration-300",
-        collapsed ? "w-16" : "w-64",
+        collapsed ? "w-16" : "w-64"
       )}
     >
       <div className="flex h-16 items-center justify-between border-b border-[#2a3352] px-4">
-        {!collapsed && (
-          <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-white">B</span>
-          </Link>
-        )}
-        {collapsed && (
-          <span className="mx-auto flex h-8 w-8 items-center justify-center rounded-md bg-primary text-white">B</span>
+        {collapsed ? (
+          <span className="mx-auto flex h-8 w-8  text-xs items-center justify-center text-white">
+            BNB
+          </span>
+        ) : (
+          <span className="flex h-8 px-2 items-center justify-center text-white">
+            BankNBook
+          </span>
         )}
         <Button
           variant="ghost"
           size="icon"
-          className={cn("h-8 w-8 text-white hover:bg-[#2a3352]", collapsed && "ml-auto")}
+          className={cn(
+            "h-8 w-8 text-white hover:bg-[#2a3352]",
+            collapsed && "ml-auto"
+          )}
           onClick={toggleSidebar}
         >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          {collapsed ? (
+            <ChevronRight className="h-4 w-4" />
+          ) : (
+            <ChevronLeft className="h-4 w-4" />
+          )}
         </Button>
       </div>
       <div className="flex-1 overflow-auto py-4">
@@ -132,16 +135,25 @@ export function Sidebar() {
                     className={cn(
                       "flex h-12 items-center justify-start rounded-md px-3 text-[#a4b0d3] hover:bg-[#2a3352] hover:text-white",
                       collapsed && "justify-center px-0",
-                      pathname === item.href && "bg-[#2a3352] text-white",
+                      pathname === item.href && "bg-[#2a3352] text-white"
                     )}
                   >
-                    <Link href={item.href} className="flex w-full items-center gap-3">
+                    <Link
+                      href={item.href}
+                      className="flex w-full items-center gap-3"
+                    >
                       <item.icon className="h-5 w-5 flex-shrink-0" />
-                      {!collapsed && <span className="text-sm font-medium">{item.title}</span>}
+                      {!collapsed && (
+                        <span className="text-sm font-medium">
+                          {item.title}
+                        </span>
+                      )}
                     </Link>
                   </Button>
                 </TooltipTrigger>
-                {collapsed && <TooltipContent side="right">{item.title}</TooltipContent>}
+                {collapsed && (
+                  <TooltipContent side="right">{item.title}</TooltipContent>
+                )}
               </Tooltip>
             ))}
           </TooltipProvider>
@@ -154,17 +166,20 @@ export function Sidebar() {
               {/* {business?.data.name.charAt(0)} */}
             </div>
             <div>
-              {/* <p className="text-sm font-medium">{business?.data.name}</p> */}
+              <p className="text-sm font-medium">
+                {settings?.profile.name || "Business"}
+              </p>
               <p className="text-xs text-[#a4b0d3]">Business Account</p>
             </div>
           </div>
         ) : (
           <div className="flex justify-center">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white">SB</div>
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white">
+              {settings?.profile.name[0] || "BS"}
+            </div>
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }
-

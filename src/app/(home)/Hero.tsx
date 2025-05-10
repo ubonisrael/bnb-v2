@@ -28,7 +28,7 @@ const Hero = () => {
               </Link>
             </Button>
             <Button variant="outline" className="w-full cursor-pointer sm:w-auto text-md px-8 py-6 border-brand-200 text-brand-700 hover:bg-brand-50 rounded-lg">
-              <Link href="/demo">View Demo</Link>
+              <Link href="/#demo">View Demo</Link>
             </Button>
           </div>
         </div>

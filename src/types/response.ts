@@ -4,9 +4,7 @@ export interface VoidResponse {
 }
 
 export interface AnalyticsResponse {
-    status: boolean;
-    message: string;
-    data: AnalyticsData;
+    [key: string]: any;
 }
 
 export interface Summary {
@@ -125,7 +123,7 @@ export interface AuthResponse {
     status: boolean;
     message: string;
     data: Data;
-    token: Token;
+    csrfToken: string;
 }
 
 export interface Data {

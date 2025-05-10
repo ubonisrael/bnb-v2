@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react"
 
@@ -14,9 +14,10 @@ import { ServicesSetupStep } from "./steps/services-setup"
 import { BookingTemplateStep } from "./steps/booking-template"
 import { PaymentDetailsStep } from "./steps/payment-details"
 import { NotificationSettingsStep } from "./steps/notification-settings"
-import { completeOnboarding } from "@/actions/onboarding"
+import { BookingSettingsSetupStep } from "./steps/booking-settings"
 import { OnboardingFormData } from "./type"
 import { useOnboardingMutation } from '@/hooks/use-onboarding-mutation';
+
 
 const steps = [
   { id: "business-info", title: "Business Information" },
@@ -27,23 +28,20 @@ const steps = [
   { id: "services-setup", title: "Services" },
   // { id: "booking-template", title: "Booking Template" },
   { id: "payment-details", title: "Payment Details" },
+  { id: "booking-settings", title: "Booking Settings" },
   { id: "notification-settings", title: "Notifications" },
 ]
 
 export function OnboardingWizard() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
+  const stepRef = useRef<{ validate: () => Promise<boolean> }>(null);
   const [formData, setFormData] = useState<OnboardingFormData>({
     businessInfo: {
       name: "",
       email: "",
       phone: "",
       description: "",
-      category: ""
     },
-    // businessType: {
-    //   category: "",
-    //   services: [],
-    // },
     location: {
       address: "",
       city: "",
@@ -69,6 +67,33 @@ export function OnboardingWizard() {
       provider: "",
       accountDetails: {},
     },
+    bookingSettings: {
+      welcome_message: "",
+      maximum_notice: 0,
+      minimum_notice: 0,
+      time_zone: "",
+      sunday_enabled: false,
+      sunday_opening: 480,
+      sunday_closing: 1080,
+      monday_enabled: false,
+      monday_opening: 480,
+      monday_closing: 1080,
+      tuesday_enabled: false,
+      tuesday_opening: 480,
+      tuesday_closing: 1080,
+      wednesday_enabled: false,
+      wednesday_opening: 480,
+      wednesday_closing: 1080,
+      thursday_enabled: false,
+      thursday_opening: 480,
+      thursday_closing: 1080,
+      friday_enabled: false,
+      friday_opening: 480,
+      friday_closing: 1080,
+      saturday_enabled: false,
+      saturday_opening: 480,
+      saturday_closing: 1080,
+    },
     notificationSettings: {
       cancelNoticeHours: 24,
       emailSettings: {
@@ -82,7 +107,7 @@ export function OnboardingWizard() {
       },
     },
   })
-  const router = useRouter()
+
   const onboardingMutation = useOnboardingMutation()
 
   const currentStep = steps[currentStepIndex]
@@ -92,17 +117,15 @@ export function OnboardingWizard() {
       ...prev,
       [stepId]: data,
     }))
-    // console.log(stepId, data)
   }
 
-  const goToNextStep = () => {
-    console.log(currentStepIndex)
-    console.log(steps.length)
-    if (currentStepIndex < steps.length - 1) {
-      setCurrentStepIndex(currentStepIndex + 1)
-      window.scrollTo(0, 0)
+  const goToNextStep = async () => {
+    const isValid = await stepRef.current?.validate?.();
+    if (isValid) {
+      setCurrentStepIndex((prev) => prev + 1);
+      window.scrollTo(0, 0);
     }
-  }
+  };
 
   const goToPreviousStep = () => {
     if (currentStepIndex > 0) {
@@ -113,7 +136,10 @@ export function OnboardingWizard() {
 
   const handleFinish = async () => {
     try {
-      await onboardingMutation.mutateAsync(formData)
+      const isValid = await stepRef.current?.validate?.();
+      if (isValid) {
+        await onboardingMutation.mutateAsync(formData)
+      }
     } catch (error) {
       console.error("Failed to complete onboarding:", error)
     }
@@ -149,7 +175,7 @@ export function OnboardingWizard() {
                   </span>
                 )}
               </div>
-              <span className="hidden whitespace-nowrap sm:inline">{step.title}</span>
+              <span className={`hidden ${index === currentStepIndex ? "sm:inline" : ""} whitespace-nowrap`}>{step.title}</span>
             </div>
           </div>
         ))}
@@ -166,7 +192,7 @@ export function OnboardingWizard() {
 
         <div className="px-6 py-6">
           {currentStep.id === "business-info" && (
-            <BusinessInfoStep data={formData} onUpdate={(data) => updateFormData("businessInfo", data)} />
+            <BusinessInfoStep ref={stepRef} data={formData} onUpdate={(data) => updateFormData("businessInfo", data)} />
           )}
 
           {/* {currentStep.id === "business-type" && (
@@ -174,7 +200,8 @@ export function OnboardingWizard() {
           )} */}
 
           {currentStep.id === "location" && (
-            <LocationStep data={formData} onUpdate={(data) => updateFormData("location", data)} />
+            <LocationStep
+             ref={stepRef} data={formData} onUpdate={(data) => updateFormData("location", data)} />
           )}
 
           {/* {currentStep.id === "team-size" && (
@@ -183,13 +210,15 @@ export function OnboardingWizard() {
 
           {currentStep.id === "visual-settings" && (
             <VisualSettingsStep
+             ref={stepRef}
               data={formData.visualSettings}
               onUpdate={(data) => updateFormData("visualSettings", data)}
             />
           )}
 
           {currentStep.id === "services-setup" && (
-            <ServicesSetupStep data={formData} onUpdate={(data) => updateFormData("servicesSetup", data)} />
+            <ServicesSetupStep
+             ref={stepRef} data={formData} onUpdate={(data) => updateFormData("servicesSetup", data)} />
           )}
 
           {/* {currentStep.id === "booking-template" && (
@@ -201,13 +230,23 @@ export function OnboardingWizard() {
 
           {currentStep.id === "payment-details" && (
             <PaymentDetailsStep
+             ref={stepRef}
               data={formData}
               onUpdate={(data) => updateFormData("paymentDetails", data)}
             />
           )}
 
+          {currentStep.id === "booking-settings" && (
+            <BookingSettingsSetupStep
+             ref={stepRef}
+              data={formData}
+              onUpdate={(data) => updateFormData("bookingSettings", data)}
+            />
+          )}
+          
           {currentStep.id === "notification-settings" && (
             <NotificationSettingsStep
+             ref={stepRef}
               data={formData}
               onUpdate={(data) => updateFormData("notificationSettings", data)}
             />

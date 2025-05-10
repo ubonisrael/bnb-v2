@@ -1,49 +1,69 @@
-"use client"
+"use client";
 
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { OnboardingFormData } from "../type"
-import { useEffect } from "react"
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { OnboardingFormData } from "../type";
+import { Ref, useEffect, useImperativeHandle } from "react";
 
-const countries = [
-  { value: "us", label: "United States" },
-  { value: "ca", label: "Canada" },
-  { value: "uk", label: "United Kingdom" },
-  { value: "au", label: "Australia" },
-  { value: "fr", label: "France" },
-  { value: "de", label: "Germany" },
-  { value: "jp", label: "Japan" },
-]
+const countries = [{ value: "United Kingdom", label: "United Kingdom" }];
 
 const locationSchema = z.object({
-  address: z.string().min(3, { message: "Address must be at least 3 characters" }),
+  address: z
+    .string()
+    .min(3, { message: "Address must be at least 3 characters" }),
   city: z.string().min(2, { message: "City must be at least 2 characters" }),
-  state: z.string().min(2, { message: "State/province must be at least 2 characters" }),
-  postalCode: z.string().min(4, { message: "Postal code must be at least 4 characters" }),
+  state: z
+    .string()
+    .min(2, { message: "State/province must be at least 2 characters" }),
+  postalCode: z
+    .string()
+    .min(4, { message: "Postal code must be at least 4 characters" }),
   country: z.string().min(1, { message: "Please select a country" }),
-})
+});
 
-type LocationData = z.infer<typeof locationSchema>
+type LocationData = z.infer<typeof locationSchema>;
 
 interface LocationStepProps {
-  data: OnboardingFormData
-  onUpdate: (data: LocationData) => void
+  data: OnboardingFormData;
+  onUpdate: (data: LocationData) => void;
+  ref: Ref<{ validate: () => Promise<boolean> }>;
 }
 
-export function LocationStep({ data, onUpdate }: LocationStepProps) {
+export function LocationStep({ data, onUpdate, ref }: LocationStepProps) {
   const form = useForm<LocationData>({
     resolver: zodResolver(locationSchema),
     defaultValues: data.location,
-  })
+  });
 
-  function onSubmit(values: LocationData) {
-    onUpdate(values)
-  }
+  useImperativeHandle(ref, () => ({
+    async validate() {
+      const isValid = await form.trigger(); // runs validation
+      // console.log("isValid", isValid);
+      if (isValid) {
+        onUpdate(form.getValues());
+      }
+      return isValid;
+    },
+  }));
 
   // Update form data on every change for continuous saving
   // const watchedValues = form.watch()
@@ -58,18 +78,22 @@ export function LocationStep({ data, onUpdate }: LocationStepProps) {
   useEffect(() => {
     const subscription = form.watch((values) => {
       if (values && form.formState.isValid && !form.formState.isSubmitting) {
-        onUpdate(values as LocationData)
+        onUpdate(values as LocationData);
       }
-    })
-    return () => subscription.unsubscribe()
-  }, [form, onUpdate])
+    });
+    return () => subscription.unsubscribe();
+  }, [form, onUpdate]);
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form className="space-y-6">
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-[#121212]">Business Location</h2>
-          <p className="text-sm text-[#6E6E73]">Where is your business located?</p>
+          <h2 className="text-lg font-semibold text-[#121212]">
+            Business Location
+          </h2>
+          <p className="text-sm text-[#6E6E73]">
+            Where is your business located?
+          </p>
         </div>
 
         <FormField
@@ -137,7 +161,10 @@ export function LocationStep({ data, onUpdate }: LocationStepProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Country</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a country" />
@@ -158,10 +185,10 @@ export function LocationStep({ data, onUpdate }: LocationStepProps) {
         </div>
 
         <FormDescription className="pt-2">
-          This information will be displayed on your booking page and helps clients find your business
+          This information will be displayed on your booking page and helps
+          clients find your business
         </FormDescription>
       </form>
     </Form>
-  )
+  );
 }
-

@@ -1,7 +1,16 @@
-import { Bell, Search, Calendar, ChevronDown, User, Settings, LogOut, Loader2 } from "lucide-react"
+import {
+  Bell,
+  Search,
+  Calendar,
+  ChevronDown,
+  User,
+  Settings,
+  LogOut,
+  Loader2,
+} from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,23 +18,25 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { useLogoutMutation } from '@/hooks/use-logout-mutation'
-import { useQuery } from "@tanstack/react-query"
-import ApiService from "@/services/api-service"
-import { UserResponse } from "@/types/response"
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { useLogoutMutation } from "@/hooks/use-logout-mutation";
+import { useQuery } from "@tanstack/react-query";
+import ApiService from "@/services/api-service";
+import { UserResponse } from "@/types/response";
+import { useUserSettings } from "@/contexts/user-settings-context";
 
 export function Header() {
-  const today = new Date()
+  const { settings } = useUserSettings();
+  const today = new Date();
   const formattedDate = today.toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
     day: "numeric",
     year: "numeric",
-  })
-  const logoutMutation = useLogoutMutation()
+  });
+  const logoutMutation = useLogoutMutation();
 
   // const { data: user } = useQuery({
   //   queryKey: ["user"],
@@ -40,7 +51,7 @@ export function Header() {
         <span className="font-medium">{formattedDate}</span>
       </div>
       <div className="flex-1 md:flex-none md:w-1/3">
-        <form>
+        {/* <form>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -49,16 +60,20 @@ export function Header() {
               className="w-full rounded-full border-none bg-secondary pl-10 pr-4 shadow-none focus-visible:ring-1 focus-visible:ring-primary"
             />
           </div>
-        </form>
+        </form> */}
       </div>
       <div className="ml-auto flex items-center gap-4">
-        <Button variant="outline" className="hidden gap-2 rounded-full border-none bg-secondary md:flex">
+        {/* <Button variant="outline" className="hidden gap-2 rounded-full border-none bg-secondary md:flex">
           <span>Day View</span>
           <ChevronDown className="h-4 w-4" />
-        </Button>
+        </Button> */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon" className="relative rounded-full border-none bg-secondary">
+            <Button
+              variant="outline"
+              size="icon"
+              className="relative rounded-full border-none bg-secondary"
+            >
               <Bell className="h-4 w-4" />
               <Badge className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary p-0 text-[10px]">
                 3
@@ -74,8 +89,12 @@ export function Header() {
                   <div className="mt-0.5 h-2 w-2 rounded-full bg-primary"></div>
                   <div className="grid flex-1 gap-1">
                     <p className="font-medium">New booking</p>
-                    <p className="text-xs text-muted-foreground">Sarah booked a haircut at 2:00 PM</p>
-                    <p className="text-xs text-muted-foreground">10 minutes ago</p>
+                    <p className="text-xs text-muted-foreground">
+                      Sarah booked a haircut at 2:00 PM
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      10 minutes ago
+                    </p>
                   </div>
                 </div>
               </DropdownMenuItem>
@@ -84,7 +103,9 @@ export function Header() {
                   <div className="mt-0.5 h-2 w-2 rounded-full bg-primary"></div>
                   <div className="grid flex-1 gap-1">
                     <p className="font-medium">Appointment reminder</p>
-                    <p className="text-xs text-muted-foreground">You have 5 appointments tomorrow</p>
+                    <p className="text-xs text-muted-foreground">
+                      You have 5 appointments tomorrow
+                    </p>
                     <p className="text-xs text-muted-foreground">1 hour ago</p>
                   </div>
                 </div>
@@ -94,7 +115,9 @@ export function Header() {
                   <div className="mt-0.5 h-2 w-2 rounded-full bg-primary"></div>
                   <div className="grid flex-1 gap-1">
                     <p className="font-medium">Review received</p>
-                    <p className="text-xs text-muted-foreground">John left a 5-star review</p>
+                    <p className="text-xs text-muted-foreground">
+                      John left a 5-star review
+                    </p>
                     <p className="text-xs text-muted-foreground">2 hours ago</p>
                   </div>
                 </div>
@@ -108,11 +131,12 @@ export function Header() {
         </DropdownMenu>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Avatar className="h-8 w-8 border-2 border-white">
+            <Button variant="ghost" size="icon" className="rounded-full bg-black text-white">
+              {/* <Avatar className="h-8 w-8 border-2 border-white"> */}
                 {/* <AvatarImage src={user?.profilePicture || "/placeholder.svg"} alt="User" /> */}
                 {/* <AvatarFallback>{user?.data.name.charAt(0)}</AvatarFallback> */}
-              </Avatar>
+              {/* </Avatar> */}
+              { settings ? (`${settings?.profile.name[0]}${settings?.profile.name[1]}`) : "BS" }
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -147,6 +171,5 @@ export function Header() {
         </DropdownMenu>
       </div>
     </header>
-  )
+  );
 }
-

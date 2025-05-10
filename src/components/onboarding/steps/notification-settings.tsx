@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { OnboardingFormData } from "../type"
-import { useEffect } from "react"
+import { Ref, useEffect, useImperativeHandle } from "react"
 const notificationSettingsSchema = z.object({
   cancelNoticeHours: z.coerce.number().min(0, { message: "Must be a positive number" }),
   emailSettings: z.object({
@@ -28,9 +28,10 @@ type NotificationSettingsData = z.infer<typeof notificationSettingsSchema>
 interface NotificationSettingsStepProps {
   data: OnboardingFormData
   onUpdate: (data: NotificationSettingsData) => void
+  ref: Ref<{ validate: () => Promise<boolean> }>
 }
 
-export function NotificationSettingsStep({ data, onUpdate }: NotificationSettingsStepProps) {
+export function NotificationSettingsStep({ data, onUpdate, ref }: NotificationSettingsStepProps) {
   const form = useForm<NotificationSettingsData>({
     resolver: zodResolver(notificationSettingsSchema),
     defaultValues: {
@@ -46,6 +47,16 @@ export function NotificationSettingsStep({ data, onUpdate }: NotificationSetting
       },
     },
   })
+
+    useImperativeHandle(ref, () => ({
+      async validate() {
+        const isValid = await form.trigger(); // runs validation
+        if (isValid) {
+          onUpdate(form.getValues());
+        }
+        return isValid;
+      },
+    }));
 
   function onSubmit(values: NotificationSettingsData) {
     onUpdate(values)

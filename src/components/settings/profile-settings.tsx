@@ -1,109 +1,138 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { Loader2, Upload, X } from "lucide-react"
-import Image from "next/image"
-import { useMutation, useQuery } from "@tanstack/react-query"
-import toast from "react-hot-toast"
-
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { useUserSettings } from "@/contexts/user-settings-context"
-import ApiService from "@/services/api-service"
-import { BusinessDataResponse, SettingsResponse } from "@/types/response"
+import { useEffect, useState } from "react";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Loader2, Upload, X } from "lucide-react";
+import Image from "next/image";
+import { useMutation } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { ref, getDownloadURL, uploadBytesResumable } from "firebase/storage";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { useUserSettings } from "@/contexts/user-settings-context";
+import api from "@/services/api-service";
+import { storage } from "@/services/firebase";
+import { SettingsResponse } from "@/types/response";
 
 const profileSchema = z.object({
-  businessName: z.string().min(2, "Business name must be at least 2 characters"),
+  name: z.string().min(2, "Business name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
   phone: z.string().min(10, "Please enter a valid phone number"),
   address: z.string().min(5, "Please enter a valid address"),
   city: z.string().min(2, "City must be at least 2 characters"),
   state: z.string().min(2, "State must be at least 2 characters"),
-  postalCode: z.string().min(4, "Postal code must be at least 4 characters"),
+  postal_code: z.string().min(4, "Postal code must be at least 4 characters"),
   country: z.string().min(2, "Country must be at least 2 characters"),
-  bio: z.string().max(500, "Bio must be less than 500 characters").optional(),
-  logoUrl: z.string().optional(),
-})
+  desc: z.string().max(500, "Bio must be less than 500 characters").optional(),
+  logo: z.string().optional(),
+});
 
-type ProfileFormValues = z.infer<typeof profileSchema>
+type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export function ProfileSettings() {
-  // const { settings, updateSettings, isLoading: settingsLoading } = useUserSettings()
+  const {
+    settings,
+    updateSettings,
+    isLoading: settingsLoading,
+  } = useUserSettings();
 
-  const [isUploading, setIsUploading] = useState(false)
+  const [isUploading, setIsUploading] = useState(false);
 
-  const { data: business, isLoading } = useQuery<BusinessDataResponse>({
-    queryKey: ["business"],
-    queryFn: () => new ApiService().get("/my-business"),
-  })
+  // const { data, isLoading } = useQuery<BusinessDataResponse>({
+  //   queryKey: ["profile"],
+  //   queryFn: () => api.get("/sp/profile"),
+  // });
 
-  const [logoUrl, setLogoUrl] = useState<string | null>(business?.data.logo || null)
+  const [logoUrl, setLogoUrl] = useState<string | null>(
+    settings?.profile.logo || null
+  );
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      address: business?.data.address,
-      city: business?.data.city,
-      state: business?.data.state,
-      postalCode: business?.data.postal_code,
-      country: business?.data.country,
-      bio: business?.data.desc,
-      businessName: business?.data.name,
-      email: business?.data.email,
-      phone: business?.data.phone,
-      logoUrl: business?.data.logo,
+      address: settings?.profile.address,
+      city: settings?.profile.city,
+      state: settings?.profile.state,
+      postal_code: settings?.profile.postal_code,
+      country: settings?.profile.country,
+      desc: settings?.profile.desc,
+      name: settings?.profile.name,
+      email: settings?.profile.email,
+      phone: settings?.profile.phone,
+      logo: settings?.profile.logo || "",
     },
-  })
+  });
+
+  useEffect(() => {
+    if (settings) {
+      form.reset({
+        address: settings.profile.address,
+        city: settings.profile.city,
+        state: settings.profile.state,
+        postal_code: settings.profile.postal_code,
+        country: settings.profile.country,
+        desc: settings.profile.desc,
+        name: settings.profile.name,
+        email: settings.profile.email,
+        phone: settings.profile.phone,
+        logo: settings.profile.logo || "",
+      });
+    }
+  }, [form, settings?.profile]);
 
   // Handle logo upload
-  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    setIsUploading(true)
+  const handleLogoUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
     try {
-      toast.loading('Uploading logo...', { id: 'logo-upload' })
+      // toast.loading('Uploading logo...', { id: 'logo-upload' });
+      const storageRef = ref(storage, `bnb/${settings?.profile?.email}/logo`);
+      console.log(storageRef);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        },
+        (error) => toast.error(error.message),
+        () =>
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            setLogoUrl(downloadURL);
+            console.log(downloadURL);
+          })
+      );
 
-      // Create form data
-      const formData = new FormData()
-      formData.append('file', file)
-
-      // Upload to IPFS via API route
-      const response = await fetch('/api/ipfs/upload', {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to upload logo')
-      }
-
-      const data = await response.json()
-
-      // Update local state
-      setLogoUrl(data.url)
-      form.setValue("logoUrl", data.url)
-
-      toast.success('Logo uploaded successfully', { id: 'logo-upload' })
+      toast.success("Logo uploaded successfully", { id: "logo-upload" });
     } catch (error: unknown) {
-      console.error("Failed to upload logo:", error)
-      toast.error('Failed to upload logo', { id: 'logo-upload' })
+      console.error("Failed to upload logo:", error);
+      toast.error("Failed to upload logo", { id: "logo-upload" });
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
-  }
+  };
 
   const removeLogo = () => {
-    setLogoUrl(null)
-    form.setValue("logoUrl", "")
-  }
+    setLogoUrl(null);
+    form.setValue("logo", "");
+  };
 
   const updateProfileMutation = useMutation({
     mutationFn: async (values: ProfileFormValues) => {
@@ -111,31 +140,34 @@ export function ProfileSettings() {
       const signal = controller.signal;
 
       try {
-        const response = await new ApiService().patch<SettingsResponse>(
-          '/my-business-info',
+        const response = await api.patch<SettingsResponse>(
+          "/sp/info",
           {
             ...values,
-            logoUrl: logoUrl || "",
+            logo: logoUrl || "",
           },
           { signal }
         );
         return response;
       } catch (error: unknown) {
-        if (error instanceof Error && error.name === 'AbortError') {
-          toast.error('Request was cancelled');
+        if (error instanceof Error && error.name === "AbortError") {
+          toast.error("Request was cancelled");
         }
         throw error;
       }
     },
     onMutate: () => {
-      toast.loading('Saving profile...', { id: 'profile-save' });
+      toast.loading("Saving profile...", { id: "profile-save" });
     },
     onSuccess: (response) => {
-      toast.success('Profile updated successfully', { id: 'profile-save' });
-      // updateSettings("profile", response.data);
+      toast.success("Profile updated successfully", { id: "profile-save" });
+      console.log(response.data);
+      updateSettings("profile", response.data);
     },
     onError: (error: Error) => {
-      toast.error(error?.message || 'Failed to update profile', { id: 'profile-save' });
+      toast.error(error?.message || "Failed to update profile", {
+        id: "profile-save",
+      });
     },
   });
 
@@ -152,13 +184,15 @@ export function ProfileSettings() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div>
           <h3 className="text-lg font-medium">Business Profile</h3>
-          <p className="text-sm text-muted-foreground">Update your business information and profile</p>
+          <p className="text-sm text-muted-foreground">
+            Update your business information and profile
+          </p>
         </div>
 
         <div className="space-y-4">
           <FormField
             control={form.control}
-            name="logoUrl"
+            name="logo"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Business Logo</FormLabel>
@@ -204,19 +238,23 @@ export function ProfileSettings() {
                           </label>
                           <p className="pl-1">or drag and drop</p>
                         </div>
-                        <p className="text-xs text-[#6E6E73]">PNG, JPG, GIF up to 10MB</p>
+                        <p className="text-xs text-[#6E6E73]">
+                          PNG, JPG, GIF up to 10MB
+                        </p>
                       </div>
                     </div>
                   )}
                 </div>
-                <FormDescription>Your logo will appear on your booking page and receipts</FormDescription>
+                <FormDescription>
+                  Your logo will appear on your booking page and receipts
+                </FormDescription>
               </FormItem>
             )}
           />
 
           <FormField
             control={form.control}
-            name="businessName"
+            name="name"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Business Name</FormLabel>
@@ -303,7 +341,7 @@ export function ProfileSettings() {
 
             <FormField
               control={form.control}
-              name="postalCode"
+              name="postal_code"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Postal Code</FormLabel>
@@ -332,14 +370,20 @@ export function ProfileSettings() {
 
           <FormField
             control={form.control}
-            name="bio"
+            name="desc"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Business Description</FormLabel>
                 <FormControl>
-                  <Textarea placeholder="Tell clients about your business..." className="resize-none" {...field} />
+                  <Textarea
+                    placeholder="Tell clients about your business..."
+                    className="resize-none"
+                    {...field}
+                  />
                 </FormControl>
-                <FormDescription>This will be displayed on your public profile</FormDescription>
+                <FormDescription>
+                  This will be displayed on your public profile
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -363,6 +407,5 @@ export function ProfileSettings() {
         </div>
       </form>
     </Form>
-  )
+  );
 }
-

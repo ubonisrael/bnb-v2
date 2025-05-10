@@ -11,7 +11,7 @@ import { UserSettingsProvider } from "@/contexts/user-settings-context"
 import { BookingDaysSettings } from "@/components/settings/booking-days-settings"
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState("profile")
+  const [activeTab, setActiveTab] = useState("profile");
 
   return (
     <UserSettingsProvider>

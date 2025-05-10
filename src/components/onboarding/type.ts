@@ -4,7 +4,6 @@ export interface BusinessInfoData {
     email: string
     phone: string
     description: string
-    category: string
 }
 
 export interface LocationData {
@@ -24,7 +23,6 @@ export interface VisualSettingsData {
 export interface ServiceCategory {
     id: string
     name: string
-    description: string
 }
 
 export interface Service {
@@ -33,7 +31,7 @@ export interface Service {
     categoryId: string
     price: number
     duration: number
-    description?: string
+    description: string
     availableDays: string[]
 }
 
@@ -62,11 +60,40 @@ export interface NotificationSettingsData {
     emailSettings: EmailSettingsData
 }
 
+export interface BookingSettingsData {
+    maximum_notice: number;
+    minimum_notice: number;
+    welcome_message: string;
+    sunday_enabled: boolean;
+    sunday_opening: number;
+    sunday_closing: number;
+    monday_enabled: boolean;
+    monday_opening: number;
+    monday_closing: number;
+    tuesday_enabled: boolean;
+    tuesday_opening: number;
+    tuesday_closing: number;
+    wednesday_enabled: boolean;
+    wednesday_opening: number;
+    wednesday_closing: number;
+    thursday_enabled: boolean;
+    thursday_opening: number;
+    thursday_closing: number;
+    friday_enabled: boolean;
+    friday_opening: number;
+    friday_closing: number;
+    saturday_enabled: boolean;
+    saturday_opening: number;
+    saturday_closing: number;
+    time_zone: string;
+}
+
 export interface OnboardingFormData {
-    businessInfo: BusinessInfoData
-    location: LocationData
-    visualSettings: VisualSettingsData
-    servicesSetup: ServicesSetupData
-    paymentDetails: PaymentDetailsData
-    notificationSettings: NotificationSettingsData
+    businessInfo: BusinessInfoData;
+    location: LocationData;
+    visualSettings: VisualSettingsData;
+    servicesSetup: ServicesSetupData;
+    paymentDetails: PaymentDetailsData;
+    notificationSettings: NotificationSettingsData;
+    bookingSettings: BookingSettingsData;
 }

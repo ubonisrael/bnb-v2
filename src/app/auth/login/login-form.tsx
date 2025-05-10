@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { ArrowRight, Loader2, Eye, EyeOff } from "lucide-react"
 import { useMutation } from "@tanstack/react-query"
-import ApiService from "@/services/api-service"
+import api from "@/services/api-service"
 import toast from "react-hot-toast"
 import { useState } from "react"
 
@@ -16,8 +16,6 @@ import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { ErrorResponse, AuthResponse } from "@/types/response"
-import CookieService from "@/services/cookie-service"
-import { BANKNBOOK_AUTH_COOKIE_NAME, BANKNBOOK_AUTH_REFRESH_COOKIE_NAME } from "@/utils/strings"
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -43,17 +41,20 @@ export function LoginForm() {
   const loginMutation = useMutation<AuthResponse, ErrorResponse, LoginFormValues>({
     mutationFn: (data: LoginFormValues) => {
       toast.loading("Signing in...", { id: "login-loading" })
-      return new ApiService().post('/auth/login/email', data)
+      return api.post('/auth/login/email', data)
     },
     onSuccess: (data: AuthResponse) => {
       toast.dismiss("login-loading")
       toast.remove("login-loading")
-      new CookieService().setCookieWithExpiry(BANKNBOOK_AUTH_COOKIE_NAME, data.token.token, data.token.tokenExpires)
-      new CookieService().setCookieWithExpiry(BANKNBOOK_AUTH_REFRESH_COOKIE_NAME, data.token.refreshToken, data.token.refreshTokenExpires)
+      // console.log(data)
+      api.setCsrfToken(data.csrfToken)
+      // new CookieService().setCookieWithExpiry(BANKNBOOK_AUTH_COOKIE_NAME, data.token.token, data.token.tokenExpires)
+      // new CookieService().setCookieWithExpiry(BANKNBOOK_AUTH_REFRESH_COOKIE_NAME, data.token.refreshToken, data.token.refreshTokenExpires)
       toast.success(data.message, { id: "login-success" })
       router.push("/dashboard")
     },
     onError: (error: ErrorResponse) => {
+      // console.log(error)
       toast.dismiss("login-loading")
       toast.remove("login-loading")
       toast.error(error.errors[0].message, { id: "login-error" })

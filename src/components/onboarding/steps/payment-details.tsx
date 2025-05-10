@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { OnboardingFormData } from "../type"
-import { useEffect } from "react"
+import { Ref, useEffect, useImperativeHandle } from "react"
 
 const paymentDetailsSchema = z.object({
   provider: z.string().min(1, { message: "Please select a payment provider" }),
@@ -24,9 +24,10 @@ type PaymentDetailsData = z.infer<typeof paymentDetailsSchema>
 interface PaymentDetailsStepProps {
   data: OnboardingFormData
   onUpdate: (data: PaymentDetailsData) => void
+  ref: Ref<{ validate: () => Promise<boolean> }>
 }
 
-export function PaymentDetailsStep({ data, onUpdate }: PaymentDetailsStepProps) {
+export function PaymentDetailsStep({ data, onUpdate, ref }: PaymentDetailsStepProps) {
   const form = useForm<PaymentDetailsData>({
     resolver: zodResolver(paymentDetailsSchema),
     defaultValues: {
@@ -47,6 +48,17 @@ export function PaymentDetailsStep({ data, onUpdate }: PaymentDetailsStepProps) 
       },
     },
   })
+
+    useImperativeHandle(ref, () => ({
+      async validate() {
+        // const isValid = await form.trigger(); // runs validation
+        // if (isValid) {
+        //   onUpdate(form.getValues());
+        // }
+        // return isValid;
+        return true
+      },
+    }));
 
   function onSubmit(values: PaymentDetailsData) {
     onUpdate(values)

@@ -2,16 +2,18 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { Ref, useImperativeHandle, useState } from "react"
 import Image from "next/image"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
+import { ref as fRef, getDownloadURL, uploadBytesResumable } from "firebase/storage";
 import { Upload, X } from "lucide-react"
-
+import { storage } from "@/services/firebase";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import toast from "react-hot-toast"
 
 const visualSettingsSchema = z.object({
   logoUrl: z.string().optional(),
@@ -24,15 +26,27 @@ type VisualSettingsData = z.infer<typeof visualSettingsSchema>
 interface VisualSettingsStepProps {
   data: VisualSettingsData
   onUpdate: (data: VisualSettingsData) => void
+  ref: Ref<{ validate: () => Promise<boolean> }>
 }
 
-export function VisualSettingsStep({ data, onUpdate }: VisualSettingsStepProps) {
+export function VisualSettingsStep({ data, onUpdate, ref }: VisualSettingsStepProps) {
   const [previewLogo, setPreviewLogo] = useState<string | null>(data.logoUrl || null)
+  const [isUploading, setIsUploading] = useState(false);
 
   const form = useForm<VisualSettingsData>({
     resolver: zodResolver(visualSettingsSchema),
     defaultValues: data,
   })
+
+    useImperativeHandle(ref, () => ({
+      async validate() {
+        const isValid = await form.trigger(); // runs validation
+        if (isValid) {
+          onUpdate(form.getValues());
+        }
+        return isValid;
+      },
+    }));
 
   function onSubmit(values: VisualSettingsData) {
     onUpdate({
@@ -42,21 +56,60 @@ export function VisualSettingsStep({ data, onUpdate }: VisualSettingsStepProps) 
   }
 
   // Handle logo upload
-  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      // In a real app, you would upload this to a server and get back a URL
-      // For demo purposes, we're using a local object URL
-      const objectUrl = URL.createObjectURL(file)
-      setPreviewLogo(objectUrl)
-
-      const currentValues = form.getValues()
-      onUpdate({
-        ...currentValues,
-        logoUrl: objectUrl,
-      })
-    }
-  }
+  // Handle logo upload
+    const handleLogoUpload = async (
+      event: React.ChangeEvent<HTMLInputElement>
+    ) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      setIsUploading(true);
+      try {
+        // toast.loading('Uploading logo...', { id: 'logo-upload' });
+        const storageRef = fRef(storage, `bnb/${Date.now()}/logo`);
+        console.log(storageRef);
+        const uploadTask = uploadBytesResumable(storageRef, file);
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            const progress =
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          },
+          (error) => toast.error(error.message),
+          () =>
+            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+              setPreviewLogo(downloadURL);
+              console.log(downloadURL);
+            })
+        );
+        // Create form data
+        // const formData = new FormData()
+        // formData.append('file', file)
+  
+        // Upload to IPFS via API route
+        //const response = await fetch('/api/ipfs/upload', {
+        //  method: 'POST',
+        //  body: formData,
+        //})
+  
+        //if (!response.ok) {
+        //throw new Error('Failed to upload logo')
+        //}
+        // throw new Error('Failed to upload logo');
+  
+        // const data = await response.json()
+  
+        // Update local state
+        // setLogoUrl(data.url)
+        // form.setValue("logoUrl", data.url)
+  
+        toast.success("Logo uploaded successfully", { id: "logo-upload" });
+      } catch (error: unknown) {
+        console.error("Failed to upload logo:", error);
+        toast.error("Failed to upload logo", { id: "logo-upload" });
+      } finally {
+        setIsUploading(false);
+      }
+    };
 
   const removeLogo = () => {
     setPreviewLogo(null)

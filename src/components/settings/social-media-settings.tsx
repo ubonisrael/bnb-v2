@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -12,8 +11,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { useUserSettings } from "@/contexts/user-settings-context"
-import ApiService from "@/services/api-service"
+import api from "@/services/api-service"
 import { BusinessDataResponse } from "@/types/response"
+import { useEffect } from "react"
 
 const socialMediaSchema = z.object({
   website: z.string().url("Please enter a valid URL").or(z.string().length(0)),
@@ -32,8 +32,22 @@ export function SocialMediaSettings() {
 
   const form = useForm<SocialMediaFormValues>({
     resolver: zodResolver(socialMediaSchema),
-    defaultValues: settings.socialMedia,
+    defaultValues: settings?.socialMedia,
   })
+
+    useEffect(() => {
+      if (settings) {
+        form.reset({
+          website: settings.socialMedia.website,
+          tiktok: settings.socialMedia.tiktok,
+          twitter: settings.socialMedia.twitter,
+          instagram: settings.socialMedia.instagram,
+          linkedin: settings.socialMedia.linkedin,
+          youtube: settings.socialMedia.youtube,
+          facebook: settings.socialMedia.facebook
+        });
+      }
+    }, [form, settings?.socialMedia]);
 
   const updateSocialMediaMutation = useMutation({
     mutationFn: async (values: SocialMediaFormValues) => {
@@ -41,16 +55,16 @@ export function SocialMediaSettings() {
       const signal = controller.signal;
 
       try {
-        const response = await new ApiService().patch<BusinessDataResponse>(
-          '/my-business-socials',
+        const response = await api.patch<BusinessDataResponse>(
+          '/sp/socials',
           {
-            website: values.website,
-            instagram: values.instagram,
-            facebook: values.facebook,
-            twitter: values.twitter,
-            linkedin: values.linkedin,
-            youtube: values.youtube,
-            tiktok: values.tiktok,
+            website_url: values.website,
+            instagram_url: values.instagram,
+            facebook_url: values.facebook,
+            twitter_url: values.twitter,
+            linkedin_url: values.linkedin,
+            youtube_url: values.youtube,
+            tiktok_url: values.tiktok,
           },
           { signal }
         );
