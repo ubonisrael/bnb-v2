@@ -50,7 +50,7 @@ export function NotificationPreferences() {
 
       try {
         const response = await api.patch<BusinessDataResponse>(
-          '/my-business-notifications',
+          '/sp/notifications',
           {
             email: values.email,
             sms: values.sms,
