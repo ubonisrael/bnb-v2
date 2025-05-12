@@ -46,7 +46,7 @@ export interface UserSettings {
     };
     reminderTiming: string;
   };
-  socialMedia: {
+  social: {
     website: string;
     instagram: string;
     facebook: string;

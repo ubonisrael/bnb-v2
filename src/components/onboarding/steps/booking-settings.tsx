@@ -34,7 +34,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { BookingSettingsData, OnboardingFormData } from "../type";
-import { WorkingHours } from "@/components/settings/booking-days-settings";
 import { minutesToTimeString, timezones } from "@/utils/time";
 import { Textarea } from "@/components/ui/textarea";
 

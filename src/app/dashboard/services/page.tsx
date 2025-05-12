@@ -70,6 +70,9 @@ import api from "@/services/api-service";
 import { useUserSettings } from "@/contexts/user-settings-context";
 import { Checkbox } from "@/components/ui/checkbox";
 
+const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const
+const daysStatus = days.map((d) => `${d}_enabled`)
+type daysStatusType = typeof daysStatus[number]
 
 export default function ServicesPage() {
   const { settings, updateSettings } = useUserSettings();
@@ -97,7 +100,7 @@ export default function ServicesPage() {
       price: 0,
       duration: 60,
       description: "",
-      availableDays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+      availableDays: [...days],
     },
   });
 
@@ -157,10 +160,21 @@ export default function ServicesPage() {
       const signal = controller.signal;
 
       try {
+        const daysStatus: { [key in daysStatusType]: boolean} = {}
+        values.availableDays.forEach((day) => {
+          daysStatus[`${day}_enabled`] = true
+        })
+        console.log({
+            ...values,
+            fullPrice: values.price,
+            ...daysStatus
+          },)
         const response = await api.post(
           "/sp/services",
           {
             ...values,
+            fullPrice: values.price,
+            ...daysStatus
           },
           { signal }
         );
@@ -506,45 +520,6 @@ export default function ServicesPage() {
             {settings?.categories.map((cat) => (
               <TabsContent key={cat.id} value={cat.id} className="m-0">
                 <div className="rounded-md border">
-                  <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:hidden">
-                    {settings?.services.filter((service) => service.categoryId === cat.id).map((service) => (
-                      <Card key={service.id} className="shadow-card">
-                        <CardContent className="p-4">
-                          <div className="flex justify-between">
-                            <div className="font-medium">{service.name}</div>
-                            <Badge variant="outline">
-                              {cat.name}
-                            </Badge>
-                          </div>
-                          <div className="mt-2 text-sm text-muted-foreground">
-                            {service.description}
-                          </div>
-                          <div className="mt-4 flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                              <div className="flex items-center gap-1">
-                                <Clock className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm">
-                                  {service.duration} minutes
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <DollarSign className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm">{service.price}</span>
-                              </div>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button variant="outline" size="icon">
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button variant="outline" size="icon">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
                   <table className="hidden w-full md:table">
                     <thead>
                       <tr className="border-b bg-muted/50 text-left text-sm font-medium">
@@ -556,7 +531,7 @@ export default function ServicesPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {settings?.services.filter((service) => service.categoryId === cat.id).map((service) => (
+                      {settings?.services.filter((service) => service.CategoryId === cat.id).map((service) => (
                         <tr key={service.id} className="border-b">
                           <td className="px-4 py-3">
                             <div>
@@ -568,7 +543,7 @@ export default function ServicesPage() {
                           </td>
                           <td className="px-4 py-3">
                             <Badge variant="outline">
-                              {service.categoryId}
+                              {settings.categories.find((cat) => cat.id === service.CategoryId)!.name}
                             </Badge>
                           </td>
                           <td className="px-4 py-3">
@@ -577,7 +552,7 @@ export default function ServicesPage() {
                               {service.duration}
                             </div>
                           </td>
-                          <td className="px-4 py-3">{service.price}</td>
+                          <td className="px-4 py-3">£{service.fullPrice}</td>
                           <td className="px-4 py-3 text-right">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -593,9 +568,6 @@ export default function ServicesPage() {
                                   onClick={() => handleEditService(service)}
                                 >
                                   Edit service
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  Duplicate service
                                 </DropdownMenuItem>
                                 <DropdownMenuItem>
                                   View bookings
@@ -616,43 +588,6 @@ export default function ServicesPage() {
             ))}
             <TabsContent value="all" className="m-0">
               <div className="rounded-md border">
-                <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:hidden">
-                  {settings?.services.map((service) => (
-                    <Card key={service.id} className="shadow-card">
-                      <CardContent className="p-4">
-                        <div className="flex justify-between">
-                          <div className="font-medium">{service.name}</div>
-                          <Badge variant="outline">{settings.categories.find((cat) => cat.id === service.categoryId)?.name}</Badge>
-                        </div>
-                        <div className="mt-2 text-sm text-muted-foreground">
-                          {service.description}
-                        </div>
-                        <div className="mt-4 flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm">
-                                {service.duration}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <DollarSign className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm">{service.price}</span>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="icon">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="outline" size="icon">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
                 <table className="hidden w-full md:table">
                   <thead>
                     <tr className="border-b bg-muted/50 text-left text-sm font-medium">
@@ -675,7 +610,7 @@ export default function ServicesPage() {
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <Badge variant="outline">{settings.categories.find((cat) => cat.id === service.categoryId)?.name}</Badge>
+                          <Badge variant="outline">{settings.categories.find((cat) => cat.id === service.CategoryId)!.name}</Badge>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1">
@@ -683,7 +618,7 @@ export default function ServicesPage() {
                             {service.duration}
                           </div>
                         </td>
-                        <td className="px-4 py-3">{service.price}</td>
+                        <td className="px-4 py-3">£{service.fullPrice}</td>
                         <td className="px-4 py-3 text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -699,9 +634,6 @@ export default function ServicesPage() {
                                 onClick={() => handleEditService(service)}
                               >
                                 Edit service
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                Duplicate service
                               </DropdownMenuItem>
                               <DropdownMenuItem>View bookings</DropdownMenuItem>
                               <DropdownMenuSeparator />

@@ -12,17 +12,17 @@ import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { useUserSettings } from "@/contexts/user-settings-context"
 import api from "@/services/api-service"
-import { BusinessDataResponse } from "@/types/response"
+import { BusinessSocialResponse } from "@/types/response"
 import { useEffect } from "react"
 
 const socialMediaSchema = z.object({
-  website: z.string().url("Please enter a valid URL").or(z.string().length(0)),
-  instagram: z.string().or(z.string().length(0)),
-  facebook: z.string().or(z.string().length(0)),
-  twitter: z.string().or(z.string().length(0)),
-  linkedin: z.string().or(z.string().length(0)),
-  youtube: z.string().or(z.string().length(0)),
-  tiktok: z.string().or(z.string().length(0)),
+  website: z.string().url("Please enter a valid URL").or(z.string().length(0)).optional(),
+  instagram: z.string().optional().or(z.string().length(0)),
+  facebook: z.string().optional().or(z.string().length(0)),
+  twitter: z.string().optional().or(z.string().length(0)),
+  linkedin: z.string().optional().or(z.string().length(0)),
+  youtube: z.string().optional().or(z.string().length(0)),
+  tiktok: z.string().optional().or(z.string().length(0)),
 })
 
 type SocialMediaFormValues = z.infer<typeof socialMediaSchema>
@@ -32,22 +32,30 @@ export function SocialMediaSettings() {
 
   const form = useForm<SocialMediaFormValues>({
     resolver: zodResolver(socialMediaSchema),
-    defaultValues: settings?.socialMedia,
+    defaultValues: {
+      website: settings?.social.website || "",
+          tiktok: settings?.social.tiktok || "",
+          twitter: settings?.social.twitter || "",
+          instagram: settings?.social.instagram || "",
+          linkedin: settings?.social.linkedin || "",
+          youtube: settings?.social.youtube || "",
+          facebook: settings?.social.facebook || "",
+    },
   })
 
     useEffect(() => {
       if (settings) {
         form.reset({
-          website: settings.socialMedia.website,
-          tiktok: settings.socialMedia.tiktok,
-          twitter: settings.socialMedia.twitter,
-          instagram: settings.socialMedia.instagram,
-          linkedin: settings.socialMedia.linkedin,
-          youtube: settings.socialMedia.youtube,
-          facebook: settings.socialMedia.facebook
+          website: settings.social.website || "",
+          tiktok: settings.social.tiktok || "",
+          twitter: settings.social.twitter || "",
+          instagram: settings.social.instagram || "",
+          linkedin: settings.social.linkedin || "",
+          youtube: settings.social.youtube || "",
+          facebook: settings.social.facebook || ""
         });
       }
-    }, [form, settings?.socialMedia]);
+    }, [form, settings?.social]);
 
   const updateSocialMediaMutation = useMutation({
     mutationFn: async (values: SocialMediaFormValues) => {
@@ -55,7 +63,7 @@ export function SocialMediaSettings() {
       const signal = controller.signal;
 
       try {
-        const response = await api.patch<BusinessDataResponse>(
+        const response = await api.patch<BusinessSocialResponse>(
           '/sp/socials',
           {
             website_url: values.website,
@@ -81,7 +89,7 @@ export function SocialMediaSettings() {
     },
     onSuccess: (response) => {
       toast.success('Social media links updated successfully', { id: 'social-media-save' });
-      updateSettings("socialMedia", response.data);
+      updateSettings("social", response.data);
     },
     onError: (error: Error) => {
       toast.error(error?.message || 'Failed to update social media links', { id: 'social-media-save' });

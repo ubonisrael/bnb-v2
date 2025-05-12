@@ -29,7 +29,9 @@ export interface Service {
     id: string
     name: string
     categoryId: string
+    CategoryId?: string
     price: number
+    fullPrice?: number
     duration: number
     description: string
     availableDays: string[]

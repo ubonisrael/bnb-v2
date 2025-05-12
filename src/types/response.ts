@@ -56,12 +56,6 @@ export interface SettingsData {
     saturday_closing: number;
 }
 
-export interface BusinessDataResponse {
-    status: boolean;
-    message: string;
-    data: BusinessData;
-}
-
 export interface BusinessData {
     name: string;
     type: string;
@@ -92,6 +86,53 @@ export interface BusinessData {
     tiktok_url: null;
     youtube_url: null;
     uuid: string;
+}
+
+export interface BusinessSocialData {
+    website_url: null;
+    facebook_url: null;
+    linkedin_url: null;
+    twitter_url: null;
+    instagram_url: null;
+    tiktok_url: null;
+    youtube_url: null;
+}
+
+export interface BusinessProfileData {
+    name: string;
+    email: string;
+    phone: string;
+    logo: string | undefined;
+    desc: string;
+    address: string;
+    city: string;
+    state: string;
+    country: string;
+    postal_code: string;
+}
+
+export interface BusinessProfileResponse {
+    status: boolean;
+    message: string;
+    data: BusinessProfileData;
+}
+
+export interface BusinessSocialResponse {
+    status: boolean;
+    message: string;
+    data: BusinessSocialData;
+}
+
+export interface BookingDataResponse {
+    status: boolean;
+    message: string;
+    data: AnalyticsResponse;
+}
+
+export interface BusinessSettingsResponse {
+    status: boolean;
+    message: string;
+    data: SettingsData;
 }
 
 export interface SignupResponse {

@@ -26,7 +26,7 @@ import {
 import { useUserSettings } from "@/contexts/user-settings-context";
 import api from "@/services/api-service";
 import { storage } from "@/services/firebase";
-import { SettingsResponse } from "@/types/response";
+import { BusinessProfileResponse } from "@/types/response";
 
 const profileSchema = z.object({
   name: z.string().min(2, "Business name must be at least 2 characters"),
@@ -140,7 +140,7 @@ export function ProfileSettings() {
       const signal = controller.signal;
 
       try {
-        const response = await api.patch<SettingsResponse>(
+        const response = await api.patch<BusinessProfileResponse>(
           "/sp/info",
           {
             ...values,

@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import api from "@/services/api-service";
-import { SettingsResponse } from "@/types/response";
+import { BusinessSettingsResponse } from "@/types/response";
 import { useMutation } from "@tanstack/react-query";
 import {
   minutesToTimeString,
@@ -49,19 +49,8 @@ const days = [
   { id: "saturday", label: "Saturday" },
   { id: "sunday", label: "Sunday" },
 ];
-export interface WorkingHours {
-  isOpen: boolean;
-  startTime: string;
-  endTime: string;
-}
 
-export interface BookingDaysSettingsProps {
-  initialData?: {
-    [key: string]: WorkingHours;
-  };
-}
-
-export function BookingDaysSettings({ initialData }: BookingDaysSettingsProps) {
+export function BookingDaysSettings() {
   const {
     settings,
     updateSettings,
@@ -105,7 +94,7 @@ export function BookingDaysSettings({ initialData }: BookingDaysSettingsProps) {
       const signal = controller.signal;
 
       try {
-        const response = await api.post<SettingsResponse>(
+        const response = await api.post<BusinessSettingsResponse>(
           "/sp/booking_settings",
           {
             ...values,
@@ -127,13 +116,13 @@ export function BookingDaysSettings({ initialData }: BookingDaysSettingsProps) {
     },
     onSuccess: (response) => {
       toast.success("Booking days updated successfully", {
-        id: "booking-days-save",
+        id: "booking-settings-save",
       });
       updateSettings("bookingSettings", response.data);
     },
     onError: (error: Error) => {
-      toast.error(error?.message || "Failed to update booking days", {
-        id: "booking-days-save",
+      toast.error("Failed to update booking days", {
+        id: "booking-settings-save",
       });
     },
   });
