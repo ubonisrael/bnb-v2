@@ -3,13 +3,12 @@
 import React, { useState } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useApp } from "@/contexts/AppContext";
-import { BUSINESS_INFO } from "@/lib/utils/services";
 import { Button } from "@/components/ui/button";
 import { Sun, Moon, Menu } from "lucide-react";
 
 const Navbar: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
-  const { activeStep, setActiveStep } = useApp();
+  const { name, logo } = useApp();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const toggleMobileMenu = () => {

@@ -7,7 +7,7 @@ import Map from "@/components/templates/default/Map";
 
 type BusinessLandingProps = {
   businessData: {
-    logo: string;
+    banner: string;
     name: string;
     description: string;
     address: string;
@@ -31,17 +31,17 @@ type BusinessLandingProps = {
 };
 
 export default function BusinessLanding({ businessData }: BusinessLandingProps) {
-  const { setActiveStep, setActiveCategoryTab } = useApp();
+  const { setActiveCategoryTab } = useApp();
 
   const handleBookNow = () => {
-    setActiveStep("services");
+    console.log('go to booking');
+    
   };
 
   const handleViewServices = (category?: any) => {
     if (category) {
       setActiveCategoryTab(category);
     }
-    setActiveStep("services");
   };
 
   return (
@@ -176,7 +176,7 @@ export default function BusinessLanding({ businessData }: BusinessLandingProps) 
             </p>
           </div>
           <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
-            <Map hours={businessData.hours} zip={businessData.zip} latitude={businessData.latitude} longitude={businessData.longitude} logo={businessData.logo || ""} name={businessData.name} email={businessData.email} phone={businessData.phone} address={businessData.address} state={businessData.state} city={businessData.city} description={businessData.description} />
+            <Map hours={businessData.hours} zip={businessData.zip} latitude={businessData.latitude} longitude={businessData.longitude} banner={businessData.banner || ""} name={businessData.name} email={businessData.email} phone={businessData.phone} address={businessData.address} state={businessData.state} city={businessData.city} description={businessData.description} />
           </div>
         </div>
       </div>
