@@ -3,13 +3,20 @@
 import React, { useState } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useApp } from "@/contexts/AppContext";
-import { Button } from "@/components/ui/button";
 import { Sun, Moon, Menu } from "lucide-react";
 
 const Navbar: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const { name, logo } = useApp();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [activeStep, setActiveStep] = useState(() => {
+    if (typeof window !== 'undefined') {
+      console.log("window", window.location.pathname.substring(1));
+      const path = window.location.pathname.substring(1) || 'home';
+      return ['home', 'services'].includes(path) ? path : 'home';
+    }
+    return 'home';
+  });
 
   const toggleMobileMenu = () => {
     setShowMobileMenu(!showMobileMenu);
@@ -23,11 +30,11 @@ const Navbar: React.FC = () => {
             <div className="flex-shrink-0 flex items-center">
               <img 
                 className="block h-8 w-auto" 
-                src={BUSINESS_INFO.logo} 
-                alt={`${BUSINESS_INFO.name} Logo`} 
+                src={logo} 
+                alt={`${name} Logo`} 
               />
               <span className="ml-2 text-xl font-bold text-primary-600 dark:text-primary-500">
-                {BUSINESS_INFO.name}
+                {name}
               </span>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -35,7 +42,6 @@ const Navbar: React.FC = () => {
                 href="#" 
                 onClick={(e) => {
                   e.preventDefault();
-                  setActiveStep("home");
                 }}
                 className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
                   activeStep === "home" 
@@ -59,18 +65,6 @@ const Navbar: React.FC = () => {
               >
                 Services
               </a>
-              <a 
-                href="#" 
-                className="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-              >
-                About
-              </a>
-              <a 
-                href="#" 
-                className="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-              >
-                Contact
-              </a>
             </div>
           </div>
           <div className="flex items-center space-x-4">
@@ -80,7 +74,6 @@ const Navbar: React.FC = () => {
             >
               {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
-            <Button>Sign In</Button>
             <div className="sm:hidden">
               <button
                 onClick={toggleMobileMenu}
@@ -126,18 +119,6 @@ const Navbar: React.FC = () => {
               }`}
             >
               Services
-            </a>
-            <a 
-              href="#" 
-              className="border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
-            >
-              About
-            </a>
-            <a 
-              href="#" 
-              className="border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
-            >
-              Contact
             </a>
           </div>
         </div>

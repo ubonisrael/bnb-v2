@@ -3,17 +3,19 @@
 import React from "react";
 import { AppProvider } from "@/contexts/AppContext";
 import Navbar from "@/components/templates/default/Navbar";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 
 export default function LandingPageLayout({
-    children,
+  children,
 }: {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-
-    return (
-        <AppProvider>
-            <Navbar />
-            {children}
-        </AppProvider>
-    );
+  return (
+    <ThemeProvider>
+      <AppProvider>
+        <Navbar />
+        {children}
+      </AppProvider>
+    </ThemeProvider>
+  );
 }

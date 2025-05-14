@@ -42,6 +42,10 @@ async function getBusinessTemplateDetails(businessUrl: string) {
 }
 
 export default async function LandingPage({ params }: Params) {
+  const { businessUrl } = await params;
+  if (!businessUrl) {
+    return <div>Business URL is required.</div>;
+  }
   const businessData = await getBusinessTemplateDetails(params.businessUrl);
 
   if (!businessData) {

@@ -14,6 +14,9 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     // Check local storage first
+    if (typeof window === "undefined") {
+      return "light"; // Default to light theme if window is not defined
+    }
     const savedTheme = localStorage.getItem("theme") as Theme;
     // Then check user preference
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;

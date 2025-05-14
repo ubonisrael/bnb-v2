@@ -6,28 +6,15 @@ import "leaflet/dist/leaflet.css";
 
 interface MapProps {
   name: string;
-  logo: string;
-  email: string;
-  phone: string;
   address: string;
   city: string;
   state: string;
   zip: string;
-  description: string;
-  hours: {
-    monday: string;
-    tuesday: string;
-    wednesday: string;
-    thursday: string;
-    friday: string;
-    saturday: string;
-    sunday: string;
-  };
   latitude: number;
   longitude: number;
 }
 
-const Map = ({ name, logo, email, phone, address, city, state, zip, description, hours, latitude, longitude }: MapProps) => {
+const Map = ({ name, address, city, state, zip, latitude, longitude }: MapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
 
