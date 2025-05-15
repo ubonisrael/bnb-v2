@@ -1,3 +1,4 @@
+import { Service } from "@/components/onboarding/type";
 import { boolean } from "zod";
 
 export interface VoidResponse {
@@ -125,10 +126,20 @@ export interface BusinessSocialResponse {
   data: BusinessSocialData;
 }
 
+export interface BookingsResponse extends Service {
+  Customer: {
+    name: string;
+    email: string;
+  };
+  service_ids: string[];
+  event_date: string;
+  event_time: string;
+  event_duration: number;
+}
+
 export interface BookingDataResponse {
   status: boolean;
-  message: string;
-  data: AnalyticsResponse;
+  bookings: BookingsResponse[];
 }
 
 export interface BusinessSettingsResponse {
