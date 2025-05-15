@@ -15,6 +15,10 @@ export function minutesToTimeString(minutesFromMidnight: number): string {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
 }
 
+export function convertTimeSlotsToUserLocalTime(slot: number, businessOffset: number, userOffset: number) {
+  return (slot - businessOffset + userOffset + 1440) % 1440
+}
+
 /**
  * Converts a time string in "HH:MM" format to minutes from midnight
  * @param timeString - Time string in "HH:MM" format
