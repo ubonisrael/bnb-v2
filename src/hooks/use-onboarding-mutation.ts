@@ -1,5 +1,5 @@
-import { useMutation } from '@tanstack/react-query';
 import api from '@/services/api-service';
+import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { OnboardingFormData } from '@/components/onboarding/type';
@@ -14,13 +14,18 @@ export function useOnboardingMutation() {
                 name: data.businessInfo.name,
                 email: data.businessInfo.email,
                 phone: data.businessInfo.phone,
-                desc: data.businessInfo.description,
                 address: data.location.address,
                 city: data.location.city,
                 state: data.location.state,
                 country: data.location.country,
                 postal_code: data.location.postalCode,
                 primary_clr: data.visualSettings.primaryColor,
+                banner_image_url: data.bookingTemplate.bannerImageUrl,
+                template_type: data.bookingTemplate.templateType,
+                desc: data.bookingTemplate.description,
+                banner_header: data.bookingTemplate.bannerHeader,
+                banner_message: data.bookingTemplate.bannerMessage,
+                about_subheader: data.bookingTemplate.aboutSubHeader, 
                 cancellation_policy: data.notificationSettings.cancelNoticeHours,
                 email_confirmation: data.notificationSettings.emailSettings.sendBookingConfirmations,
                 appointment_reminders: data.notificationSettings.emailSettings.sendReminders,
