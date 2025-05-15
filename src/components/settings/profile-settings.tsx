@@ -37,7 +37,6 @@ const profileSchema = z.object({
   state: z.string().min(2, "State must be at least 2 characters"),
   postal_code: z.string().min(4, "Postal code must be at least 4 characters"),
   country: z.string().min(2, "Country must be at least 2 characters"),
-  desc: z.string().max(500, "Bio must be less than 500 characters").optional(),
   logo: z.string().optional(),
 });
 
@@ -52,11 +51,6 @@ export function ProfileSettings() {
 
   const [isUploading, setIsUploading] = useState(false);
 
-  // const { data, isLoading } = useQuery<BusinessDataResponse>({
-  //   queryKey: ["profile"],
-  //   queryFn: () => api.get("/sp/profile"),
-  // });
-
   const [logoUrl, setLogoUrl] = useState<string | null>(
     settings?.profile.logo || null
   );
@@ -69,7 +63,6 @@ export function ProfileSettings() {
       state: settings?.profile.state,
       postal_code: settings?.profile.postal_code,
       country: settings?.profile.country,
-      desc: settings?.profile.desc,
       name: settings?.profile.name,
       email: settings?.profile.email,
       phone: settings?.profile.phone,
@@ -85,7 +78,6 @@ export function ProfileSettings() {
         state: settings.profile.state,
         postal_code: settings.profile.postal_code,
         country: settings.profile.country,
-        desc: settings.profile.desc,
         name: settings.profile.name,
         email: settings.profile.email,
         phone: settings.profile.phone,
@@ -363,27 +355,6 @@ export function ProfileSettings() {
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="desc"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Business Description</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Tell clients about your business..."
-                    className="resize-none"
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>
-                  This will be displayed on your public profile
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
