@@ -36,7 +36,7 @@ const CopyTextComponent = ({ text }: { text: string }) => {
 
   return (
     <div className="flex items-center justify-between p-4 border rounded shadow-md">
-      <p className="text-sm">Booking Link: <span className="bg-black/10 rounded px-4 py-1">{`${process.env.NEXT_PUBLIC_WEV_URL || 'localhost:3000'}/default/${text}`}</span></p>
+      <p className="text-sm">Booking Link: <span className="rounded px-4 py-1">{`${process.env.NEXT_PUBLIC_WEV_URL || 'localhost:3000'}/default/${text}`}</span></p>
       <button 
         onClick={handleCopy} 
         className="bg-blue-500 text-sm text-white py-1 px-2 rounded hover:bg-blue-700"
@@ -87,94 +87,118 @@ export default function DashboardPage() {
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="border-0 shadow-card">
           <CardHeader className="pb-2">
-            <CardDescription className="text-[#6E6E73]">
-              Total Revenue
-            </CardDescription>
-            <CardTitle className="text-3xl font-bold text-[#121212]">
-              ${analytics?.totalRevenue?.totalRevenue}
-            </CardTitle>
+        <CardDescription className="text-[#6E6E73]">
+          Total Revenue
+        </CardDescription>
+        <CardTitle className="text-3xl font-bold text-[#121212]">
+          ${analytics?.totalRevenue?.totalRevenue}
+        </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-sm font-medium text-[#4CD964]">
-              +{analytics?.totalRevenue?.percentageChange}% from last month
-            </div>
+        <div className={`text-sm font-medium ${
+          analytics?.totalRevenue?.percentageChange > 0 
+            ? 'text-[#4CD964]' 
+            : analytics?.totalRevenue?.percentageChange < 0 
+          ? 'text-red-500' 
+          : 'text-[#121212]'
+        }`}>
+          {analytics?.totalRevenue?.percentageChange > 0 ? '+' : ''}{analytics?.totalRevenue?.percentageChange}% from last month
+        </div>
           </CardContent>
           <CardFooter className="border-t border-[#E0E0E5] pt-4">
-            <div className="flex items-center text-sm text-[#6E6E73]">
-              <DollarSign className="mr-1 h-4 w-4" />
-              Financial overview
-            </div>
+        <div className="flex items-center text-sm text-[#6E6E73]">
+          <DollarSign className="mr-1 h-4 w-4" />
+          Financial overview
+        </div>
           </CardFooter>
         </Card>
 
         <Card className="border-0 shadow-card">
           <CardHeader className="pb-2">
-            <CardDescription className="text-[#6E6E73]">
-              Total Appointments
-            </CardDescription>
-            <CardTitle className="text-3xl font-bold text-[#121212]">
-              {analytics?.totalAppointments?.totalApps}
-            </CardTitle>
+        <CardDescription className="text-[#6E6E73]">
+          Total Appointments
+        </CardDescription>
+        <CardTitle className="text-3xl font-bold text-[#121212]">
+          {analytics?.totalAppointments?.totalApps}
+        </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-sm font-medium text-[#4CD964]">
-              +{analytics?.totalAppointments?.percentageChange}% from last month
-            </div>
+        <div className={`text-sm font-medium ${
+          analytics?.totalAppointments?.percentageChange > 0 
+            ? 'text-[#4CD964]' 
+            : analytics?.totalAppointments?.percentageChange < 0 
+          ? 'text-red-500' 
+          : 'text-[#121212]'
+        }`}>
+          {analytics?.totalAppointments?.percentageChange > 0 ? '+' : ''}{analytics?.totalAppointments?.percentageChange}% from last month
+        </div>
           </CardContent>
           <CardFooter className="border-t border-[#E0E0E5] pt-4">
-            <div className="flex items-center text-sm text-[#6E6E73]">
-              <CalendarDays className="mr-1 h-4 w-4" />
-              Appointment details
-            </div>
+        <div className="flex items-center text-sm text-[#6E6E73]">
+          <CalendarDays className="mr-1 h-4 w-4" />
+          Appointment details
+        </div>
           </CardFooter>
         </Card>
 
         <Card className="border-0 shadow-card">
           <CardHeader className="pb-2">
-            <CardDescription className="text-[#6E6E73]">
-              Total Clients
-            </CardDescription>
-            <CardTitle className="text-3xl font-bold text-[#121212]">
-              {analytics?.totalClients?.totalClients}
-            </CardTitle>
+        <CardDescription className="text-[#6E6E73]">
+          Total Clients
+        </CardDescription>
+        <CardTitle className="text-3xl font-bold text-[#121212]">
+          {analytics?.totalClients?.totalClients}
+        </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-sm font-medium text-[#4CD964]">
-              +{analytics?.totalClients?.percentageChange}% from last month
-            </div>
+        <div className={`text-sm font-medium ${
+          analytics?.totalClients?.percentageChange > 0 
+            ? 'text-[#4CD964]' 
+            : analytics?.totalClients?.percentageChange < 0 
+          ? 'text-red-500' 
+          : 'text-[#121212]'
+        }`}>
+          {analytics?.totalClients?.percentageChange > 0 ? '+' : ''}{analytics?.totalClients?.percentageChange}% from last month
+        </div>
           </CardContent>
           <CardFooter className="border-t border-[#E0E0E5] pt-4">
-            <div className="flex items-center text-sm text-[#6E6E73]">
-              <Users className="mr-1 h-4 w-4" />
-              Client details
-            </div>
+        <div className="flex items-center text-sm text-[#6E6E73]">
+          <Users className="mr-1 h-4 w-4" />
+          Client details
+        </div>
           </CardFooter>
         </Card>
 
         <Card className="border-0 shadow-card">
           <CardHeader className="pb-2">
-            <CardDescription className="text-[#6E6E73]">
-              Average Service Time
-            </CardDescription>
-            <CardTitle className="text-3xl font-bold text-[#121212]">
-              {analytics?.avgServiceTime?.avg} min
-            </CardTitle>
+        <CardDescription className="text-[#6E6E73]">
+          Average Service Time
+        </CardDescription>
+        <CardTitle className="text-3xl font-bold text-[#121212]">
+          {analytics?.avgServiceTime?.avg} min
+        </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-sm font-medium text-[#4CD964]">
-              +{analytics?.avgServiceTime?.percentageChange}% from last month
-            </div>
+        <div className={`text-sm font-medium ${
+          analytics?.avgServiceTime?.percentageChange > 0 
+            ? 'text-[#4CD964]' 
+            : analytics?.avgServiceTime?.percentageChange < 0 
+          ? 'text-red-500' 
+          : 'text-[#121212]'
+        }`}>
+          {analytics?.avgServiceTime?.percentageChange > 0 ? '+' : ''}{analytics?.avgServiceTime?.percentageChange}% from last month
+        </div>
           </CardContent>
           <CardFooter className="border-t border-[#E0E0E5] pt-4">
-            <div className="flex items-center text-sm text-[#6E6E73]">
-              <Clock className="mr-1 h-4 w-4" />
-              Time analytics
-            </div>
+        <div className="flex items-center text-sm text-[#6E6E73]">
+          <Clock className="mr-1 h-4 w-4" />
+          Time analytics
+        </div>
           </CardFooter>
         </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid">
         <Card className="border-0 shadow-card md:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
