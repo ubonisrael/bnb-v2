@@ -24,7 +24,6 @@ export interface UserSettings {
     country: string;
     bio: string;
     logo: string | null;
-    desc: string;
   };
   security: {
     twoFactorEnabled: boolean;
