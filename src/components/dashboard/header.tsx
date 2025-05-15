@@ -67,7 +67,7 @@ export function Header() {
           <span>Day View</span>
           <ChevronDown className="h-4 w-4" />
         </Button> */}
-        <DropdownMenu>
+        {/* <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
@@ -128,7 +128,7 @@ export function Header() {
               View all notifications
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu> */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full bg-black text-white">
