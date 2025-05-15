@@ -1,22 +1,17 @@
-"use client"
+"use client";
 
 import React, { useState } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useApp } from "@/contexts/AppContext";
 import { Sun, Moon, Menu } from "lucide-react";
+import Link from "next/link";
+import AvatarImage from "./AvatarImage";
 
 const Navbar: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
-  const { name, logo } = useApp();
+  const { name, logo, bUrl } = useApp();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [activeStep, setActiveStep] = useState(() => {
-    if (typeof window !== 'undefined') {
-      console.log("window", window.location.pathname.substring(1));
-      const path = window.location.pathname.substring(1) || 'home';
-      return ['home', 'services'].includes(path) ? path : 'home';
-    }
-    return 'home';
-  });
+  // console.log(logo)
 
   const toggleMobileMenu = () => {
     setShowMobileMenu(!showMobileMenu);
@@ -28,51 +23,39 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <img 
-                className="block h-8 w-auto" 
-                src={logo} 
-                alt={`${name} Logo`} 
-              />
+              <AvatarImage url={logo} name={name} />
+              {name && (
               <span className="ml-2 text-xl font-bold text-primary-600 dark:text-primary-500">
                 {name}
               </span>
+              )}
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <a 
-                href="#" 
-                onClick={(e) => {
-                  e.preventDefault();
-                }}
-                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                  activeStep === "home" 
-                    ? "border-primary-500 text-gray-900 dark:text-white" 
-                    : "border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-white"
-                }`}
+              <Link
+                href={bUrl ? `/default/${bUrl}` : '#'}
+                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-white`}
               >
                 Home
-              </a>
-              <a 
-                href="#" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  setActiveStep("services");
-                }}
-                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                  activeStep === "services" 
-                    ? "border-primary-500 text-gray-900 dark:text-white" 
-                    : "border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-white"
-                }`}
+              </Link>
+              <Link
+                href={bUrl ? `/default/${bUrl}/services`: '#'}
+                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium
+                    border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-white`}
               >
                 Services
-              </a>
+              </Link>
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <button 
+            <button
               onClick={toggleTheme}
               className="bg-gray-200 dark:bg-gray-700 rounded-full p-2 text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
             >
-              {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              {theme === "dark" ? (
+                <Sun className="h-5 w-5" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
             </button>
             <div className="sm:hidden">
               <button
@@ -85,41 +68,24 @@ const Navbar: React.FC = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Mobile menu */}
       {showMobileMenu && (
         <div className="sm:hidden" id="mobile-menu">
           <div className="pt-2 pb-3 space-y-1">
-            <a 
-              href="#" 
-              onClick={(e) => {
-                e.preventDefault();
-                setActiveStep("home");
-                setShowMobileMenu(false);
-              }}
-              className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
-                activeStep === "home"
-                  ? "bg-primary-50 dark:bg-gray-700 border-primary-500 text-primary-700 dark:text-white"
-                  : "border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
-              }`}
-            >
-              Home
-            </a>
-            <a 
-              href="#" 
-              onClick={(e) => {
-                e.preventDefault();
-                setActiveStep("services");
-                setShowMobileMenu(false);
-              }}
-              className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
-                activeStep === "services"
-                  ? "bg-primary-50 dark:bg-gray-700 border-primary-500 text-primary-700 dark:text-white"
-                  : "border-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
-              }`}
-            >
-              Services
-            </a>
+            <Link
+                href={`/default/${bUrl}`}
+                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-white`}
+              >
+                Home
+              </Link>
+              <Link
+                href={`/default/${bUrl}/services`}
+                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium
+                    border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-white`}
+              >
+                Services
+              </Link>
           </div>
         </div>
       )}

@@ -1,9 +1,10 @@
-"use client"
+"use client";
 
 import React from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useApp } from "@/contexts/AppContext";
 import { Service } from "@/components/onboarding/type";
+import { Calendar } from "lucide-react";
 
 interface ServiceCardProps {
   service: Service;
@@ -11,7 +12,7 @@ interface ServiceCardProps {
 
 const ServiceCard: React.FC<ServiceCardProps> = ({ service }) => {
   const { selectedServices, addService, removeService } = useApp();
-  const isSelected = selectedServices.some(s => s.id === service.id);
+  const isSelected = selectedServices.some((s) => s.id === service.id);
 
   const handleServiceToggle = () => {
     if (isSelected) {
@@ -26,10 +27,20 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service }) => {
       <div className="p-5">
         <div className="flex justify-between items-start">
           <div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">{service.name}</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+              {service.name}
+            </h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
               {service.description}
             </p>
+            <div className="flex items-center text-xs text-[#6E6E73]">
+              <Calendar className="mr-1 h-3 w-3" />
+              {service.availableDays.length === 7
+                ? "Every day"
+                : service.availableDays
+                    .map((day) => day.substring(0, 3))
+                    .join(", ")}
+            </div>
           </div>
           <div className="flex items-center">
             <Checkbox
@@ -42,8 +53,19 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service }) => {
         </div>
         <div className="mt-4 flex items-center justify-between">
           <div className="flex items-center text-sm text-gray-500 dark:text-gray-300">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4 mr-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <span>{service.duration} min</span>
           </div>

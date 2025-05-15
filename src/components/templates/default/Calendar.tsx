@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface CalendarProps {
+  maxNotice: number;
+  minNotice: number;
   selectedDate: string | null;
   onSelectDate: (date: string | null) => void;
 }
 
-const Calendar: React.FC<CalendarProps> = ({ selectedDate, onSelectDate }) => {
+const Calendar: React.FC<CalendarProps> = ({ maxNotice, minNotice, selectedDate, onSelectDate }) => {
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -54,7 +56,17 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onSelectDate }) => {
     if (!day) return false;
     const today = new Date();
     const checkDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-    return checkDate < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    
+    // Calculate min and max allowed dates
+    const minDate = new Date(todayStart);
+    minDate.setDate(minDate.getDate() + minNotice);
+    
+    const maxDate = new Date(todayStart);
+    maxDate.setDate(maxDate.getDate() + maxNotice);
+
+    // Return true if date is outside the allowed range
+    return checkDate < minDate || checkDate > maxDate;
   };
 
   const selectDate = (day: number | null) => {
@@ -104,13 +116,13 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onSelectDate }) => {
                 ? 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer' 
                 : ''}
               ${day && isPast(day) 
-                ? 'bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed' 
+                ? 'bg-gray-100 dark:bg-gray-900 text-gray-400 dark:text-gray-600 cursor-not-allowed' 
                 : ''}
               ${!day 
                 ? 'bg-gray-100 dark:bg-gray-900' 
                 : ''}
               ${selectedDate === formatDate(day) 
-                ? 'ring-2 ring-primary-500 dark:ring-primary-400' 
+                ? 'ring-2 ring-primary-500 dark:ring-primary-400 bg-slate-100' 
                 : ''}
               ${isToday(day) 
                 ? 'text-primary-700 dark:text-primary-400 font-semibold' 
