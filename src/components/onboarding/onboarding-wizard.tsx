@@ -26,7 +26,7 @@ const steps = [
   // { id: "team-size", title: "Team Size" },
   { id: "visual-settings", title: "Visual Settings" },
   { id: "services-setup", title: "Services" },
-  // { id: "booking-template", title: "Booking Template" },
+  { id: "booking-template", title: "Booking Template" },
   { id: "payment-details", title: "Payment Details" },
   { id: "booking-settings", title: "Booking Settings" },
   { id: "notification-settings", title: "Notifications" },
@@ -40,7 +40,6 @@ export function OnboardingWizard() {
       name: "",
       email: "",
       phone: "",
-      description: "",
     },
     location: {
       address: "",
@@ -59,10 +58,14 @@ export function OnboardingWizard() {
       categories: [],
       services: [],
     },
-    // bookingTemplate: {
-    //   templateType: "",
-    //   settings: {},
-    // },
+    bookingTemplate: {
+      templateType: "default",
+      bannerHeader: "",
+      bannerMessage: "",
+      aboutSubHeader: "",
+      description: "",
+      bannerImageUrl: ""
+    },
     paymentDetails: {
       provider: "",
       accountDetails: {},
@@ -221,12 +224,13 @@ export function OnboardingWizard() {
              ref={stepRef} data={formData} onUpdate={(data) => updateFormData("servicesSetup", data)} />
           )}
 
-          {/* {currentStep.id === "booking-template" && (
+          {currentStep.id === "booking-template" && (
           <BookingTemplateStep
+          ref={stepRef}
             data={formData.bookingTemplate}
             onUpdate={(data) => updateFormData("bookingTemplate", data)}
           />
-        )} */}
+        )}
 
           {currentStep.id === "payment-details" && (
             <PaymentDetailsStep

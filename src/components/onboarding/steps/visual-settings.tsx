@@ -1,144 +1,129 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { Ref, useImperativeHandle, useState } from "react"
-import Image from "next/image"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { ref as fRef, getDownloadURL, uploadBytesResumable } from "firebase/storage";
-import { Upload, X } from "lucide-react"
+import { Ref, useImperativeHandle, useState } from "react";
+import Image from "next/image";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import {
+  ref as fRef,
+  getDownloadURL,
+  uploadBytesResumable,
+} from "firebase/storage";
+import { Upload, X } from "lucide-react";
 import { storage } from "@/services/firebase";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import toast from "react-hot-toast"
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import toast from "react-hot-toast";
 
 const visualSettingsSchema = z.object({
   logoUrl: z.string().optional(),
   primaryColor: z.string().min(4, { message: "Please select a primary color" }),
   accentColor: z.string().optional(),
-})
+});
 
-type VisualSettingsData = z.infer<typeof visualSettingsSchema>
+type VisualSettingsData = z.infer<typeof visualSettingsSchema>;
 
 interface VisualSettingsStepProps {
-  data: VisualSettingsData
-  onUpdate: (data: VisualSettingsData) => void
-  ref: Ref<{ validate: () => Promise<boolean> }>
+  data: VisualSettingsData;
+  onUpdate: (data: VisualSettingsData) => void;
+  ref: Ref<{ validate: () => Promise<boolean> }>;
 }
 
-export function VisualSettingsStep({ data, onUpdate, ref }: VisualSettingsStepProps) {
-  const [previewLogo, setPreviewLogo] = useState<string | null>(data.logoUrl || null)
+export function VisualSettingsStep({
+  data,
+  onUpdate,
+  ref,
+}: VisualSettingsStepProps) {
+  const [previewLogo, setPreviewLogo] = useState<string | null>(
+    data.logoUrl || null
+  );
   const [isUploading, setIsUploading] = useState(false);
 
   const form = useForm<VisualSettingsData>({
     resolver: zodResolver(visualSettingsSchema),
     defaultValues: data,
-  })
+  });
 
-    useImperativeHandle(ref, () => ({
-      async validate() {
-        const isValid = await form.trigger(); // runs validation
-        if (isValid) {
-          onUpdate(form.getValues());
-        }
-        return isValid;
-      },
-    }));
-
-  function onSubmit(values: VisualSettingsData) {
-    onUpdate({
-      ...values,
-      logoUrl: previewLogo || "",
-    })
-  }
-
-  // Handle logo upload
-  // Handle logo upload
-    const handleLogoUpload = async (
-      event: React.ChangeEvent<HTMLInputElement>
-    ) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-      setIsUploading(true);
-      try {
-        // toast.loading('Uploading logo...', { id: 'logo-upload' });
-        const storageRef = fRef(storage, `bnb/${Date.now()}/logo`);
-        console.log(storageRef);
-        const uploadTask = uploadBytesResumable(storageRef, file);
-        uploadTask.on(
-          "state_changed",
-          (snapshot) => {
-            const progress =
-              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          },
-          (error) => toast.error(error.message),
-          () =>
-            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-              setPreviewLogo(downloadURL);
-              console.log(downloadURL);
-            })
-        );
-        // Create form data
-        // const formData = new FormData()
-        // formData.append('file', file)
-  
-        // Upload to IPFS via API route
-        //const response = await fetch('/api/ipfs/upload', {
-        //  method: 'POST',
-        //  body: formData,
-        //})
-  
-        //if (!response.ok) {
-        //throw new Error('Failed to upload logo')
-        //}
-        // throw new Error('Failed to upload logo');
-  
-        // const data = await response.json()
-  
-        // Update local state
-        // setLogoUrl(data.url)
-        // form.setValue("logoUrl", data.url)
-  
-        toast.success("Logo uploaded successfully", { id: "logo-upload" });
-      } catch (error: unknown) {
-        console.error("Failed to upload logo:", error);
-        toast.error("Failed to upload logo", { id: "logo-upload" });
-      } finally {
-        setIsUploading(false);
+  useImperativeHandle(ref, () => ({
+    async validate() {
+      const isValid = await form.trigger(); // runs validation
+      if (isValid) {
+        onUpdate({
+          ...form.getValues(),
+          logoUrl: previewLogo ? previewLogo : ""
+        });
       }
-    };
+      return isValid;
+    },
+  }));
+
+  // Handle logo upload
+  // Handle logo upload
+  const handleLogoUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    try {
+      // toast.loading('Uploading logo...', { id: 'logo-upload' });
+      const storageRef = fRef(storage, `bnb/${Date.now()}/logo`);
+      // console.log(storageRef);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        },
+        (error) => toast.error(error.message),
+        () =>
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            setPreviewLogo(downloadURL);
+            // console.log(downloadURL);
+          })
+      );
+
+      toast.success("Logo uploaded successfully", { id: "logo-upload" });
+    } catch (error: unknown) {
+      console.error("Failed to upload logo:", error);
+      toast.error("Failed to upload logo", { id: "logo-upload" });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const removeLogo = () => {
-    setPreviewLogo(null)
-    const currentValues = form.getValues()
+    setPreviewLogo(null);
+    const currentValues = form.getValues();
     onUpdate({
       ...currentValues,
       logoUrl: "",
-    })
-  }
-
-  // Update form data on every change for continuous saving
-  const watchedValues = form.watch()
-  if (
-    JSON.stringify({ ...watchedValues, logoUrl: previewLogo || "" }) !== JSON.stringify(data) &&
-    form.formState.isValid &&
-    !form.formState.isSubmitting
-  ) {
-    onUpdate({
-      ...watchedValues,
-      logoUrl: previewLogo || "",
-    })
-  }
+    });
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form className="space-y-6">
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-[#121212]">Visual Settings</h2>
-          <p className="text-sm text-[#6E6E73]">Customize the look and feel of your business</p>
+          <h2 className="text-lg font-semibold text-[#121212]">
+            Visual Settings
+          </h2>
+          <p className="text-sm text-[#6E6E73]">
+            Customize the look and feel of your business
+          </p>
         </div>
 
         <FormItem>
@@ -146,11 +131,10 @@ export function VisualSettingsStep({ data, onUpdate, ref }: VisualSettingsStepPr
           <div className="mt-2">
             {previewLogo ? (
               <div className="relative h-40 w-40">
-                <Image
+                <img
                   src={previewLogo || "/placeholder.svg"}
                   alt="Business Logo"
-                  fill
-                  className="rounded-md object-contain"
+                  className="rounded-full h-40 w-40 shadow-xl"
                 />
                 <Button
                   type="button"
@@ -183,12 +167,16 @@ export function VisualSettingsStep({ data, onUpdate, ref }: VisualSettingsStepPr
                     </label>
                     <p className="pl-1">or drag and drop</p>
                   </div>
-                  <p className="text-xs text-[#6E6E73]">PNG, JPG, GIF up to 10MB</p>
+                  <p className="text-xs text-[#6E6E73]">
+                    PNG, JPG, GIF up to 10MB
+                  </p>
                 </div>
               </div>
             )}
           </div>
-          <FormDescription>Your logo will appear on your booking page and receipts</FormDescription>
+          <FormDescription>
+            Your logo will appear on your booking page and receipts
+          </FormDescription>
         </FormItem>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -199,12 +187,17 @@ export function VisualSettingsStep({ data, onUpdate, ref }: VisualSettingsStepPr
               <FormItem>
                 <FormLabel>Primary Color</FormLabel>
                 <div className="flex space-x-2">
-                  <div className="h-10 w-10 rounded-md border" style={{ backgroundColor: field.value }} />
+                  <div
+                    className="h-10 w-10 rounded-md border"
+                    style={{ backgroundColor: field.value }}
+                  />
                   <FormControl>
                     <Input {...field} type="color" />
                   </FormControl>
                 </div>
-                <FormDescription>Used for buttons, highlights, and active elements</FormDescription>
+                <FormDescription>
+                  Used for buttons, highlights, and active elements
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -217,7 +210,10 @@ export function VisualSettingsStep({ data, onUpdate, ref }: VisualSettingsStepPr
               <FormItem>
                 <FormLabel>Accent Color (Optional)</FormLabel>
                 <div className="flex space-x-2">
-                  <div className="h-10 w-10 rounded-md border" style={{ backgroundColor: field.value || "#FFFFFF" }} />
+                  <div
+                    className="h-10 w-10 rounded-md border"
+                    style={{ backgroundColor: field.value || "#FFFFFF" }}
+                  />
                   <FormControl>
                     <Input
                       {...field}
@@ -227,7 +223,9 @@ export function VisualSettingsStep({ data, onUpdate, ref }: VisualSettingsStepPr
                     />
                   </FormControl>
                 </div>
-                <FormDescription>Used as a secondary color for variety</FormDescription>
+                <FormDescription>
+                  Used as a secondary color for variety
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -242,21 +240,8 @@ export function VisualSettingsStep({ data, onUpdate, ref }: VisualSettingsStepPr
           >
             <span>Button in Primary Color</span>
           </div>
-          <div className="mt-4 flex items-center gap-2">
-            {previewLogo && (
-              <Image
-                src={previewLogo || "/placeholder.svg"}
-                alt="Logo Preview"
-                width={40}
-                height={40}
-                className="rounded-md object-contain"
-              />
-            )}
-            <span className="text-lg font-semibold">Your Business Name</span>
-          </div>
         </div>
       </form>
     </Form>
-  )
+  );
 }
-

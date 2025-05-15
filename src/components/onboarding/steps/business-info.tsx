@@ -14,8 +14,7 @@ const businessInfoSchema = z.object({
   name: z.string().min(2, { message: "Business name must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
   phone: z.string().min(10, { message: "Please enter a valid phone number" }),
-  description: z.string().min(24, { message: "Description must be at least 24 characters" }).max(500, { message: "Description must be at most 500 characters" })
-})
+  })
 
 type BusinessInfoData = z.infer<typeof businessInfoSchema>
 
@@ -103,21 +102,6 @@ export function BusinessInfoStep({ data, onUpdate, ref }: BusinessInfoStepProps)
                 <Input placeholder="(555) 123-4567" {...field} />
               </FormControl>
               <FormDescription>A phone number where clients can reach you</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Describe your business here." {...field} />
-              </FormControl>
-              <FormDescription>Tell us about your business</FormDescription>
               <FormMessage />
             </FormItem>
           )}
