@@ -5,7 +5,6 @@ import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, is
 import { CalendarIcon, ChevronLeft, ChevronRight, Plus, Filter, Clock, User } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -217,7 +216,7 @@ export default function AppointmentsPage() {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
-              <Calendar mode="single" selected={date} onSelect={(date) => date && setDate(date)} initialFocus />
+              {/* <Calendar mode="single" selected={date} onSelect={(date) => date && setDate(date)} initialFocus /> */}
             </PopoverContent>
           </Popover>
           <Select value={view} onValueChange={(value) => setView(value as "day" | "week" | "month")}>
