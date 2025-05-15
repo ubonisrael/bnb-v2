@@ -8,6 +8,14 @@ import { AuthResponse, ErrorResponse } from "@/types/response";
 import { useMutation } from "@tanstack/react-query";
 
 export default function VerifyEmailPage() {
+  return (
+    <Suspense>
+      <VerifyEmail />
+    </Suspense>
+  );
+}
+
+function VerifyEmail() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [verifying, setVerifying] = useState(true);
@@ -57,7 +65,6 @@ export default function VerifyEmailPage() {
   }, [router, searchParams]);
 
   return (
-    <Suspense>
       <div className="flex flex-col items-center justify-center min-h-screen">
         {verifying ? (
           <div>Verifying your email...</div>
@@ -70,6 +77,5 @@ export default function VerifyEmailPage() {
           </div>
         )}
       </div>
-    </Suspense>
   );
 }
