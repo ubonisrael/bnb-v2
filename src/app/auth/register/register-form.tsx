@@ -38,25 +38,6 @@ export function RegisterForm() {
     },
   })
 
-  const verifyEmailMutation = useMutation<AuthResponse, ErrorResponse, { token: string }>({
-    mutationFn: (data: { token: string }) => {
-      // console.log(data)
-      return api.post<AuthResponse>('/auth/verify-email', data)
-    },
-    onSuccess: (data: AuthResponse) => {
-      // console.log(data)
-      api.setCsrfToken(data.csrfToken)
-      // new CookieService().setCookieWithExpiry(BANKNBOOK_AUTH_COOKIE_NAME, data.token.token, data.token.tokenExpires)
-      // new CookieService().setCookieWithExpiry(BANKNBOOK_AUTH_REFRESH_COOKIE_NAME, data.token.refreshToken, data.token.refreshTokenExpires)
-      toast.success(data.message, { id: "register-success" })
-      toast.remove("register-loading")
-      router.push("/onboarding")
-    },
-    onError: (error: ErrorResponse) => {
-      toast.error(error.errors[0].message, { id: "register-error" })
-    },
-  })
-
   const registerMutation = useMutation<SignupResponse, ErrorResponse, RegisterFormValues>({
     mutationFn: (data: RegisterFormValues) => {
       toast.loading("Creating account...", { id: "register-loading" })
@@ -66,11 +47,11 @@ export function RegisterForm() {
       toast.loading("Setting up account...", { id: "register-loading" })
       toast.dismiss("register-loading")
       toast.success(data.message)
-      // if (data.token) {
-      //   // test environment
-      //   router.push(`verify-email/${data.token}`)
-      // }
-      await verifyEmailMutation.mutateAsync({ token: data.token })
+      if (data.token) {
+        // test environment
+        router.push(`verify-email?token=${data.token}`)
+      }
+      // await verifyEmailMutation.mutateAsync({ token: data.token })
     },
     onError: (error: ErrorResponse) => {
       toast.dismiss("register-loading")
