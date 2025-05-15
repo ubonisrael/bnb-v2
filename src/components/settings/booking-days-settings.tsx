@@ -94,7 +94,7 @@ export function BookingDaysSettings() {
       const signal = controller.signal;
 
       try {
-        const response = await api.post<BusinessSettingsResponse>(
+        const response = await api.patch<BusinessSettingsResponse>(
           "/sp/booking_settings",
           {
             ...values,
