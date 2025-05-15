@@ -28,7 +28,7 @@ const CopyTextComponent = ({ text }: { text: string }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_WEV_URL || 'localhost:3000'}/default/${text}`).then(() => {
+    navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_WEB_URL || 'localhost:3000'}/default/${text}`).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000); // Reset after 2 seconds
     });
