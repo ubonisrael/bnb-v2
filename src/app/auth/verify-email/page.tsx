@@ -30,12 +30,9 @@ function VerifyEmail() {
       return api.post<AuthResponse>("/auth/verify-email", data);
     },
     onSuccess: (data: AuthResponse) => {
-      // console.log(data)
       api.setCsrfToken(data.csrfToken);
-      // new CookieService().setCookieWithExpiry(BANKNBOOK_AUTH_COOKIE_NAME, data.token.token, data.token.tokenExpires)
-      // new CookieService().setCookieWithExpiry(BANKNBOOK_AUTH_REFRESH_COOKIE_NAME, data.token.refreshToken, data.token.refreshTokenExpires)
+      console.log(api.getCsrfToken());
       toast.success(data.message, { id: "verify-email" });
-      toast.remove("register-loading");
       router.push("/onboarding");
     },
     onError: (error: ErrorResponse) => {

@@ -47,10 +47,10 @@ export function RegisterForm() {
       toast.loading("Setting up account...", { id: "register-loading" })
       toast.dismiss("register-loading")
       toast.success(data.message)
-      if (data.token) {
+      // if (data.token) {
         // test environment
-        router.push(`verify-email?token=${data.token}`)
-      }
+        // router.push(`verify-email?token=${data.token}`)
+      // }
       // await verifyEmailMutation.mutateAsync({ token: data.token })
     },
     onError: (error: ErrorResponse) => {
