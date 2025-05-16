@@ -51,7 +51,9 @@ export function LoginForm() {
       // new CookieService().setCookieWithExpiry(BANKNBOOK_AUTH_COOKIE_NAME, data.token.token, data.token.tokenExpires)
       // new CookieService().setCookieWithExpiry(BANKNBOOK_AUTH_REFRESH_COOKIE_NAME, data.token.refreshToken, data.token.refreshTokenExpires)
       toast.success(data.message, { id: "login-success" })
-      router.push("/dashboard")
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 1000);
     },
     onError: (error: ErrorResponse) => {
       // console.log(error)
