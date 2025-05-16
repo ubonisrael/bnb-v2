@@ -10,6 +10,7 @@ export function useOnboardingMutation() {
     return useMutation({
         mutationFn: async (data: OnboardingFormData) => {
             // Transform the form data to match the API payload structure
+            console.log('dashboard', api.getCsrfToken())
             const payload = {
                 name: data.businessInfo.name,
                 email: data.businessInfo.email,
