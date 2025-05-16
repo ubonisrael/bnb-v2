@@ -28,7 +28,7 @@ const CopyTextComponent = ({ text }: { text: string }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_WEB_URL || 'localhost:3000'}/default/${text}`).then(() => {
+    navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_WEB_URL || 'https://bnb-v2.vercel.app'}/default/${text}`).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000); // Reset after 2 seconds
     });
@@ -36,7 +36,7 @@ const CopyTextComponent = ({ text }: { text: string }) => {
 
   return (
     <div className="flex items-center justify-between p-4 border rounded shadow-md">
-      <p className="text-sm">Booking Link: <span className="rounded px-4 py-1">{`${process.env.NEXT_PUBLIC_WEV_URL || 'localhost:3000'}/default/${text}`}</span></p>
+      <p className="text-sm">Booking Link: <span className="rounded px-4 py-1">{`${process.env.NEXT_PUBLIC_WEV_URL || 'https://bnb-v2.vercel.app/'}/default/${text}`}</span></p>
       <button 
         onClick={handleCopy} 
         className="bg-blue-500 text-sm text-white py-1 px-2 rounded hover:bg-blue-700"
