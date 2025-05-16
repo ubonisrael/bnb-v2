@@ -46,7 +46,7 @@ export function LoginForm() {
     onSuccess: (data: AuthResponse) => {
       toast.dismiss("login-loading")
       toast.remove("login-loading")
-      // console.log(data)
+      console.log(data)
       api.setCsrfToken(data.csrfToken)
       // new CookieService().setCookieWithExpiry(BANKNBOOK_AUTH_COOKIE_NAME, data.token.token, data.token.tokenExpires)
       // new CookieService().setCookieWithExpiry(BANKNBOOK_AUTH_REFRESH_COOKIE_NAME, data.token.refreshToken, data.token.refreshTokenExpires)
