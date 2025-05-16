@@ -47,6 +47,7 @@ export function RegisterForm() {
       toast.loading("Setting up account...", { id: "register-loading" })
       toast.dismiss("register-loading")
       toast.success(data.message)
+      console.log(data.token)
       // if (data.token) {
         // test environment
         // router.push(`verify-email?token=${data.token}`)
