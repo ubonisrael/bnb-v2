@@ -124,96 +124,17 @@ export interface LandingTemplate {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [businessInfo, setBusinessInfo] = useLocalStorage<LandingTemplate>(
-    "businessInfo",
-    {
-      type: "sample",
-      name: "BeautySpot",
-      bannerHeader: "Discover beauty at BeautySpot",
-      bannerMessage:
-        "Elevate your look with our premium salon and spa services...",
-      aboutSubHeader: "Your Beauty, Our Passion",
-      bUrl: "1234",
-      banner:
-        "https://images.unsplash.com/photo-1562322140-8baeececf3df?...q=80",
-      logo: "https://images.unsplash.com/photo-1522337660859-02fbefca4702?ixlib=rb-4.0.3&auto=format&fit=crop&w=40&h=40&q=80",
-      email: "info@beautyspot.com",
-      phone: "(555) 123-4567",
-      address: "123 Beauty Lane",
-      city: "Stylish City",
-      state: "SC",
-      zip: "12345",
-      minNotice: 1,
-      maxNotice: 21,
-      description:
-        "Since 2010, BeautySpot has been helping clients look and feel their best with expert services and premium products.",
-      hours: {
-        monday: "9AM - 8PM",
-        tuesday: "9AM - 8PM",
-        wednesday: "9AM - 8PM",
-        thursday: "9AM - 8PM",
-        friday: "9AM - 8PM",
-        saturday: "10AM - 6PM",
-        sunday: "Closed",
-      },
-      latitude: 40.7128,
-      longitude: -74.006,
-      utcOffset: 0,
-      categories: [
-        {
-          id: "1",
-          name: "Hair cut",
-        },
-        {
-          id: "2",
-          name: "Hair style",
-        },
-        {
-          id: "3",
-          name: "Make up",
-        },
-      ],
-      services: [
-        {
-          id: "1",
-          CategoryId: "1",
-          categoryId: "1",
-          name: "Skin cut",
-          description: "Get a nice hair cut",
-          price: 20,
-          duration: 90,
-          availableDays: ["monday", "tuesday", "wednesday"],
-        },
-        {
-          id: "3",
-          CategoryId: "2",
-          categoryId: "2",
-          name: "Weave",
-          description: "Get a nice hair cut",
-          price: 20,
-          duration: 90,
-          availableDays: ["monday", "tuesday", "wednesday"],
-        },
-        {
-          id: "5",
-          CategoryId: "3",
-          categoryId: "3",
-          name: "Natural Glam",
-          description: "Get a nice hair cut",
-          price: 20,
-          duration: 90,
-          availableDays: ["monday", "tuesday", "wednesday"],
-        },
-      ],
-    }
-  );
+  const [businessInfo, setBusinessInfo] = useLocalStorage<LandingTemplate | null>(
+    "businessInfo", null);
   const [error, setError] = useState<string | null>(null);
 
   const updateBusinessUrl = (url: string) => {
-    setBusinessInfo({
-      ...businessInfo,
-      bUrl: url,
-    });
+    if (businessInfo) {
+      setBusinessInfo({
+        ...businessInfo,
+        bUrl: url,
+      });
+    }
   };
 
   const [activeCategoryTab, setActiveCategoryTab] =
@@ -263,6 +184,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function fetchBusinessInfo() {
       try {
+        if (!businessInfo) return;
         // throw new Error("Business URL is not defined");
         const { data } = (await api.get(
           `/sp/${businessInfo.bUrl}`
@@ -277,37 +199,45 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setError("Failed to fetch business details. Please try again later.");
       }
     }
-    if (businessInfo.bUrl && businessInfo.bUrl !== "sample") {
+    if (!businessInfo) {
       fetchBusinessInfo();
     }
-  }, [businessInfo.bUrl]);
+  }, [businessInfo?.bUrl]);
 
   return (
     <AppContext.Provider
       value={{
         error,
-        utcOffset: businessInfo.utcOffset,
-        categories: businessInfo.categories,
-        services: businessInfo.services,
-        latitude: businessInfo.latitude,
-        longitude: businessInfo.longitude,
-        banner: businessInfo.banner,
-        email: businessInfo.email,
-        name: businessInfo.name,
-        logo: businessInfo.logo,
-        bUrl: businessInfo.bUrl,
-        phone: businessInfo.phone,
-        description: businessInfo.description,
-        hours: businessInfo.hours,
-        state: businessInfo.state,
-        zip: businessInfo.zip,
-        aboutSubHeader: businessInfo.aboutSubHeader,
-        bannerHeader: businessInfo.bannerHeader,
-        bannerMessage: businessInfo.bannerMessage,
-        address: businessInfo.address,
-        maxNotice: businessInfo.maxNotice,
-        minNotice: businessInfo.minNotice,
-        city: businessInfo.city,
+        utcOffset: businessInfo?.utcOffset ?? 0,
+        categories: businessInfo?.categories ?? [],
+        services: businessInfo?.services ?? [],
+        latitude: businessInfo?.latitude,
+        longitude: businessInfo?.longitude,
+        banner: businessInfo?.banner ?? '',
+        email: businessInfo?.email ?? '',
+        name: businessInfo?.name ?? '',
+        logo: businessInfo?.logo ?? '',
+        bUrl: businessInfo?.bUrl ?? '',
+        phone: businessInfo?.phone ?? '',
+        description: businessInfo?.description ?? '',
+        hours: businessInfo?.hours ?? {
+          monday: '',
+          tuesday: '',
+          wednesday: '',
+          thursday: '',
+          friday: '',
+          saturday: '',
+          sunday: ''
+        },
+        state: businessInfo?.state ?? '',
+        zip: businessInfo?.zip ?? '',
+        aboutSubHeader: businessInfo?.aboutSubHeader ?? '',
+        bannerHeader: businessInfo?.bannerHeader ?? '',
+        bannerMessage: businessInfo?.bannerMessage ?? '',
+        address: businessInfo?.address ?? '',
+        maxNotice: businessInfo?.maxNotice ?? 0,
+        minNotice: businessInfo?.minNotice ?? 0,
+        city: businessInfo?.city ?? '',
         updateBusinessUrl,
         setBusinessInfo,
         activeCategoryTab,

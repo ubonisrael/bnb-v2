@@ -51,22 +51,6 @@ class ApiService {
       (response) => response,
       (error) => {
         // console.log(error)
-        if (
-          error.response?.status === 400 &&
-          error.response &&
-          error.response.data &&
-          error.response.data.errors &&
-          error.response.data.errors[0].messages ===
-            "ServiceProvider setup incomplete"
-        ) {
-          // console.log(error.response?.data?.errors[0].messages === "ServiceProvider setup incomplete")
-          toast.error(
-            "Service provider setup incomplete. Please complete onboarding."
-          );
-          setTimeout(() => {
-            window.location.href = "/onboarding";
-          }, 500);
-        }
         if (error.response?.status === 401) {
           this.clearCsrfToken();
           toast.error("Session expired, please sign in again", { id: "error" });
