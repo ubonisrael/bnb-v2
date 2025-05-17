@@ -52,31 +52,32 @@ import { useQuery } from "@tanstack/react-query";
 import { BookingDataResponse } from "@/types/response";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
+import { Category } from "@/app/(templates)/default/[businessUrl]/types";
 
 // Time slots for the calendar
-const timeSlots = [
-  "07:00",
-  "08:00",
-  "09:00",
-  "10:00",
-  "11:00",
-  "12:00",
-  "13:00",
-  "14:00",
-  "15:00",
-  "16:00",
-  "17:00",
-  "18:00",
-  "19:00",
-  "20:00",
-  "21:00",
-  "22:00",
-  "23:00",
-];
+// Example usage:
+// const timeSlots = generateTimeSlots(420, 1380, 60); // 7:00 to 23:00, hourly intervals
+const generateTimeSlots = (
+  start: number,
+  end: number,
+  interval: number
+): string[] => {
+  const slots: string[] = [];
+  for (let i = start; i <= end; i += interval) {
+    const hours = Math.floor(i / 60);
+    const minutes = i % 60;
+    slots.push(
+      `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
+    );
+  }
+  return slots;
+};
+
+const timeSlots = generateTimeSlots(420, 1380, 30); // 7:00 to 23:00, 30 minute intervals
 
 // Add filter types
 type FilterType = {
-  status: string[];
+  category: Category[];
   service: Service[];
 };
 
@@ -91,7 +92,7 @@ export default function CalendarPage() {
   });
 
   const [filters, setFilters] = useState<FilterType>({
-    status: [],
+    category: [],
     service: [],
   });
 
@@ -200,37 +201,37 @@ export default function CalendarPage() {
             >
               <Filter className="h-4 w-4" />
               Filter
-              {(filters.status.length > 0 || filters.service.length > 0) && (
+              {(filters.category.length > 0 || filters.service.length > 0) && (
                 <Badge variant="secondary" className="ml-2">
-                  {filters.status.length + filters.service.length}
+                  {filters.category.length + filters.service.length}
                 </Badge>
               )}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-72">
             <DropdownMenuLabel className="text-base font-semibold">
-              Filter by Status
+              Filter by Category
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {["confirmed", "pending", "cancelled"].map((status) => (
+            {settings?.categories.map((cat) => (
               <DropdownMenuItem
-                key={status}
+                key={cat.id}
                 className="flex items-center gap-3 py-2"
                 onSelect={(e) => {
                   e.preventDefault();
                   setFilters((prev) => ({
                     ...prev,
-                    status: prev.status.includes(status)
-                      ? prev.status.filter((s) => s !== status)
-                      : [...prev.status, status],
+                    category: prev.category.find((s) => s.id === cat.id)
+                      ? prev.category.filter((s) => s.id !== cat.id)
+                      : [...prev.category, cat],
                   }));
                 }}
               >
                 <div className="flex h-5 w-5 items-center justify-center rounded border">
-                  {filters.status.includes(status) && <X className="h-4 w-4" />}
+                  {filters.category.find((s) => s.id === cat.id) && <X className="h-4 w-4" />}
                 </div>
                 <span className="font-medium">
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                  {cat.name.charAt(0).toUpperCase() + cat.name.slice(1)}
                 </span>
               </DropdownMenuItem>
             ))}
@@ -264,7 +265,7 @@ export default function CalendarPage() {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-destructive py-2"
-              onSelect={() => setFilters({ status: [], service: [] })}
+              onSelect={() => setFilters({ category: [], service: [] })}
             >
               Clear all filters
             </DropdownMenuItem>
@@ -283,169 +284,187 @@ export default function CalendarPage() {
                 )}`}
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
-          {view === "day" ? (
-            <div className="flex">
-              {/* Calendar grid */}
-              <div className="relative flex-1 overflow-x-auto">
-                {/* Time slots */}
-                <div className="grid grid-cols-1">
-                  {timeSlots.map((time, index) => (
-                    <div key={time} className="flex h-12">
-                      <div className="w-16 border-r border-[#E0E0E5] bg-[#F5F5F7] py-2 pr-2 text-right text-xs text-[#6E6E73]">
-                        {time}
-                      </div>
-                      <div
-                        className={cn(
-                          "flex-1 border-b border-[#E0E0E5] cursor-pointer hover:bg-[#F5F5F7]/50",
-                          index % 2 === 0 ? "bg-white" : "bg-[#F5F5F7]/30"
-                        )}
-                      ></div>
+        {isLoading ? (
+          <div className="flex h-80 items-center justify-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent border-[#7B68EE]"></div>
+          </div>
+        ) : (
+          <CardContent className="p-0">
+            {view === "day" ? (
+              <div className="flex">
+                {/* Calendar grid */}
+                {data && data.bookings.length > 0 ? (
+                  <div className="relative flex-1 overflow-x-auto">
+                    {/* Time slots */}
+                    <div className="grid grid-cols-1">
+                      {timeSlots.map((time, index) => (
+                        <div key={time} className="flex h-12">
+                          <div className="w-16 border-r border-[#E0E0E5] bg-[#F5F5F7] py-2 pr-2 text-right text-xs text-[#6E6E73]">
+                            {time}
+                          </div>
+                          <div
+                            className={cn(
+                              "flex-1 border-b border-[#E0E0E5] cursor-pointer hover:bg-[#F5F5F7]/50",
+                              index % 2 === 0 ? "bg-white" : "bg-[#F5F5F7]/30"
+                            )}
+                          ></div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
 
-                {/* Appointments */}
-                <div className="absolute left-16 top-0 w-[calc(100%-4rem)]">
-                  {data?.bookings.map((appointment) => {
-                    const date = dayjs(appointment.event_date);
-                    const startTime = date.format("HH:mm");
-                    const endTime = date
-                      .add(appointment.event_duration, "minutes")
-                      .format("HH:mm");
-                    const startTimeIndex = getTimeSlotIndex(startTime);
-                    const duration = appointment.event_duration / 60;
+                    {/* Appointments */}
+                    <div className="absolute left-16 top-0 w-[calc(100%-4rem)]">
+                      {data.bookings.map((appointment) => {
+                        const date = dayjs(appointment.event_date);
+                        const startTime = date.format("HH:mm");
+                        const endTime = date
+                          .add(appointment.event_duration, "minutes")
+                          .format("HH:mm");
+                        const startTimeIndex = getTimeSlotIndex(startTime);
+                        const duration = appointment.event_duration / 60;
+                        // console.log('date', date)
+                        console.log('startTime', startTime)
+                        console.log(startTimeIndex)
 
-                    if (startTimeIndex === -1) return null;
+                        if (startTimeIndex === -1) return null;
 
-                    return (
-                      <div
-                        key={appointment.id}
-                        className={cn(
-                          "absolute rounded-md p-3 shadow-sm",
-                          getAppointmentColor("teal")
-                        )}
-                        style={{
-                          top: `${startTimeIndex * 48}px`,
-                          height: `${duration * 48 + 48}px`,
-                          left: "0",
-                          width: "100%",
-                          // transform: `translateY(${startTimeIndex * 48}px)`,
-                        }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="font-medium text-[#121212]">
-                              {appointment.Customer?.name}
+                        return (
+                          <div
+                            key={appointment.id}
+                            className={cn(
+                              "absolute rounded-md p-3 shadow-sm",
+                              getAppointmentColor("teal")
+                            )}
+                            style={{
+                              top: `${startTimeIndex * 48}px`,
+                              height: `${duration * 48 + 48}px`,
+                              left: "0",
+                              width: "100%",
+                              // transform: `translateY(${startTimeIndex * 48}px)`,
+                            }}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <div className="font-medium text-[#121212]">
+                                  {appointment.Customer?.name}
+                                </div>
+                                <div className="text-sm text-[#121212]">
+                                  {appointment.Customer?.email}
+                                </div>
+                              </div>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 rounded-full hover:bg-black/5"
+                                  >
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem>
+                                    View details
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
-                            <div className="text-sm text-[#121212]">
-                              {appointment.Customer?.email}
+                            <div className="mt-2 text-sm text-[#121212]">
+                              {appointment.service_ids
+                                .map((s) => {
+                                  const service = settings?.services.find(
+                                    (service) =>
+                                      Number(service.id) === Number(s)
+                                  );
+                                  return service?.name;
+                                })
+                                .join(", ")}
+                            </div>
+                            <div className="text-xs text-[#6E6E73]">
+                              {startTime} - {endTime}
                             </div>
                           </div>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 rounded-full hover:bg-black/5"
-                              >
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem>View details</DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                        <div className="mt-2 text-sm text-[#121212]">
-                          {appointment.service_ids
-                            .map((s) => {
-                              const service = settings?.services.find(
-                                (service) => Number(service.id) === Number(s)
-                              );
-                              return service?.name;
-                            })
-                            .join(", ")}
-                        </div>
-                        <div className="text-xs text-[#6E6E73]">
-                          {startTime} - {endTime}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="min-w-[800px]">
-              {/* Week view header */}
-              <div className="grid grid-cols-8 border-b border-[#E0E0E5]">
-                <div
-                  className={cn(
-                    "h-14 p-2 text-center font-medium",
-                    "text-[#121212]"
-                  )}
-                ></div>
-                {weekDays.map((day) => (
-                  <div
-                    key={day.toString()}
-                    className={cn(
-                      "h-14 p-2 text-center font-medium",
-                      isSameDay(day, new Date())
-                        ? "bg-[#7B68EE]/10 text-[#7B68EE]"
-                        : "text-[#121212]"
-                    )}
-                  >
-                    <div className="text-sm">{format(day, "EEE")}</div>
-                    <div className="text-base font-bold">
-                      {format(day, "d")}
+                        );
+                      })}
                     </div>
                   </div>
-                ))}
+                ) : (
+                  <div className="flex h-40 p-4 sm:p-6 md:p-8 xl:p-10 text-[#6E6E73]">
+                    <p className="text-center">No appointments scheduled for today.</p>
+                  </div>
+                )}
               </div>
-
-              {/* Week view time slots */}
-              <div className="grid grid-cols-8">
-                <div className="border-r border-[#E0E0E5]">
-                  {timeSlots.map((time, timeIndex) => (
+            ) : (
+              <div className="min-w-[800px]">
+                {/* Week view header */}
+                <div className="grid grid-cols-8 border-b border-[#E0E0E5]">
+                  <div
+                    className={cn(
+                      "h-14 p-2 text-center font-medium",
+                      "text-[#121212]"
+                    )}
+                  ></div>
+                  {weekDays.map((day) => (
                     <div
-                      id={`${time}`}
-                      key={`${time}`}
+                      key={day.toString()}
                       className={cn(
-                        "h-12 flex items-center justify-center border-b border-[#E0E0E5] cursor-pointer hover:bg-[#F5F5F7]/50",
-                        timeIndex % 2 === 0 ? "bg-white" : "bg-[#F5F5F7]/30"
+                        "h-14 p-2 text-center font-medium",
+                        isSameDay(day, new Date())
+                          ? "bg-[#7B68EE]/10 text-[#7B68EE]"
+                          : "text-[#121212]"
                       )}
                     >
-                      {time}
+                      <div className="text-sm">{format(day, "EEE")}</div>
+                      <div className="text-base font-bold">
+                        {format(day, "d")}
+                      </div>
                     </div>
                   ))}
                 </div>
-                {weekDays.map((day, dayIndex) => (
-                  <div
-                    key={day.toString()}
-                    className="border-r border-[#E0E0E5]"
-                  >
+
+                {/* Week view time slots */}
+                <div className="grid grid-cols-8">
+                  <div className="border-r border-[#E0E0E5]">
                     {timeSlots.map((time, timeIndex) => (
                       <div
-                        id={`${day}-${time}`}
-                        key={`${day}-${time}`}
+                        id={`${time}`}
+                        key={`${time}`}
                         className={cn(
-                          "h-12 border-b border-[#E0E0E5] cursor-pointer hover:bg-[#F5F5F7]/50",
+                          "h-12 flex items-center justify-center border-b border-[#E0E0E5] cursor-pointer hover:bg-[#F5F5F7]/50",
                           timeIndex % 2 === 0 ? "bg-white" : "bg-[#F5F5F7]/30"
                         )}
-                        onClick={() => {
-                          setDate(day);
-                        }}
-                      ></div>
+                      >
+                        {time}
+                      </div>
                     ))}
                   </div>
-                ))}
+                  {weekDays.map((day, dayIndex) => (
+                    <div
+                      key={day.toString()}
+                      className="border-r border-[#E0E0E5]"
+                    >
+                      {timeSlots.map((time, timeIndex) => (
+                        <div
+                          id={`${day}-${time}`}
+                          key={`${day}-${time}`}
+                          className={cn(
+                            "h-12 border-b border-[#E0E0E5] cursor-pointer hover:bg-[#F5F5F7]/50",
+                            timeIndex % 2 === 0 ? "bg-white" : "bg-[#F5F5F7]/30"
+                          )}
+                          onClick={() => {
+                            setDate(day);
+                          }}
+                        ></div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-        </CardContent>
+            )}
+          </CardContent>
+        )}
       </Card>
     </div>
   );
