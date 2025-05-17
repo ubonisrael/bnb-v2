@@ -31,7 +31,7 @@ function VerifyEmail() {
     },
     onSuccess: (data: AuthResponse) => {
       api.setCsrfToken(data.csrfToken);
-      console.log(api.getCsrfToken());
+      // console.log(api.getCsrfToken());
       toast.success(data.message, { id: "verify-email" });
       router.push("/onboarding");
     },

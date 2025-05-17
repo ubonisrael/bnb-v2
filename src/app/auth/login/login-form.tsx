@@ -46,11 +46,7 @@ export function LoginForm() {
     onSuccess: (data: AuthResponse) => {
       toast.dismiss("login-loading")
       toast.remove("login-loading")
-      // console.log(data)
       api.setCsrfToken(data.csrfToken)
-      console.log(api.getCsrfToken())
-      // new CookieService().setCookieWithExpiry(BANKNBOOK_AUTH_COOKIE_NAME, data.token.token, data.token.tokenExpires)
-      // new CookieService().setCookieWithExpiry(BANKNBOOK_AUTH_REFRESH_COOKIE_NAME, data.token.refreshToken, data.token.refreshTokenExpires)
       toast.success(data.message, { id: "login-success" })
       setTimeout(() => {
         router.push('/dashboard');

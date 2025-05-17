@@ -1,17 +1,24 @@
 "use client";
 
-import { useRouter } from "next/navigation"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { ArrowRight, Loader2, Eye, EyeOff } from "lucide-react"
-import { useMutation } from "@tanstack/react-query"
-import api from "@/services/api-service"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { useRouter } from "next/navigation";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import api from "@/services/api-service";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import toast from "react-hot-toast";
 import { ErrorResponse, AuthResponse, SignupResponse } from "@/types/response";
 // import CookieService from "@/services/cookie-service";
@@ -20,14 +27,16 @@ import { ErrorResponse, AuthResponse, SignupResponse } from "@/types/response";
 const registerSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters" }),
-})
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters" }),
+});
 
-type RegisterFormValues = z.infer<typeof registerSchema>
+type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export function RegisterForm() {
-  const router = useRouter()
-  const [showPassword, setShowPassword] = useState(false)
+  const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -36,37 +45,43 @@ export function RegisterForm() {
       email: "",
       password: "",
     },
-  })
+  });
 
-  const registerMutation = useMutation<SignupResponse, ErrorResponse, RegisterFormValues>({
+  const registerMutation = useMutation<
+    SignupResponse,
+    ErrorResponse,
+    RegisterFormValues
+  >({
     mutationFn: (data: RegisterFormValues) => {
-      toast.loading("Creating account...", { id: "register-loading" })
-      return api.post<SignupResponse>('/auth/signup', data)
+      toast.loading("Creating account...", { id: "register-loading" });
+      return api.post<SignupResponse>("/auth/signup", data);
     },
     onSuccess: async (data: SignupResponse) => {
-      toast.loading("Setting up account...", { id: "register-loading" })
-      toast.dismiss("register-loading")
-      toast.success(data.message)
-      console.log(data.token)
-      // if (data.token) {
+      toast.loading("Setting up account...", { id: "register-loading" });
+      toast.dismiss("register-loading");
+      toast.success(data.message);
+      // console.log(data.token)
+      if (data.token) {
         // test environment
-        // router.push(`verify-email?token=${data.token}`)
-      // }
+        setTimeout(() => {
+          router.push(`/auth/verify-email?token=${data.token}`);
+        }, 1000);
+      }
       // await verifyEmailMutation.mutateAsync({ token: data.token })
     },
     onError: (error: ErrorResponse) => {
-      toast.dismiss("register-loading")
-      toast.remove("register-loading")
-      toast.error(error.errors[0].message, { id: "register-error" })
+      toast.dismiss("register-loading");
+      toast.remove("register-loading");
+      toast.error(error.errors[0].message, { id: "register-error" });
     },
-  })
+  });
 
   async function onSubmit(data: RegisterFormValues) {
     try {
-      registerMutation.mutateAsync(data)
+      registerMutation.mutateAsync(data);
     } catch (error: any) {
-      toast.dismiss("register-loading")
-      toast.error("Error creating account", { id: "register-error" })
+      toast.dismiss("register-loading");
+      toast.error("Error creating account", { id: "register-error" });
     }
   }
 
@@ -135,7 +150,11 @@ export function RegisterForm() {
         />
 
         <div>
-          <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={registerMutation.isPending}
+          >
             {registerMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -151,6 +170,5 @@ export function RegisterForm() {
         </div>
       </form>
     </Form>
-  )
+  );
 }
-
