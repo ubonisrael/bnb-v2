@@ -156,7 +156,6 @@ export function BookingSettingsSetupStep({
 
   function onSubmit(values: BookingSettingsData) {
     // onUpdate(values)
-    console.log("Booking Settings", values);
   }
 
   return (
@@ -316,13 +315,9 @@ export function BookingSettingsSetupStep({
                                         openingField.value as number
                                       )}
                                       onChange={(e) => {
-                                        // console.log()
-                                        console.log("value", e.target.value);
                                         const [h, m] = e.target.value
                                           .split(":")
                                           .map(Number);
-                                        // console.log(e.target.valueAsNumber)
-                                        // console.log(minutesToTimeString(e.target.valueAsNumber))
                                         openingField.onChange(h * 60 + m);
                                       }}
                                       className="w-32"
@@ -345,13 +340,9 @@ export function BookingSettingsSetupStep({
                                       closingField.value as number
                                     )}
                                     onChange={(e) => {
-                                      // console.log()
-                                      console.log("value", e.target.value);
                                       const [h, m] = e.target.value
                                         .split(":")
                                         .map(Number);
-                                      // console.log(e.target.valueAsNumber)
-                                      // console.log(minutesToTimeString(e.target.valueAsNumber))
                                       closingField.onChange(h * 60 + m);
                                     }}
                                     className="w-32"

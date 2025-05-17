@@ -32,14 +32,12 @@ class ApiService {
       (config) => {
         // Attach CSRF token only on state-changing requests
         const method = config.method?.toUpperCase();
-        // console.log('method', method, 'csrftoken', this.csrfToken);
         if (
           ["POST", "PUT", "PATCH", "DELETE"].includes(method || "") &&
           this.csrfToken
         ) {
           config.headers["x-csrf-token"] = this.csrfToken;
         }
-        // console.log('headers', config.headers);
         // config.headers['x-csrf-token'] = this.csrfToken;
         return config;
       },
@@ -50,9 +48,8 @@ class ApiService {
     this.api.interceptors.response.use(
       (response) => response,
       (error) => {
-        // console.log(error)
         if (error.response?.status === 401) {
-          this.clearCsrfToken();
+          // this.clearCsrfToken();
           toast.error("Session expired, please sign in again", { id: "error" });
           setTimeout(() => {
             window.location.href = "/auth/login";

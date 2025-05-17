@@ -96,7 +96,6 @@ export function ProfileSettings() {
     try {
       // toast.loading('Uploading logo...', { id: 'logo-upload' });
       const storageRef = ref(storage, `bnb/${settings?.profile?.email}/logo`);
-      console.log(storageRef);
       const uploadTask = uploadBytesResumable(storageRef, file);
       uploadTask.on(
         "state_changed",
@@ -108,7 +107,6 @@ export function ProfileSettings() {
         () =>
           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
             setLogoUrl(downloadURL);
-            console.log(downloadURL);
           })
       );
 
@@ -153,7 +151,6 @@ export function ProfileSettings() {
     },
     onSuccess: (response) => {
       toast.success("Profile updated successfully", { id: "profile-save" });
-      console.log(response.data);
       updateSettings("profile", response.data);
     },
     onError: (error: Error) => {

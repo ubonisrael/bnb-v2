@@ -70,9 +70,17 @@ import api from "@/services/api-service";
 import { useUserSettings } from "@/contexts/user-settings-context";
 import { Checkbox } from "@/components/ui/checkbox";
 
-const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const
-const daysStatus = days.map((d) => `${d}_enabled`)
-type daysStatusType = typeof daysStatus[number]
+const days = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+] as const;
+const daysStatus = days.map((d) => `${d}_enabled`);
+type daysStatusType = (typeof daysStatus)[number];
 
 export default function ServicesPage() {
   const { settings, updateSettings } = useUserSettings();
@@ -130,7 +138,6 @@ export default function ServicesPage() {
     },
     onSuccess: (response: any) => {
       toast.success("Category updated successfully", { id: "create-category" });
-      console.log(response.data);
       if (settings) {
         updateSettings("categories", [...settings.categories, response.data]);
       }
@@ -143,8 +150,6 @@ export default function ServicesPage() {
   });
 
   const onSubmitCategory = async (data: z.infer<typeof categorySchema>) => {
-    // Here you would typically make an API call to save the category
-    // console.log("Category data:", data);
     try {
       await createCategoryMutation.mutateAsync(data);
       setShowCategoryModal(false);
@@ -160,21 +165,16 @@ export default function ServicesPage() {
       const signal = controller.signal;
 
       try {
-        const daysStatus: { [key in daysStatusType]: boolean} = {}
+        const daysStatus: { [key in daysStatusType]: boolean } = {};
         values.availableDays.forEach((day) => {
-          daysStatus[`${day}_enabled`] = true
-        })
-        console.log({
-            ...values,
-            fullPrice: values.price,
-            ...daysStatus
-          },)
+          daysStatus[`${day}_enabled`] = true;
+        });
         const response = await api.post(
           "/sp/services",
           {
             ...values,
             fullPrice: values.price,
-            ...daysStatus
+            ...daysStatus,
           },
           { signal }
         );
@@ -191,7 +191,6 @@ export default function ServicesPage() {
     },
     onSuccess: (response: any) => {
       toast.success("Service created successfully", { id: "create-service" });
-      console.log(response.data);
       if (settings) {
         updateSettings("services", [...settings.services, response.data]);
       }
@@ -205,7 +204,6 @@ export default function ServicesPage() {
 
   const handleServiceSubmit = async (data: z.infer<typeof serviceSchema>) => {
     // TODO: Implement service creation
-    console.log("Creating service:", serviceForm.getValues());
     try {
       await createServiceMutation.mutateAsync(data);
     } catch (e) {
@@ -323,7 +321,7 @@ export default function ServicesPage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {settings?.categories.map((category) => (
+                            {settings && settings.categories.map((category) => (
                               <SelectItem key={category.id} value={category.id}>
                                 {category.name}
                               </SelectItem>
@@ -511,79 +509,101 @@ export default function ServicesPage() {
           <Tabs defaultValue="all">
             <TabsList className="mb-4">
               <TabsTrigger value="all">All Services</TabsTrigger>
-              {settings?.categories.map((cat) => (
+              {settings && settings.categories.map((cat) => (
                 <TabsTrigger key={cat.id} value={cat.id}>
                   {cat.name}
                 </TabsTrigger>
               ))}
             </TabsList>
-            {settings?.categories.map((cat) => (
+            {settings && settings.categories.map((cat) => (
               <TabsContent key={cat.id} value={cat.id} className="m-0">
-                <div className="rounded-md border">
-                  <table className="hidden w-full md:table">
-                    <thead>
-                      <tr className="border-b bg-muted/50 text-left text-sm font-medium">
-                        <th className="px-4 py-3">Service</th>
-                        <th className="px-4 py-3">Category</th>
-                        <th className="px-4 py-3">Duration</th>
-                        <th className="px-4 py-3">Price</th>
-                        <th className="px-4 py-3 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {settings?.services.filter((service) => service.CategoryId === cat.id).map((service) => (
-                        <tr key={service.id} className="border-b">
-                          <td className="px-4 py-3">
-                            <div>
-                              <div className="font-medium">{service.name}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {service.description}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <Badge variant="outline">
-                              {settings.categories.find((cat) => cat.id === service.CategoryId)!.name}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-4 w-4 text-muted-foreground" />
-                              {service.duration}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">£{service.fullPrice}</td>
-                          <td className="px-4 py-3 text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                  <span className="sr-only">Actions</span>
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  onClick={() => handleEditService(service)}
-                                >
-                                  Edit service
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  View bookings
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-destructive">
-                                  Delete service
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </td>
+                {settings && settings.services.filter(
+                  (service) => service.CategoryId === cat.id
+                ).length ? (
+                  <div className="rounded-md border">
+                    <table className="hidden w-full md:table">
+                      <thead>
+                        <tr className="border-b bg-muted/50 text-left text-sm font-medium">
+                          <th className="px-4 py-3">Service</th>
+                          <th className="px-4 py-3">Category</th>
+                          <th className="px-4 py-3">Duration</th>
+                          <th className="px-4 py-3">Price</th>
+                          <th className="px-4 py-3 text-right">Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {settings && settings.services
+                          .filter((service) => service.CategoryId === cat.id)
+                          .map((service) => (
+                            <tr key={service.id} className="border-b">
+                              <td className="px-4 py-3">
+                                <div>
+                                  <div className="font-medium">
+                                    {service.name}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {service.description}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                <Badge variant="outline">
+                                  {
+                                    settings.categories.find(
+                                      (cat) => cat.id === service.CategoryId
+                                    )!.name
+                                  }
+                                </Badge>
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-1">
+                                  <Clock className="h-4 w-4 text-muted-foreground" />
+                                  {service.duration}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                £{service.fullPrice}
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                      <MoreHorizontal className="h-4 w-4" />
+                                      <span className="sr-only">Actions</span>
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>
+                                      Actions
+                                    </DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      onClick={() => handleEditService(service)}
+                                    >
+                                      Edit service
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem>
+                                      View bookings
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="text-destructive">
+                                      Delete service
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center p-4">
+                    <p className="text-sm text-muted-foreground">
+                      No services available in this category.
+                    </p>
+                  </div>
+                )}
               </TabsContent>
             ))}
             <TabsContent value="all" className="m-0">
@@ -599,7 +619,7 @@ export default function ServicesPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {settings?.services.map((service) => (
+                    {settings && settings.services.map((service) => (
                       <tr key={service.id} className="border-b">
                         <td className="px-4 py-3">
                           <div>
@@ -610,7 +630,13 @@ export default function ServicesPage() {
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <Badge variant="outline">{settings.categories.find((cat) => cat.id === service.CategoryId)!.name}</Badge>
+                          <Badge variant="outline">
+                            {
+                              settings.categories.find(
+                                (cat) => cat.id === service.CategoryId
+                              )!.name
+                            }
+                          </Badge>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1">

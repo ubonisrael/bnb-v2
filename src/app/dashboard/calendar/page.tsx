@@ -322,9 +322,6 @@ export default function CalendarPage() {
                           .format("HH:mm");
                         const startTimeIndex = getTimeSlotIndex(startTime);
                         const duration = appointment.event_duration / 60;
-                        // console.log('date', date)
-                        console.log('startTime', startTime)
-                        console.log(startTimeIndex)
 
                         if (startTimeIndex === -1) return null;
 

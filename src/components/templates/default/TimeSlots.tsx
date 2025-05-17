@@ -53,9 +53,6 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
     },
   });
 
-  console.log('Data:', data);
-  console.log('Error:', (error?.response?.data as { message: string })?.message);
-
   if (isLoading) {
     return (
       <div className="mt-6">

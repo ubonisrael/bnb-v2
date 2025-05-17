@@ -1,33 +1,40 @@
-"use client"
+"use client";
 
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { ArrowRight, Loader2, Eye, EyeOff } from "lucide-react"
-import { useMutation } from "@tanstack/react-query"
-import api from "@/services/api-service"
-import toast from "react-hot-toast"
-import { useState } from "react"
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import api from "@/services/api-service";
+import toast from "react-hot-toast";
+import { useState } from "react";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { ErrorResponse, AuthResponse } from "@/types/response"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { ErrorResponse, AuthResponse } from "@/types/response";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
   password: z.string().min(1, { message: "Please enter your password" }),
   remember: z.boolean().default(false).optional(),
-})
+});
 
-type LoginFormValues = z.infer<typeof loginSchema>
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
-  const router = useRouter()
-  const [showPassword, setShowPassword] = useState(false)
+  const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -36,37 +43,46 @@ export function LoginForm() {
       password: "",
       remember: false,
     },
-  })
+  });
 
-  const loginMutation = useMutation<AuthResponse, ErrorResponse, LoginFormValues>({
+  const loginMutation = useMutation<
+    AuthResponse,
+    ErrorResponse,
+    LoginFormValues
+  >({
     mutationFn: (data: LoginFormValues) => {
-      toast.loading("Signing in...", { id: "login-loading" })
-      return api.post('/auth/login/email', data)
+      toast.loading("Signing in...", { id: "login-loading" });
+      return api.post("/auth/login/email", data);
     },
     onSuccess: (data: AuthResponse) => {
-      toast.dismiss("login-loading")
-      toast.remove("login-loading")
-      api.setCsrfToken(data.csrfToken)
-      toast.success(data.message, { id: "login-success" })
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 1000);
+      toast.dismiss("login-loading");
+      toast.remove("login-loading");
+      api.setCsrfToken(data.csrfToken);
+      toast.success(data.message, { id: "login-success" });
+      if (data.onBoardingCompleted) {
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 1000);
+      } else {
+        setTimeout(() => {
+          router.push("/onboarding");
+        }, 1000);
+      }
     },
     onError: (error: ErrorResponse) => {
-      // console.log(error)
-      toast.dismiss("login-loading")
-      toast.remove("login-loading")
-      toast.error(error.errors[0].message, { id: "login-error" })
+      toast.dismiss("login-loading");
+      toast.remove("login-loading");
+      toast.error(error.errors[0].message, { id: "login-error" });
     },
-  })
+  });
 
   async function onSubmit(data: LoginFormValues) {
     try {
-      await loginMutation.mutateAsync(data)
+      await loginMutation.mutateAsync(data);
     } catch (error: any) {
-      toast.dismiss("login-loading")
-      console.error("Login failed:", error)
-      toast.error("Invalid email or password", { id: "login-error" })
+      toast.dismiss("login-loading");
+      console.error("Login failed:", error);
+      toast.error("Invalid email or password", { id: "login-error" });
     }
   }
 
@@ -94,7 +110,10 @@ export function LoginForm() {
             <FormItem>
               <div className="flex items-center justify-between">
                 <FormLabel>Password</FormLabel>
-                <Link href="/auth/forgot-password" className="text-sm font-medium text-[#7B68EE]">
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-sm font-medium text-[#7B68EE]"
+                >
                   Forgot password?
                 </Link>
               </div>
@@ -129,7 +148,10 @@ export function LoginForm() {
           render={({ field }) => (
             <FormItem className="flex flex-row items-center space-x-2 space-y-0">
               <FormControl>
-                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
               </FormControl>
               <div className="space-y-1 leading-none">
                 <FormLabel>Remember me</FormLabel>
@@ -139,7 +161,11 @@ export function LoginForm() {
         />
 
         <div>
-          <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={loginMutation.isPending}
+          >
             {loginMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -155,6 +181,5 @@ export function LoginForm() {
         </div>
       </form>
     </Form>
-  )
+  );
 }
-

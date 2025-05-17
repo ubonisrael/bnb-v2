@@ -5,7 +5,6 @@ import api from "@/services/api-service"
 export default async function OnboardingPage() {
   // Ensure the user is authenticated
   // await requireAuth()
-  console.log('onboarding', api.getCsrfToken())
 
   return (
     <div className="min-h-screen bg-white">

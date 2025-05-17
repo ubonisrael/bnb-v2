@@ -80,7 +80,6 @@ export function VisualSettingsStep({
     try {
       // toast.loading('Uploading logo...', { id: 'logo-upload' });
       const storageRef = fRef(storage, `bnb/${Date.now()}/logo`);
-      // console.log(storageRef);
       const uploadTask = uploadBytesResumable(storageRef, file);
       uploadTask.on(
         "state_changed",
@@ -92,7 +91,6 @@ export function VisualSettingsStep({
         () =>
           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
             setPreviewLogo(downloadURL);
-            // console.log(downloadURL);
           })
       );
 

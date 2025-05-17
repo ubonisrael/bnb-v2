@@ -55,15 +55,10 @@ export default function DashboardPage() {
   const { data: analytics } = useQuery({
     queryKey: ["dashboard-analytics"],
     queryFn: () => {
-      console.log("Fetching dashboard analytics");
-      console.log('dashboard', api.getCsrfToken())
-      // console.log(api.getCsrfToken())
-      return api.get<AnalyticsResponse>("/dashboard");
+      return api.get<AnalyticsResponse>("/sp/dashboard");
       // return { data: { summary: { total_earnings: 1000, total_bookings: 50, total_unique_customers: 30 } } }
     },
   });
-
-  // console.log(analytics)
 
   return (
     <div className="space-y-6">

@@ -56,7 +56,6 @@ export function PaymentInitiation() {
 
     // Simulate API call
     setTimeout(() => {
-      console.log(data)
       setIsSubmitting(false)
       setIsSuccess(true)
 

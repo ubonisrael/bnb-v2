@@ -47,11 +47,11 @@ const sidebarItems = [
   //   href: "/dashboard/payments",
   //   icon: CreditCard,
   // },
-  // {
-  //   title: "Templates",
-  //   href: "/dashboard/templates",
-  //   icon: FileText,
-  // },
+  {
+    title: "Templates",
+    href: "/dashboard/templates",
+    icon: FileText,
+  },
   // {
   //   title: "Analytics",
   //   href: "/dashboard/analytics",

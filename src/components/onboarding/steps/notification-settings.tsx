@@ -10,7 +10,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { OnboardingFormData } from "../type"
 import { Ref, useEffect, useImperativeHandle } from "react"
-const notificationSettingsSchema = z.object({
+
+export const notificationSettingsSchema = z.object({
   cancelNoticeHours: z.coerce.number().min(0, { message: "Must be a positive number" }),
   emailSettings: z.object({
     sendBookingConfirmations: z.boolean().default(true),
@@ -23,7 +24,7 @@ const notificationSettingsSchema = z.object({
   }),
 })
 
-type NotificationSettingsData = z.infer<typeof notificationSettingsSchema>
+export type NotificationSettingsData = z.infer<typeof notificationSettingsSchema>
 
 interface NotificationSettingsStepProps {
   data: OnboardingFormData

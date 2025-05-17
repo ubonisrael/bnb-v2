@@ -57,7 +57,6 @@ export function LocationStep({ data, onUpdate, ref }: LocationStepProps) {
   useImperativeHandle(ref, () => ({
     async validate() {
       const isValid = await form.trigger(); // runs validation
-      // console.log("isValid", isValid);
       if (isValid) {
         onUpdate(form.getValues());
       }

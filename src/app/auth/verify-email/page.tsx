@@ -26,12 +26,10 @@ function VerifyEmail() {
     { token: string }
   >({
     mutationFn: (data: { token: string }) => {
-      // console.log(data)
       return api.post<AuthResponse>("/auth/verify-email", data);
     },
     onSuccess: (data: AuthResponse) => {
       api.setCsrfToken(data.csrfToken);
-      // console.log(api.getCsrfToken());
       toast.success(data.message, { id: "verify-email" });
       router.push("/onboarding");
     },

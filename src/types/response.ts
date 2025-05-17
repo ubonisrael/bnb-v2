@@ -178,6 +178,7 @@ export interface AuthResponse {
   message: string;
   data: Data;
   csrfToken: string;
+  onBoardingCompleted: boolean;
 }
 
 export interface Data {
@@ -262,3 +263,18 @@ export interface BookingResponse {
   status: boolean;
   message: string;
 }
+
+export interface NotificationSettingsResponse {
+    status: boolean;
+    message: string;
+    data: {
+      cancellation_policy: number;
+      email_confirmation: boolean;
+      appointment_reminders: boolean
+      reminder_time: number;
+      cancellation_notices: boolean;
+      no_show_notifications: boolean
+      follow_up_emails: boolean;
+      follow_up_delay: number;
+    }
+  }

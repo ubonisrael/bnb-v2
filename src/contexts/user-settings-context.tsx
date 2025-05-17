@@ -31,19 +31,16 @@ export interface UserSettings {
     activeSessions: number;
   };
   notifications: {
-    email: {
-      bookingConfirmations: boolean;
-      bookingReminders: boolean;
-      bookingCancellations: boolean;
-      marketingEmails: boolean;
-      reviewRequests: boolean;
-    };
-    sms: {
-      bookingConfirmations: boolean;
-      bookingReminders: boolean;
-      bookingCancellations: boolean;
-    };
-    reminderTiming: string;
+    cancelNoticeHours: number;
+      emailSettings: {
+        sendBookingConfirmations: boolean;
+        sendReminders: boolean;
+        reminderHours: number;
+        sendCancellationNotices: boolean;
+        sendNoShowNotifications: boolean;
+        sendFollowUpEmails: boolean;
+        followUpDelayHours: number;
+      },
   };
   social: {
     website: string;
@@ -55,7 +52,7 @@ export interface UserSettings {
     tiktok: string;
   };
   categories: ServiceCategory[];
-  services:  Service[];
+  services: Service[];
   bookingSettings: {
     url: string;
     minimum_notice: number;
@@ -111,7 +108,6 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
         // get user data
         // check if csrftoken exists
         const businessData = await api.get("/sp");
-        console.log(businessData);
         if (businessData) {
           setSettings(businessData as UserSettings);
         }
@@ -132,13 +128,21 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       if (settings) {
-        const updatedSettings = {
-          ...settings,
-          [section]: {
-            ...settings[section],
-            ...data,
-          },
-        };
+        let updatedSettings: UserSettings | null = null;
+        if (section === "categories" || section === "services") {
+          updatedSettings = {
+            ...settings,
+            [section]: data,
+          };
+        } else {
+          updatedSettings = {
+            ...settings,
+            [section]: {
+              ...settings[section],
+              ...data,
+            },
+          };
+        }
 
         setSettings(updatedSettings);
       }

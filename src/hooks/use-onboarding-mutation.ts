@@ -10,7 +10,6 @@ export function useOnboardingMutation() {
     return useMutation({
         mutationFn: async (data: OnboardingFormData) => {
             // Transform the form data to match the API payload structure
-            console.log('dashboard', api.getCsrfToken())
             const payload = {
                 name: data.businessInfo.name,
                 email: data.businessInfo.email,
@@ -79,12 +78,10 @@ export function useOnboardingMutation() {
                         }))
                 }))
             };
-            console.log(payload)
 
             return api.post('/onboarding', payload);
         },
         onSuccess: (data) => {
-            console.log(data)
             toast.success('Onboarding completed successfully!');
             router.push('/dashboard');
         },

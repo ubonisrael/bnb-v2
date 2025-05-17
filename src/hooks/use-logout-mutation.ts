@@ -22,7 +22,7 @@ export function useLogoutMutation() {
         },
         onSuccess: () => {
             toast.success('Logged out successfully');
-            router.push('/auth/signin');
+            router.push('/auth/login');
         },
         onError: (error: any) => {
             if (!axios.isCancel(error)) {

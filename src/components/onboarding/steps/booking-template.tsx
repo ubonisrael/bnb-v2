@@ -28,7 +28,7 @@ import Image from "next/image";
 import { Button } from "@/components/templates/default/ui/button";
 import { BookingTemplateData } from "../type";
 
-const bookingTemplateSchema = z.object({
+export const bookingTemplateSchema = z.object({
   templateType: z
     .string()
     .min(1, { message: "Please select a booking template" }),
@@ -81,14 +81,19 @@ export function BookingTemplateStep({
 
   useImperativeHandle(ref, () => ({
     async validate() {
+      const bannerUrlPresent = !!bannerUrl
+      if (!bannerUrlPresent) {
+        toast.error("Please upload a banner image");
+        return false;
+      }
       const isValid = await form.trigger(); // runs validation
       if (isValid) {
         onUpdate({
           ...form.getValues(),
-          bannerImageUrl: bannerUrl ? bannerUrl : ""
+          bannerImageUrl: bannerUrl
         });
       }
-      return isValid;
+      return isValid && bannerUrlPresent;
     },
   }));
 
@@ -101,7 +106,6 @@ export function BookingTemplateStep({
     try {
       // toast.loading('Uploading logo...', { id: 'logo-upload' });
       const storageRef = fRef(storage, `bnb/${Date.now()}/banner-image`);
-      console.log(storageRef);
       const uploadTask = uploadBytesResumable(storageRef, file);
       uploadTask.on(
         "state_changed",
@@ -113,7 +117,6 @@ export function BookingTemplateStep({
         () =>
           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
             setBannerUrl(downloadURL);
-            console.log(downloadURL);
           })
       );
 

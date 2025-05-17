@@ -1,84 +1,110 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { Loader2 } from "lucide-react"
-import { useMutation } from "@tanstack/react-query"
-import toast from "react-hot-toast"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Loader2 } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
-import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
-import { useUserSettings } from "@/contexts/user-settings-context"
-import api from "@/services/api-service"
-import { BusinessDataResponse } from "@/types/response"
-
-const notificationSchema = z.object({
-  email: z.object({
-    bookingConfirmations: z.boolean().default(true),
-    bookingReminders: z.boolean().default(true),
-    bookingCancellations: z.boolean().default(true),
-    marketingEmails: z.boolean().default(false),
-    reviewRequests: z.boolean().default(true),
-  }),
-  sms: z.object({
-    bookingConfirmations: z.boolean().default(true),
-    bookingReminders: z.boolean().default(true),
-    bookingCancellations: z.boolean().default(true),
-  }),
-  reminderTiming: z.string().default("24"),
-})
-
-type NotificationFormValues = z.infer<typeof notificationSchema>
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { useUserSettings } from "@/contexts/user-settings-context";
+import api from "@/services/api-service";
+import {
+  NotificationSettingsData,
+  notificationSettingsSchema,
+} from "../onboarding/steps/notification-settings";
+import { NotificationSettingsResponse } from "@/types/response";
+import { Card, CardContent } from "../ui/card";
 
 export function NotificationPreferences() {
-  const { settings, updateSettings, isLoading: settingsLoading } = useUserSettings()
+  const {
+    settings,
+    updateSettings,
+    isLoading: settingsLoading,
+  } = useUserSettings();
 
-  const form = useForm<NotificationFormValues>({
-    resolver: zodResolver(notificationSchema),
+  const form = useForm<NotificationSettingsData>({
+    resolver: zodResolver(notificationSettingsSchema),
     defaultValues: settings?.notifications,
-  })
+  });
 
   const updateNotificationMutation = useMutation({
-    mutationFn: async (values: NotificationFormValues) => {
+    mutationFn: async (values: NotificationSettingsData) => {
       const controller = new AbortController();
       const signal = controller.signal;
 
       try {
-        const response = await api.patch<BusinessDataResponse>(
-          '/sp/notifications',
+        const response = await api.patch<NotificationSettingsResponse>(
+          "/sp/notifications",
           {
-            email: values.email,
-            sms: values.sms,
-            reminderTiming: values.reminderTiming,
+            cancellation_policy: values.cancelNoticeHours,
+            email_confirmation: values.emailSettings.sendBookingConfirmations,
+            appointment_reminders: values.emailSettings.sendReminders,
+            reminder_time: values.emailSettings.reminderHours,
+            cancellation_notices: values.emailSettings.sendCancellationNotices,
+            no_show_notifications: values.emailSettings.sendNoShowNotifications,
+            follow_up_emails: values.emailSettings.sendFollowUpEmails,
+            follow_up_delay: values.emailSettings.followUpDelayHours,
           },
           { signal }
         );
         return response;
       } catch (error: unknown) {
-        if (error instanceof Error && error.name === 'AbortError') {
-          toast.error('Request was cancelled');
+        if (error instanceof Error && error.name === "AbortError") {
+          toast.error("Request was cancelled");
         }
         throw error;
       }
     },
     onMutate: () => {
-      toast.loading('Saving notification preferences...', { id: 'notification-save' });
+      toast.loading("Saving notification preferences...", {
+        id: "notification-save",
+      });
     },
     onSuccess: (response) => {
-      toast.success('Notification preferences updated successfully', { id: 'notification-save' });
-      updateSettings("notifications", response.data);
+      toast.success("Notification preferences updated successfully", {
+        id: "notification-save",
+      });
+      updateSettings("notifications", {
+        cancelNoticeHours: response.data.cancellation_policy,
+        emailSettings: {
+          sendBookingConfirmations: response.data.email_confirmation,
+          sendReminders: response.data.appointment_reminders,
+          reminderHours: response.data.reminder_time,
+          sendCancellationNotices: response.data.cancellation_notices,
+          sendNoShowNotifications: response.data.no_show_notifications,
+          sendFollowUpEmails: response.data.follow_up_emails,
+          followUpDelayHours: response.data.follow_up_delay,
+        },
+      });
     },
     onError: (error: Error) => {
-      toast.error(error?.message || 'Failed to update notification preferences', { id: 'notification-save' });
+      toast.error(
+        error?.message || "Failed to update notification preferences",
+        { id: "notification-save" }
+      );
     },
   });
 
-  async function onSubmit(values: NotificationFormValues) {
+  async function onSubmit(values: NotificationSettingsData) {
     try {
       await updateNotificationMutation.mutateAsync(values);
     } catch (error) {
@@ -89,126 +115,254 @@ export function NotificationPreferences() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div>
-          <h3 className="text-lg font-medium">Email Notifications</h3>
-          <p className="text-sm text-muted-foreground">Manage the emails you receive from us</p>
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-[#121212]">
+            Notification Settings
+          </h2>
+          <p className="text-sm text-[#6E6E73]">
+            Configure cancellation policies and email notifications
+          </p>
         </div>
 
-        <div className="space-y-4">
-          <FormField
-            control={form.control}
-            name="email.bookingConfirmations"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                <div className="space-y-0.5">
-                  <FormLabel>Booking Confirmations</FormLabel>
-                  <FormDescription>Receive emails when a booking is confirmed</FormDescription>
-                </div>
-                <FormControl>
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+        <Card className="border-[#E0E0E5]">
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              <h3 className="text-md font-medium text-[#121212]">
+                Cancellation Policy
+              </h3>
 
-          <FormField
-            control={form.control}
-            name="email.bookingReminders"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                <div className="space-y-0.5">
-                  <FormLabel>Booking Reminders</FormLabel>
-                  <FormDescription>Receive reminder emails before appointments</FormDescription>
-                </div>
-                <FormControl>
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+              <FormField
+                control={form.control}
+                name="cancelNoticeHours"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cancellation Notice (Hours)</FormLabel>
+                    <Select
+                      onValueChange={(value) =>
+                        field.onChange(Number.parseInt(value))
+                      }
+                      defaultValue={field.value.toString()}
+                      value={field.value.toString()}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select hours" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="0">No notice required</SelectItem>
+                        <SelectItem value="2">2 hours</SelectItem>
+                        <SelectItem value="4">4 hours</SelectItem>
+                        <SelectItem value="12">12 hours</SelectItem>
+                        <SelectItem value="24">24 hours (1 day)</SelectItem>
+                        <SelectItem value="48">48 hours (2 days)</SelectItem>
+                        <SelectItem value="72">72 hours (3 days)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      How much notice clients need to give to cancel without
+                      penalty
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </CardContent>
+        </Card>
 
-          <FormField
-            control={form.control}
-            name="email.bookingCancellations"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                <div className="space-y-0.5">
-                  <FormLabel>Booking Cancellations</FormLabel>
-                  <FormDescription>Receive emails when a booking is cancelled</FormDescription>
-                </div>
-                <FormControl>
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+        <Card className="border-[#E0E0E5]">
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              <h3 className="text-md font-medium text-[#121212]">
+                Email Notifications
+              </h3>
 
-          <FormField
-            control={form.control}
-            name="email.marketingEmails"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                <div className="space-y-0.5">
-                  <FormLabel>Marketing Emails</FormLabel>
-                  <FormDescription>Receive marketing emails and promotions</FormDescription>
-                </div>
-                <FormControl>
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+              <FormField
+                control={form.control}
+                name="emailSettings.sendBookingConfirmations"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <FormLabel>Booking Confirmations</FormLabel>
+                      <FormDescription>
+                        Send confirmation emails when clients book appointments
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-          <FormField
-            control={form.control}
-            name="email.reviewRequests"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                <div className="space-y-0.5">
-                  <FormLabel>Review Requests</FormLabel>
-                  <FormDescription>Receive emails asking for reviews after appointments</FormDescription>
-                </div>
-                <FormControl>
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        </div>
+              <FormField
+                control={form.control}
+                name="emailSettings.sendReminders"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <FormLabel>Appointment Reminders</FormLabel>
+                      <FormDescription>
+                        Send reminder emails before appointments
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-        <Separator />
+              {form.watch("emailSettings.sendReminders") && (
+                <FormField
+                  control={form.control}
+                  name="emailSettings.reminderHours"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Reminder Time (Hours Before Appointment)
+                      </FormLabel>
+                      <Select
+                        onValueChange={(value) =>
+                          field.onChange(Number.parseInt(value))
+                        }
+                        defaultValue={field.value.toString()}
+                        value={field.value.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select hours" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="1">1 hour</SelectItem>
+                          <SelectItem value="2">2 hours</SelectItem>
+                          <SelectItem value="4">4 hours</SelectItem>
+                          <SelectItem value="12">12 hours</SelectItem>
+                          <SelectItem value="24">24 hours (1 day)</SelectItem>
+                          <SelectItem value="48">48 hours (2 days)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        How many hours before the appointment to send reminders
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
-        <div>
-          <h3 className="text-lg font-medium">Reminder Settings</h3>
-          <p className="text-sm text-muted-foreground">Configure when reminders are sent</p>
-        </div>
+              <FormField
+                control={form.control}
+                name="emailSettings.sendCancellationNotices"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <FormLabel>Cancellation Notices</FormLabel>
+                      <FormDescription>
+                        Send emails when appointments are cancelled
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-        <FormField
-          control={form.control}
-          name="reminderTiming"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Reminder Time</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select when to send reminders" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="1">1 hour before</SelectItem>
-                  <SelectItem value="2">2 hours before</SelectItem>
-                  <SelectItem value="4">4 hours before</SelectItem>
-                  <SelectItem value="12">12 hours before</SelectItem>
-                  <SelectItem value="24">24 hours before</SelectItem>
-                  <SelectItem value="48">48 hours before</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormDescription>How long before the appointment to send reminders</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+              <FormField
+                control={form.control}
+                name="emailSettings.sendNoShowNotifications"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <FormLabel>No-Show Notifications</FormLabel>
+                      <FormDescription>
+                        Send emails when clients don't show up for appointments
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="emailSettings.sendFollowUpEmails"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <FormLabel>Follow-Up Emails</FormLabel>
+                      <FormDescription>
+                        Send follow-up emails after appointments
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              {form.watch("emailSettings.sendFollowUpEmails") && (
+                <FormField
+                  control={form.control}
+                  name="emailSettings.followUpDelayHours"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Follow-Up Delay (Hours After Appointment)
+                      </FormLabel>
+                      <Select
+                        onValueChange={(value) =>
+                          field.onChange(Number.parseInt(value))
+                        }
+                        defaultValue={field.value?.toString() || "24"}
+                        value={field.value?.toString() || "24"}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select hours" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="4">4 hours</SelectItem>
+                          <SelectItem value="12">12 hours</SelectItem>
+                          <SelectItem value="24">24 hours (1 day)</SelectItem>
+                          <SelectItem value="48">48 hours (2 days)</SelectItem>
+                          <SelectItem value="72">72 hours (3 days)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        How many hours after the appointment to send follow-up
+                        emails
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="flex justify-end">
           <Button
@@ -227,6 +381,5 @@ export function NotificationPreferences() {
         </div>
       </form>
     </Form>
-  )
+  );
 }
-
