@@ -1,51 +1,32 @@
 "use client";
 
-import { useApp } from "@/contexts/AppContext";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import Link from "next/link";
 import ServiceCardGrid from "@/components/templates/default/ServiceCardGrid";
 import Cart from "@/components/templates/default/Cart";
+import { ServicesTabPropsInterface } from "../types";
+import { Button } from "@/components/templates/default/ui/button";
+import { Home } from "lucide-react";
+import { useApp } from "@/contexts/AppContext";
+import { useEffect } from "react";
 
-export default function BusinessServices({ url }: { url: string }) {
-  const {
-    error,
-    categories, services,
-    bUrl,
-    updateBusinessUrl,
-  } = useApp();
-  const router = useRouter();
+export function ServicesTab({
+  name,
+  logo,
+  categories,
+  services,
+  gotoNextTab,
+  gotoPrevTab,
+}: ServicesTabPropsInterface) {
+  const { resetBooking } = useApp();
 
   useEffect(() => {
-    updateBusinessUrl(url);
-    // resetBooking()
-  }, []);
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center p-8">
-          <h1 className="text-4xl font-bold text-red-600 mb-4">Oops!</h1>
-          <p className="text-gray-600 mb-4">
-            We couldn't load the business details.
-          </p>
-          <p className="text-gray-500 mb-4">
-            Please try again later or contact support.
-          </p>
-          <Link
-            href="/"
-            className="text-blue-500 hover:text-blue-700 underline"
-          >
-            Return to Home
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
+    resetBooking();
+  }, [])
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <Button onClick={gotoPrevTab} className="flex items-center justify-center">
+          <Home />
+        </Button>
         <div className="lg:text-center mb-10">
           <h2 className="text-base text-primary-600 dark:text-primary-400 font-semibold tracking-wide uppercase">
             Our Services
@@ -66,7 +47,7 @@ export default function BusinessServices({ url }: { url: string }) {
 
           {/* Right Column: Cart (2/5 width) */}
           <div className="w-full lg:w-2/5">
-            <Cart nxtStep="booking" />
+            <Cart name={name} logo={logo} gotoBooking={gotoNextTab} />
           </div>
         </div>
       </div>

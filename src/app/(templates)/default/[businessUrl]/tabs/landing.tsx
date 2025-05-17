@@ -1,62 +1,11 @@
 "use client";
 
-import { useApp } from "@/contexts/AppContext";
 import { Button } from "@/components/templates/default/ui/button";
 import Map from "@/components/templates/default/Map";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import Link from "next/link";
+import { LandingTabPropsInterface } from "../types";
 
-export default function BusinessLanding({ url }: { url: string }) {
-  const {
-    error,
-    name,
-    email,
-    description,
-    state,
-    zip,
-    address,
-    city,
-    hours,
-    phone,
-    latitude,
-    longitude,
-    aboutSubHeader,
-    banner,
-    bannerHeader,
-    bannerMessage,
-    bUrl,
-    categories,
-    updateBusinessUrl,
-  } = useApp();
-  const router = useRouter();
-
-  useEffect(() => {
-    updateBusinessUrl(url);
-    // resetBooking()
-  }, []);
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center p-8">
-          <h1 className="text-4xl font-bold text-red-600 mb-4">Oops!</h1>
-          <p className="text-gray-600 mb-4">
-            We couldn't load the business details.
-          </p>
-          <p className="text-gray-500 mb-4">
-            Please try again later or contact support.
-          </p>
-          <Link
-            href="/"
-            className="text-blue-500 hover:text-blue-700 underline"
-          >
-            Return to Home
-          </Link>
-        </div>
-      </div>
-    );
-  }
+export function LandingTab(props: LandingTabPropsInterface) {
+  const { gotoBooking } = props;
 
   return (
     <div className="w-full min-h-screen">
@@ -67,17 +16,15 @@ export default function BusinessLanding({ url }: { url: string }) {
             <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
               <div className="sm:text-center lg:text-left">
                 <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white sm:text-5xl md:text-6xl">
-                  {bannerHeader}
+                  {props.bannerHeader}
                 </h1>
                 <p className="mt-3 text-base text-gray-500 dark:text-gray-300 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
-                  {bannerMessage}
+                  {props.bannerMessage}
                 </p>
                 <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
                   <div className="rounded-md shadow">
                     <Button
-                      onClick={() => {
-                        router.push(`/default/${bUrl}/services`);
-                      }}
+                      onClick={() => gotoBooking(1)}
                       className="w-full px-8 py-3 md:py-4 md:text-lg md:px-10"
                     >
                       Book Now
@@ -85,9 +32,7 @@ export default function BusinessLanding({ url }: { url: string }) {
                   </div>
                   <div className="mt-3 sm:mt-0 sm:ml-3">
                     <Button
-                      onClick={() => {
-                        router.push(`/default/${bUrl}/services`);
-                      }}
+                      onClick={() => gotoBooking(1)}
                       variant="outline"
                       className="w-full px-8 py-3 md:py-4 md:text-lg md:px-10"
                     >
@@ -103,8 +48,8 @@ export default function BusinessLanding({ url }: { url: string }) {
         <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
           <img
             className="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full"
-            src={banner}
-            alt={`${name} banner image`}
+            src={props.banner}
+            alt={`${props.name} banner image`}
           />
         </div>
       </div>
@@ -117,10 +62,10 @@ export default function BusinessLanding({ url }: { url: string }) {
               About Us
             </h2>
             <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
-              {aboutSubHeader}
+              {props.aboutSubHeader}
             </p>
             <p className="mt-4 max-w-2xl text-xl text-gray-500 dark:text-gray-300 lg:mx-auto">
-              {description}
+              {props.description}
             </p>
           </div>
 
@@ -155,7 +100,7 @@ export default function BusinessLanding({ url }: { url: string }) {
                   </p>
                 </dt>
                 <dd className="mt-2 ml-16 text-base text-gray-500 dark:text-gray-300">
-                  {address}, {city}, {state} {zip}
+                  {props.address}, {props.city}, {props.state} {props.zip}
                 </dd>
               </div>
 
@@ -182,9 +127,9 @@ export default function BusinessLanding({ url }: { url: string }) {
                   </p>
                 </dt>
                 <dd className="mt-2 ml-16 text-base text-gray-500 dark:text-gray-300">
-                  Phone: {phone}
+                  Phone: {props.phone}
                   <br />
-                  Email: {email}
+                  Email: {props.email}
                 </dd>
               </div>
 
@@ -211,19 +156,19 @@ export default function BusinessLanding({ url }: { url: string }) {
                   </p>
                 </dt>
                 <dd className="mt-2 ml-16 text-base text-gray-500 dark:text-gray-300">
-                  Monday: {hours.monday}
+                  Monday: {props.hours.monday}
                   <br />
-                  Tuesday: {hours.tuesday}
+                  Tuesday: {props.hours.tuesday}
                   <br />
-                  Wednesday: {hours.wednesday}
+                  Wednesday: {props.hours.wednesday}
                   <br />
-                  Thursday: {hours.thursday}
+                  Thursday: {props.hours.thursday}
                   <br />
-                  Friday: {hours.friday}
+                  Friday: {props.hours.friday}
                   <br />
-                  Saturday: {hours.saturday}
+                  Saturday: {props.hours.saturday}
                   <br />
-                  Sunday: {hours.sunday}
+                  Sunday: {props.hours.sunday}
                 </dd>
               </div>
 
@@ -250,7 +195,7 @@ export default function BusinessLanding({ url }: { url: string }) {
                   </p>
                 </dt>
                 <dd className="mt-2 ml-16 text-base text-gray-500 dark:text-gray-300">
-                  {categories.map(cat => cat.name).join(", ")}
+                  {props.categories.map(cat => cat.name).join(", ")}
                 </dd>
               </div>
             </dl>
@@ -259,7 +204,7 @@ export default function BusinessLanding({ url }: { url: string }) {
       </div>
 
       {/* Location Map */}
-      {latitude && longitude && (
+      {props.latitude && props.longitude && (
         <div className="py-12 bg-gray-50 dark:bg-gray-900">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="lg:text-center mb-10">
@@ -272,13 +217,13 @@ export default function BusinessLanding({ url }: { url: string }) {
             </div>
             <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
               <Map
-                zip={zip}
-                latitude={latitude}
-                longitude={longitude}
-                name={name}
-                address={address}
-                state={state}
-                city={city}
+                zip={props.zip}
+                latitude={props.latitude}
+                longitude={props.longitude}
+                name={props.name}
+                address={props.address}
+                state={props.state}
+                city={props.city}
               />
             </div>
           </div>

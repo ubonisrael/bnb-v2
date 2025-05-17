@@ -20,6 +20,8 @@ interface TimeSlotsProps {
   selectedTime: number | null;
   onSelectTime: (time: number) => void;
   totalDuration: number;
+  bUrl: string;
+  utcOffset: number;
 }
 
 const TimeSlots: React.FC<TimeSlotsProps> = ({
@@ -27,12 +29,12 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
   selectedTime,
   onSelectTime,
   totalDuration,
+  utcOffset,
+  bUrl,
 }) => {
-  const { bUrl, selectedServices, utcOffset } = useApp();
+  const { selectedServices } = useApp();
   const timezone = dayjs.tz.guess();
   const clientOffset = dayjs().tz(timezone).utcOffset();
-  console.log("Client Offset:", clientOffset);
-  console.log("SP Offset:", utcOffset);
   const urlString = `/sp/${bUrl}/available-time-slots?date=${selectedDate}&clientTz=${timezone}${selectedServices
     .map((s) => `&service_ids[]=${s.id}`)
     .join("")}&duration=${totalDuration}`;

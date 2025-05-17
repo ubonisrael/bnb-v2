@@ -36,7 +36,7 @@ const CopyTextComponent = ({ text }: { text: string }) => {
 
   return (
     <div className="flex items-center justify-between p-4 border rounded shadow-md">
-      <p className="text-sm">Booking Link: <span className="rounded px-4 py-1">{`${process.env.NEXT_PUBLIC_WEV_URL || 'localhost:3000'}/default/${text}`}</span></p>
+      <p className="text-sm">Booking Link: <span className="rounded px-4 py-1">{`${process.env.NEXT_PUBLIC_WEB_URL || 'localhost:3000'}/default/${text}`}</span></p>
       <button 
         onClick={handleCopy} 
         className="bg-blue-500 text-sm text-white py-1 px-2 rounded hover:bg-blue-700"

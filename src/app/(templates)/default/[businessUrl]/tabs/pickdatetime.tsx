@@ -3,14 +3,36 @@
 import Calendar from "@/components/templates/default/Calendar";
 import Cart from "@/components/templates/default/Cart";
 import TimeSlots from "@/components/templates/default/TimeSlots";
+import { Button } from "@/components/templates/default/ui/button";
 import { useApp } from "@/contexts/AppContext";
 import { minutesToTimeString } from "@/utils/time";
+import { ArrowLeft, Home } from "lucide-react";
 import React from "react";
 
-const DateTimePicker: React.FC = () => {
+interface DateTimePickerTabProps {
+  bUrl: string;
+  utcOffset: number;
+  name: string;
+  logo: string;
+  minNotice: number;
+  maxNotice: number;
+  gotoPrevTab: () => void;
+  showBookingForm: () => void;
+  gotoHome: () => void;
+}
+
+export const DateTimePickerTab = ({
+  utcOffset,
+  bUrl,
+  name,
+  logo,
+  minNotice,
+  maxNotice,
+  showBookingForm,
+  gotoPrevTab,
+  gotoHome,
+}: DateTimePickerTabProps) => {
   const {
-    maxNotice,
-    minNotice,
     selectedDate,
     setSelectedDate,
     selectedTime,
@@ -21,6 +43,20 @@ const DateTimePicker: React.FC = () => {
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="flex items-center gap-4">
+          <Button
+            onClick={gotoHome}
+            className="flex items-center justify-center"
+          >
+            <Home />
+          </Button>
+          <Button
+            onClick={gotoPrevTab}
+            className="flex items-center justify-center"
+          >
+            <ArrowLeft />
+          </Button>
+        </div>
         <div className="lg:text-center mb-10">
           <h2 className="text-base text-primary-600 dark:text-primary-400 font-semibold tracking-wide uppercase">
             Choose Date & Time
@@ -44,6 +80,8 @@ const DateTimePicker: React.FC = () => {
             />
 
             <TimeSlots
+              bUrl={bUrl}
+              utcOffset={utcOffset}
               selectedDate={selectedDate}
               selectedTime={selectedTime}
               onSelectTime={setSelectedTime}
@@ -57,9 +95,11 @@ const DateTimePicker: React.FC = () => {
               {/* Cart Component */}
               <div>
                 <Cart
+                  name={name}
+                  logo={logo}
+                  gotoBooking={showBookingForm}
                   showButtons={true}
                   continueButtonText="Confirm Appointment"
-                  nxtStep="confirmation"
                   disabled={!selectedDate || !selectedTime}
                 />
               </div>
@@ -162,5 +202,3 @@ const DateTimePicker: React.FC = () => {
     </div>
   );
 };
-
-export default DateTimePicker;

@@ -9,36 +9,29 @@ import BookingForm from "./BookingForm";
 import AvatarImage from "./AvatarImage";
 
 interface CartProps {
-  nxtStep: string;
   showButtons?: boolean;
   continueButtonText?: string;
   onContinue?: () => void;
   disabled?: boolean;
+  name: string;
+  logo: string;
+  gotoBooking: () => void;
 }
 
 const Cart: React.FC<CartProps> = ({
-  nxtStep,
   showButtons = true,
   continueButtonText = "Continue to Booking",
-  onContinue,
   disabled = false,
+  name,
+  logo,
+  gotoBooking
 }) => {
   const {
-    name,
-    logo,
-    bUrl,
     selectedServices,
     removeService,
     getTotalDuration,
     getTotalPrice,
-    selectedDate,
-    selectedTime
   } = useApp();
-  const router = useRouter();
-
-  const handleContinue = () => {
-    router.push(`/default/${bUrl}/${nxtStep}`);
-  };
 
   return (
     <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 h-auto">
@@ -141,22 +134,9 @@ const Cart: React.FC<CartProps> = ({
           </span>
         </div>
       </div>
-
-      {showButtons && nxtStep === "confirmation" && selectedDate && selectedTime && (
-        <BookingForm
-          bUrl={bUrl}
-          nxtStep={nxtStep}
-          fee={getTotalPrice()}
-          total_amount={getTotalPrice()}
-          event_date={selectedDate}
-          event_duration={getTotalDuration()}
-          event_time={selectedTime}
-          service_ids={selectedServices.map((service) => service.id)}
-        />
-      )}
-      {showButtons && nxtStep !== "confirmation" && (
+      {showButtons && (
         <Button
-          onClick={handleContinue}
+          onClick={gotoBooking}
           disabled={selectedServices.length === 0 || disabled}
           className="w-full py-3 px-4"
           variant={

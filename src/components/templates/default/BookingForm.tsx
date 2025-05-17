@@ -1,3 +1,5 @@
+"use client"
+
 import {
   Dialog,
   DialogContent,
@@ -8,7 +10,6 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import { Button } from "./ui/button";
-import { Plus } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -28,20 +29,8 @@ import {
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
-import toast from "react-hot-toast";
-import api from "@/services/api-service";
-import { useMutation } from "@tanstack/react-query";
-import { BookingResponse, ErrorResponse } from "@/types/response";
-import { useRouter } from "next/navigation";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
 
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
-const bookingSchema = z.object({
+export const bookingSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
   gender: z.enum(["Male", "Female", "Prefer not to say"], {
@@ -52,42 +41,19 @@ const bookingSchema = z.object({
   }),
 });
 
-interface BookingFormValues {
-  name: string;
-  email: string;
-  fee: number;
-  total_amount: number;
-  gender: string;
-  age_category: string;
-  event_date: string;
-  event_time: number;
-  event_duration: number;
-  service_ids: string[];
-  client_tz: string;
-}
+export type BookingType = z.infer<typeof bookingSchema>
 
 interface BookingFormProps {
-  bUrl: string;
-  nxtStep: string;
-  fee: number;
-  total_amount: number;
-  event_date: string;
-  event_time: number;
-  event_duration: number;
-  service_ids: string[];
+  showServiceModal: boolean;
+  setShowServiceModal: (value: boolean) => void;
+  onSubmit: (data: BookingType) => void;
 }
 
 const BookingForm = ({
-  bUrl,
-  nxtStep,
-  service_ids,
-  event_date,
-  event_time,
-  event_duration,
-  total_amount,
-  fee,
+  showServiceModal,
+  setShowServiceModal,
+  onSubmit
 }: BookingFormProps) => {
-  const [showServiceModal, setShowServiceModal] = useState(false);
   const form = useForm<z.infer<typeof bookingSchema>>({
     resolver: zodResolver(bookingSchema),
     defaultValues: {
@@ -96,49 +62,7 @@ const BookingForm = ({
       gender: "Male",
       age_category: "Adult",
     },
-  });
-  const router = useRouter();
-  const bookingMutation = useMutation<
-    BookingResponse,
-    ErrorResponse,
-    BookingFormValues
-  >({
-    mutationFn: (data: BookingFormValues) => {
-      toast.loading("Scheduling appointment...", { id: "booking" });
-      return api.post<BookingResponse>(`/sp/${bUrl}/booking`, data);
-    },
-    onSuccess: async (data: BookingResponse) => {
-      toast.dismiss("booking");
-      toast.success(data.message);
-      router.push(`/default/${bUrl}/${nxtStep}`);
-    },
-    onError: (error: ErrorResponse) => {
-      console.log(error);
-      toast.dismiss("booking");
-      toast.remove("booking");
-      // toast.error(error.message, { id: "booking-error" });
-    },
-  });
-
-  async function onSubmit(data: z.infer<typeof bookingSchema>) {
-    const payload = {
-      ...data,
-      fee,
-      total_amount,
-      event_date,
-      event_time,
-      event_duration,
-      service_ids,
-      client_tz: dayjs.tz.guess(),
-    };
-    console.log(payload);
-    try {
-      bookingMutation.mutateAsync(payload);
-    } catch (error: any) {
-      toast.dismiss("booking");
-      toast.error("Error creating appointment", { id: "booking-error" });
-    }
-  }
+  }); 
 
   return (
     <Dialog open={showServiceModal} onOpenChange={setShowServiceModal}>
