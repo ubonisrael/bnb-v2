@@ -203,50 +203,50 @@ export interface ErrorResponse {
 }
 
 export interface LandingTemplate {
-    type: string;
+  type: string;
+  name: string;
+  bannerHeader: string;
+  bannerMessage: string;
+  aboutSubHeader: string;
+  bUrl: string;
+  banner: string;
+  logo: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  zip: string;
+  minNotice: number;
+  maxNotice: number;
+  description: string;
+  hours: {
+    monday: string;
+    tuesday: string;
+    wednesday: string;
+    thursday: string;
+    friday: string;
+    saturday: string;
+    sunday: string;
+  };
+  categories: {
+    id: string;
     name: string;
-    bannerHeader: string;
-    bannerMessage: string;
-    aboutSubHeader: string;
-    bUrl: string;
-    banner: string;
-    logo: string;
-    email: string;
-    phone: string;
-    address: string;
-    city: string;
-    state: string;
-    zip: string;
-    minNotice: number;
-    maxNotice: number;
+  }[];
+  services: {
+    id: string;
+    CategoryId: string;
+    categoryId: string;
+    name: string;
     description: string;
-    hours: {
-      monday: string;
-      tuesday: string;
-      wednesday: string;
-      thursday: string;
-      friday: string;
-      saturday: string;
-      sunday: string;
-    };
-    categories: {
-      id: string;
-      name: string;
-    }[];
-    services: {
-      id: string;
-      CategoryId: string;
-      categoryId: string;
-      name: string;
-      description: string;
-      price: number;
-      duration: number;
-      availableDays: string[];
-    }[];
-    utcOffset: number;
-    latitude?: number;
-    longitude?: number;
-  }
+    price: number;
+    duration: number;
+    availableDays: string[];
+  }[];
+  utcOffset: number;
+  latitude?: number;
+  longitude?: number;
+}
 
 export interface TemplateResponse {
   status: boolean;
@@ -265,16 +265,29 @@ export interface BookingResponse {
 }
 
 export interface NotificationSettingsResponse {
-    status: boolean;
-    message: string;
-    data: {
-      cancellation_policy: number;
-      email_confirmation: boolean;
-      appointment_reminders: boolean
-      reminder_time: number;
-      cancellation_notices: boolean;
-      no_show_notifications: boolean
-      follow_up_emails: boolean;
-      follow_up_delay: number;
-    }
-  }
+  status: boolean;
+  message: string;
+  data: {
+    cancellation_policy: number;
+    email_confirmation: boolean;
+    appointment_reminders: boolean;
+    reminder_time: number;
+    cancellation_notices: boolean;
+    no_show_notifications: boolean;
+    follow_up_emails: boolean;
+    follow_up_delay: number;
+  };
+}
+
+export interface TemplateDataResponse {
+  status: boolean;
+  message: string;
+  data: {
+    templateType: string;
+    bannerHeader: string;
+    bannerMessage: string;
+    aboutSubHeader: string;
+    description: string;
+    bannerUrl: string;
+  };
+}

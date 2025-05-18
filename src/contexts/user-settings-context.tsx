@@ -81,6 +81,14 @@ export interface UserSettings {
     saturday_opening: number;
     saturday_closing: number;
   };
+  template: {
+    templateType: string;
+    bannerHeader: string;
+    bannerMessage: string;
+    aboutSubHeader: string;
+    description: string;
+    bannerUrl: string;
+  }
 }
 
 // Create the context
@@ -115,6 +123,9 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
         // check if error is a 401 error
         toast.error(error as string);
         console.error("Failed to load settings:", error);
+        // if (settings === null) {
+          // window.location.href = "/auth/login"
+        // }
       } finally {
         setIsLoading(false);
       }
