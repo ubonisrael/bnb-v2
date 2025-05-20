@@ -8,6 +8,8 @@ import {
   Users,
   Plus,
   ArrowUpRight,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 import {
   Card,
@@ -28,31 +30,39 @@ const CopyTextComponent = ({ text }: { text: string }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_WEB_URL || 'localhost:3000'}/default/${text}`).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000); // Reset after 2 seconds
-    });
+    navigator.clipboard
+      .writeText(
+        `${process.env.NEXT_PUBLIC_WEB_URL || "localhost:3000"}/default/${text}`
+      )
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000); // Reset after 2 seconds
+      });
   };
 
   return (
     <div className="flex items-center justify-between p-4 border rounded shadow-md">
-      <p className="text-sm">Booking Link: <span className="rounded px-4 py-1">{`${process.env.NEXT_PUBLIC_WEB_URL || 'localhost:3000'}/default/${text}`}</span></p>
-      <button 
-        onClick={handleCopy} 
+      <p className="text-sm">
+        Booking Link:{" "}
+        <span className="rounded px-4 py-1">{`${
+          process.env.NEXT_PUBLIC_WEB_URL || "localhost:3000"
+        }/default/${text}`}</span>
+      </p>
+      <button
+        onClick={handleCopy}
         className="bg-blue-500 text-sm text-white py-1 px-2 rounded hover:bg-blue-700"
       >
-        {copied ? 'Copied!' : 'Copy'}
+        {copied ? "Copied!" : "Copy"}
       </button>
     </div>
   );
 };
 
-
 export default function DashboardPage() {
   const { settings } = useUserSettings();
   const [appointmentDialogOpen, setAppointmentDialogOpen] = useState(false);
 
-  const { data: analytics } = useQuery({
+  const { data: analytics, isLoading } = useQuery({
     queryKey: ["dashboard-analytics"],
     queryFn: () => {
       return api.get<AnalyticsResponse>("/sp/dashboard");
@@ -65,133 +75,189 @@ export default function DashboardPage() {
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-3xl font-bold text-[#121212]">Dashboard</h1>
-          <p className="text-[#6E6E73]">
-            Welcome back to your beauty business dashboard.
-          </p>
+          <p className="text-[#6E6E73]">Welcome back to your dashboard.</p>
         </div>
-        {/* <Button
-          className="bg-[#7B68EE] text-white hover:bg-[#7B68EE]/90"
-          onClick={() => setAppointmentDialogOpen(true)}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          New Appointment
-        </Button> */}
       </div>
-      
+
       <CopyTextComponent text={settings?.bookingSettings.url || "bookingurl"} />
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {isLoading ? (
+          // Loading skeletons
+          <>
+        {[...Array(4)].map((_, i) => (
+          <Card key={i} className="border-0 shadow-card">
+            <CardHeader className="pb-2">
+          <div className="h-4 w-24 animate-pulse rounded bg-gray-200" />
+          <div className="mt-2 h-8 w-20 animate-pulse rounded bg-gray-200" />
+            </CardHeader>
+            <CardContent>
+          <div className="mt-1 flex items-center">
+            <div className="h-4 w-16 animate-pulse rounded bg-gray-200" />
+            <div className="ml-1 h-4 w-24 animate-pulse rounded bg-gray-200" />
+          </div>
+            </CardContent>
+            <CardFooter className="border-t border-[#E0E0E5] pt-4">
+          <div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
+            </CardFooter>
+          </Card>
+        ))}
+          </>
+        ) : (
+          <>
         <Card className="border-0 shadow-card">
           <CardHeader className="pb-2">
-        <CardDescription className="text-[#6E6E73]">
+            <CardDescription className="text-[#6E6E73]">
           Total Revenue
-        </CardDescription>
-        <CardTitle className="text-3xl font-bold text-[#121212]">
-          ${analytics?.totalRevenue?.totalRevenue}
-        </CardTitle>
+            </CardDescription>
+            <CardTitle className="text-3xl font-bold text-[#121212]">
+          ${analytics?.revenue?.totalRevenue}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-        <div className={`text-sm font-medium ${
-          analytics?.totalRevenue?.percentageChange > 0 
-            ? 'text-[#4CD964]' 
-            : analytics?.totalRevenue?.percentageChange < 0 
-          ? 'text-red-500' 
-          : 'text-[#121212]'
-        }`}>
-          {analytics?.totalRevenue?.percentageChange > 0 ? '+' : ''}{analytics?.totalRevenue?.percentageChange}% from last month
-        </div>
+            <div className="mt-1 flex items-center">
+          <div
+            className={`text-sm font-medium ${
+              analytics?.revenue.revenueChange >= 0
+            ? "text-[#4CD964]"
+            : "text-[#FF6B6B]"
+            }`}
+          >
+            {analytics?.revenue.revenueChange >= 0 ? (
+              <TrendingUp className="mr-1 inline-block h-4 w-4" />
+            ) : (
+              <TrendingDown className="mr-1 inline-block h-4 w-4" />
+            )}
+            {Math.abs(analytics?.revenue.revenueChange)}%
+          </div>
+          <div className="text-sm text-muted-foreground ml-1">
+            from last month
+          </div>
+            </div>
           </CardContent>
           <CardFooter className="border-t border-[#E0E0E5] pt-4">
-        <div className="flex items-center text-sm text-[#6E6E73]">
+            <div className="flex items-center text-sm text-[#6E6E73]">
           <DollarSign className="mr-1 h-4 w-4" />
           Financial overview
-        </div>
+            </div>
           </CardFooter>
         </Card>
 
         <Card className="border-0 shadow-card">
           <CardHeader className="pb-2">
-        <CardDescription className="text-[#6E6E73]">
+            <CardDescription className="text-[#6E6E73]">
           Total Appointments
-        </CardDescription>
-        <CardTitle className="text-3xl font-bold text-[#121212]">
-          {analytics?.totalAppointments?.totalApps}
-        </CardTitle>
+            </CardDescription>
+            <CardTitle className="text-3xl font-bold text-[#121212]">
+          {analytics?.bookings?.totalBookings}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-        <div className={`text-sm font-medium ${
-          analytics?.totalAppointments?.percentageChange > 0 
-            ? 'text-[#4CD964]' 
-            : analytics?.totalAppointments?.percentageChange < 0 
-          ? 'text-red-500' 
-          : 'text-[#121212]'
-        }`}>
-          {analytics?.totalAppointments?.percentageChange > 0 ? '+' : ''}{analytics?.totalAppointments?.percentageChange}% from last month
-        </div>
+            <div className="mt-1 flex items-center">
+          <div
+            className={`text-sm font-medium ${
+              analytics?.bookings?.bookingChange >= 0
+            ? "text-[#4CD964]"
+            : "text-[#FF6B6B]"
+            }`}
+          >
+            {analytics?.bookings?.bookingChange >= 0 ? (
+              <TrendingUp className="mr-1 inline-block h-4 w-4" />
+            ) : (
+              <TrendingDown className="mr-1 inline-block h-4 w-4" />
+            )}
+            {Math.abs(analytics?.bookings?.bookingChange)}%
+          </div>
+          <div className="text-sm text-muted-foreground ml-1">
+            from last month
+          </div>
+            </div>
           </CardContent>
           <CardFooter className="border-t border-[#E0E0E5] pt-4">
-        <div className="flex items-center text-sm text-[#6E6E73]">
+            <div className="flex items-center text-sm text-[#6E6E73]">
           <CalendarDays className="mr-1 h-4 w-4" />
           Appointment details
-        </div>
+            </div>
           </CardFooter>
         </Card>
 
         <Card className="border-0 shadow-card">
           <CardHeader className="pb-2">
-        <CardDescription className="text-[#6E6E73]">
+            <CardDescription className="text-[#6E6E73]">
           Total Clients
-        </CardDescription>
-        <CardTitle className="text-3xl font-bold text-[#121212]">
-          {analytics?.totalClients?.totalClients}
-        </CardTitle>
+            </CardDescription>
+            <CardTitle className="text-3xl font-bold text-[#121212]">
+          {analytics?.clients?.totalClients}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-        <div className={`text-sm font-medium ${
-          analytics?.totalClients?.percentageChange > 0 
-            ? 'text-[#4CD964]' 
-            : analytics?.totalClients?.percentageChange < 0 
-          ? 'text-red-500' 
-          : 'text-[#121212]'
-        }`}>
-          {analytics?.totalClients?.percentageChange > 0 ? '+' : ''}{analytics?.totalClients?.percentageChange}% from last month
-        </div>
+            <div className="mt-1 flex items-center">
+          <div
+            className={`text-sm font-medium ${
+              analytics?.clients?.clientChange >= 0
+            ? "text-[#4CD964]"
+            : "text-[#FF6B6B]"
+            }`}
+          >
+            {analytics?.clients?.clientChange >= 0 ? (
+              <TrendingUp className="mr-1 inline-block h-4 w-4" />
+            ) : (
+              <TrendingDown className="mr-1 inline-block h-4 w-4" />
+            )}
+            {Math.abs(analytics?.clients?.clientChange)}%
+          </div>
+          <div className="text-sm text-muted-foreground ml-1">
+            from last month
+          </div>
+            </div>
           </CardContent>
           <CardFooter className="border-t border-[#E0E0E5] pt-4">
-        <div className="flex items-center text-sm text-[#6E6E73]">
-          <Users className="mr-1 h-4 w-4" />
-          Client details
-        </div>
+            <div className="flex items-center text-sm text-[#6E6E73]">
+              <Users className="mr-1 h-4 w-4" />
+              Client details
+            </div>
           </CardFooter>
         </Card>
 
         <Card className="border-0 shadow-card">
           <CardHeader className="pb-2">
-        <CardDescription className="text-[#6E6E73]">
+            <CardDescription className="text-[#6E6E73]">
           Average Service Time
-        </CardDescription>
-        <CardTitle className="text-3xl font-bold text-[#121212]">
-          {analytics?.avgServiceTime?.avg} min
-        </CardTitle>
+            </CardDescription>
+            <CardTitle className="text-3xl font-bold text-[#121212]">
+          {analytics?.service?.averageServiceTime} min
+            </CardTitle>
           </CardHeader>
           <CardContent>
-        <div className={`text-sm font-medium ${
-          analytics?.avgServiceTime?.percentageChange > 0 
-            ? 'text-[#4CD964]' 
-            : analytics?.avgServiceTime?.percentageChange < 0 
-          ? 'text-red-500' 
-          : 'text-[#121212]'
-        }`}>
-          {analytics?.avgServiceTime?.percentageChange > 0 ? '+' : ''}{analytics?.avgServiceTime?.percentageChange}% from last month
-        </div>
+            <div className="mt-1 flex items-center">
+          <div
+            className={`text-sm font-medium ${
+              analytics?.service?.serviceChange >= 0
+            ? "text-[#4CD964]"
+            : "text-[#FF6B6B]"
+            }`}
+          >
+            {analytics?.service?.serviceChange >= 0 ? (
+              <TrendingUp className="mr-1 inline-block h-4 w-4" />
+            ) : (
+              <TrendingDown className="mr-1 inline-block h-4 w-4" />
+            )}
+            {Math.abs(analytics?.service?.serviceChange)}%
+          </div>
+          <div className="text-sm text-muted-foreground ml-1">
+            from last month
+          </div>
+            </div>
           </CardContent>
           <CardFooter className="border-t border-[#E0E0E5] pt-4">
-        <div className="flex items-center text-sm text-[#6E6E73]">
+            <div className="flex items-center text-sm text-[#6E6E73]">
           <Clock className="mr-1 h-4 w-4" />
           Time analytics
-        </div>
+            </div>
           </CardFooter>
         </Card>
+          </>
+        )}
       </div>
 
       <div className="grid">
@@ -202,7 +268,11 @@ export default function DashboardPage() {
                 Today's Appointments
               </CardTitle>
               <CardDescription className="text-[#6E6E73]">
-                You have {analytics?.todaysBookings.length} appointments today
+                {isLoading ? (
+                  <div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
+                ) : (
+                  `You have ${analytics?.todaysBookings.length} appointments today`
+                )}
               </CardDescription>
             </div>
             <Button
@@ -215,7 +285,27 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {analytics && analytics.todaysBookings.length ? (
+              {isLoading ? (
+                // Loading skeleton
+                [...Array(3)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between rounded-lg border border-[#E0E0E5] p-4"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 animate-pulse rounded-full bg-gray-200" />
+                      <div>
+                        <div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
+                        <div className="mt-2 h-3 w-24 animate-pulse rounded bg-gray-200" />
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="h-4 w-16 animate-pulse rounded bg-gray-200" />
+                      <div className="mt-2 h-3 w-12 animate-pulse rounded bg-gray-200" />
+                    </div>
+                  </div>
+                ))
+              ) : analytics && analytics.todaysBookings.length ? (
                 analytics.todaysBookings.map((b: any) => {
                   const date = new Date(b.event_date);
                   const hr = date.getUTCHours();
@@ -224,7 +314,6 @@ export default function DashboardPage() {
                     <div
                       key={b.id}
                       className="flex items-center justify-between rounded-lg border border-[#E0E0E5] p-4 hover:bg-[#F5F5F7]/50 cursor-pointer"
-                      // onClick={() => setAppointmentDialogOpen(true)}
                     >
                       <div className="flex items-center gap-4">
                         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F5F5F7]">
