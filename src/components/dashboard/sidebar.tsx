@@ -52,11 +52,11 @@ const sidebarItems = [
     href: "/dashboard/templates",
     icon: FileText,
   },
-  // {
-  //   title: "Analytics",
-  //   href: "/dashboard/analytics",
-  //   icon: BarChart3,
-  // },
+  {
+    title: "Analytics",
+    href: "/dashboard/analytics",
+    icon: BarChart3,
+  },
   {
     title: "Settings",
     href: "/dashboard/settings",
