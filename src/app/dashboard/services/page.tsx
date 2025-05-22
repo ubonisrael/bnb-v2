@@ -57,7 +57,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Service } from "@/components/onboarding/type";
+import { Service, ServiceCategory } from "@/components/onboarding/type";
 import {
   categorySchema,
   daysOfWeek,
@@ -82,14 +82,26 @@ const days = [
 const daysStatus = days.map((d) => `${d}_enabled`);
 type daysStatusType = (typeof daysStatus)[number];
 
+const defaultValues = {
+  name: "",
+  categoryId: 0,
+  price: 0,
+  duration: 60,
+  description: "",
+  availableDays: [...days],
+};
+
 export default function ServicesPage() {
   const { settings, updateSettings } = useUserSettings();
   const [searchQuery, setSearchQuery] = useState("");
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showServiceModal, setShowServiceModal] = useState(false);
-  const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
   const [isAddingService, setIsAddingService] = useState(false);
+  const [showDeleteCategoryModal, setShowDeleteCategoryModal] = useState(false);
+  const [showDeleteServiceModal, setShowDeleteServiceModal] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
+  const [editingCategory, setEditingCategory] =
+    useState<ServiceCategory | null>(null);
 
   // Category form
   const categoryForm = useForm<{ name: string }>({
@@ -102,14 +114,7 @@ export default function ServicesPage() {
   // Service form
   const serviceForm = useForm<Omit<Service, "id">>({
     resolver: zodResolver(serviceSchema),
-    defaultValues: {
-      name: "",
-      categoryId: "",
-      price: 0,
-      duration: 60,
-      description: "",
-      availableDays: [...days],
-    },
+    defaultValues,
   });
 
   const createCategoryMutation = useMutation({
@@ -119,7 +124,9 @@ export default function ServicesPage() {
 
       try {
         const response = await api.post(
-          "/sp/categories",
+          editingCategory
+            ? `/sp/categories/${editingCategory.id}`
+            : "/sp/categories",
           {
             ...values,
           },
@@ -134,18 +141,33 @@ export default function ServicesPage() {
       }
     },
     onMutate: () => {
-      toast.loading("Creating category...", { id: "create-category" });
+      toast.loading(`${editingCategory ? "Editing" : "Creating"} category...`, {
+        id: `${editingCategory ? "edit" : "create"}-category`,
+      });
     },
     onSuccess: (response: any) => {
-      toast.success("Category updated successfully", { id: "create-category" });
+      toast.success(
+        `Category ${editingCategory ? "updated" : "created"} successfully`,
+        { id: `${editingCategory ? "edit" : "create"}-category` }
+      );
       if (settings) {
-        updateSettings("categories", [...settings.categories, response.data]);
+        if (editingCategory) {
+          const updatedCat = settings.categories.map((cat) =>
+            cat.id === editingCategory.id ? response.data : cat
+          );
+          updateSettings("categories", updatedCat);
+        } else {
+          // Add the new service to the existing services
+          updateSettings("categories", [...settings.categories, response.data]);
+        }
       }
     },
     onError: (error: Error) => {
-      toast.error(error?.message || "Failed to create new category", {
-        id: "create-category",
-      });
+      toast.error(
+        error?.message ||
+          `Failed to ${editingCategory ? "update" : "create new"} category`,
+        { id: `${editingCategory ? "edit" : "create"}-category` }
+      );
     },
   });
 
@@ -170,7 +192,7 @@ export default function ServicesPage() {
           daysStatus[`${day}_enabled`] = true;
         });
         const response = await api.post(
-          "/sp/services",
+          editingService ? `/sp/services/${editingService.id}` : "/sp/services",
           {
             ...values,
             fullPrice: values.price,
@@ -187,17 +209,115 @@ export default function ServicesPage() {
       }
     },
     onMutate: () => {
-      toast.loading("Creating service...", { id: "create-service" });
+      toast.loading(
+        editingService ? "Updating service" : "Creating service...",
+        { id: editingService ? "update-service" : "create-service" }
+      );
     },
     onSuccess: (response: any) => {
-      toast.success("Service created successfully", { id: "create-service" });
+      toast.success(
+        `Service ${editingService ? "updated" : "created"} successfully`,
+        { id: editingService ? "update-service" : "create-service" }
+      );
       if (settings) {
-        updateSettings("services", [...settings.services, response.data]);
+        if (editingService) {
+          const updatedServices = settings.services.map((service) =>
+            service.id === editingService.id ? response.data : service
+          );
+          updateSettings("services", updatedServices);
+        } else {
+          // Add the new service to the existing services
+          updateSettings("services", [...settings.services, response.data]);
+        }
       }
+      setShowServiceModal(false);
+      setEditingService(null);
     },
     onError: (error: Error) => {
-      toast.error(error?.message || "Failed to create new service", {
-        id: "create-service",
+      toast.error(
+        error?.message ||
+          `Failed to ${editingService ? "update" : "create new"} service`,
+        {
+          id: editingService ? "update-service" : "create-service",
+        }
+      );
+    },
+  });
+
+  const deleteCategoryMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const controller = new AbortController();
+      const signal = controller.signal;
+
+      try {
+        await api.delete(`/sp/categories/${id}`, { signal });
+        return { id };
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name === "AbortError") {
+          toast.error("Request was cancelled");
+        }
+        throw error;
+      }
+    },
+    onMutate: () => {
+      toast.loading("Deleting category", { id: "delete-category" });
+    },
+    onSuccess: (response: any) => {
+      toast.success(`Category deleted successfully`, { id: "delete-category" });
+      if (settings) {
+        const updatedCats = settings.categories.filter(
+          (cat) => cat.id !== response.id
+        );
+        const updatedServices = settings.services.filter(
+          (service) => service.CategoryId !== response.id
+        );
+        updateSettings("batch", {
+          categories: updatedCats,
+          services: updatedServices,
+        });
+      }
+      setShowCategoryModal(false);
+      setEditingCategory(null);
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || `Failed to delete category`, {
+        id: "delete-category",
+      });
+    },
+  });
+
+  const deleteServiceMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const controller = new AbortController();
+      const signal = controller.signal;
+
+      try {
+        await api.delete(`/sp/services/${id}`, { signal });
+        return { id };
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name === "AbortError") {
+          toast.error("Request was cancelled");
+        }
+        throw error;
+      }
+    },
+    onMutate: () => {
+      toast.loading("Deleting service", { id: "delete-service" });
+    },
+    onSuccess: (response: any) => {
+      toast.success(`Service deleted successfully`, { id: "delete-service" });
+      if (settings) {
+        const updatedServices = settings.services.filter(
+          (service) => service.id !== response.id
+        );
+        updateSettings("services", updatedServices);
+      }
+      setShowServiceModal(false);
+      setEditingService(null);
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || `Failed to delete service`, {
+        id: "delete-service",
       });
     },
   });
@@ -209,13 +329,51 @@ export default function ServicesPage() {
     } catch (e) {
       // console.error(error);
     }
-    setShowServiceModal(false);
-    setShowAvailabilityModal(false);
-    setEditingService(null);
-    serviceForm.reset();
+    serviceForm.reset(defaultValues);
   };
 
-  const handleEditService = (service: Service) => {};
+  const handleServiceDelete = async (id: string) => {
+    try {
+      await deleteServiceMutation.mutateAsync(id);
+    } catch (e) {
+      // console.error(error);
+    }
+  };
+
+  const handleCategoryDelete = async (id: number) => {
+    try {
+      await deleteCategoryMutation.mutateAsync(id);
+    } catch (e) {
+      // console.error(error);
+    }
+  };
+
+  const handleEditService = (service: Service) => {
+    // console.log(service);
+    const days_enabled: string[] = [];
+    if (service.monday_enabled) days_enabled.push("monday");
+    if (service.tuesday_enabled) days_enabled.push("tuesday");
+    if (service.wednesday_enabled) days_enabled.push("wednesday");
+    if (service.thursday_enabled) days_enabled.push("thursday");
+    if (service.friday_enabled) days_enabled.push("friday");
+    if (service.saturday_enabled) days_enabled.push("saturday");
+    if (service.sunday_enabled) days_enabled.push("sunday");
+
+    setEditingService(service);
+    serviceForm.reset({
+      ...service,
+      categoryId: service.CategoryId,
+      price: service.fullPrice,
+      availableDays: [...days_enabled],
+    });
+    setShowServiceModal(true);
+  };
+
+  const handleEditCategory = (cat: ServiceCategory) => {
+    setEditingCategory(cat);
+    categoryForm.reset(cat);
+    setShowCategoryModal(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -227,7 +385,17 @@ export default function ServicesPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Dialog open={showCategoryModal} onOpenChange={setShowCategoryModal}>
+          <Dialog
+            open={showCategoryModal}
+            onOpenChange={(val) => {
+              if (!val) {
+                categoryForm.reset({
+                  name: "",
+                });
+              }
+              setShowCategoryModal(val);
+            }}
+          >
             <DialogTrigger asChild>
               <Button variant="outline">
                 <FolderPlus className="mr-2 h-4 w-4" />
@@ -260,15 +428,28 @@ export default function ServicesPage() {
                     )}
                   />
                   <DialogFooter>
-                    <Button type="submit">Add Category</Button>
+                    <Button type="submit">
+                      {editingCategory ? "Edit Category" : "Add Category"}
+                    </Button>
                   </DialogFooter>
                 </form>
               </Form>
             </DialogContent>
           </Dialog>
-          <Dialog open={showServiceModal} onOpenChange={setShowServiceModal}>
+          <Dialog
+            open={showServiceModal}
+            onOpenChange={(val) => {
+              if (!val) {
+                serviceForm.reset(defaultValues);
+              }
+              setShowServiceModal(val);
+            }}
+          >
             <DialogTrigger asChild>
-              <Button>
+              <Button
+                disabled={settings?.categories.length === 0}
+                variant="outline"
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 Add Service
               </Button>
@@ -311,9 +492,19 @@ export default function ServicesPage() {
                       <FormItem>
                         <FormLabel>Category</FormLabel>
                         <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          value={field.value}
+                          onValueChange={(value) =>
+                            field.onChange(Number(value))
+                          }
+                          defaultValue={
+                            field.value && field.value !== 0
+                              ? field.value.toString()
+                              : ""
+                          }
+                          value={
+                            field.value && field.value !== 0
+                              ? field.value.toString()
+                              : ""
+                          }
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -321,11 +512,15 @@ export default function ServicesPage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {settings && settings.categories.map((category) => (
-                              <SelectItem key={category.id} value={category.id}>
-                                {category.name}
-                              </SelectItem>
-                            ))}
+                            {settings &&
+                              settings.categories.map((category) => (
+                                <SelectItem
+                                  key={category.id}
+                                  value={category.id.toString()}
+                                >
+                                  {category.name}
+                                </SelectItem>
+                              ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -471,7 +666,8 @@ export default function ServicesPage() {
                       onClick={() => {
                         setIsAddingService(false);
                         setEditingService(null);
-                        serviceForm.reset();
+                        setShowServiceModal(false);
+                        serviceForm.reset(defaultValues);
                       }}
                     >
                       Cancel
@@ -486,6 +682,101 @@ export default function ServicesPage() {
           </Dialog>
         </div>
       </div>
+      <Card className="shadow-card">
+        <CardHeader className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+          <CardTitle>Categories List</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {settings?.categories.length === 0 ? (
+            <div className="rounded-md border border-dashed border-[#E0E0E5] p-6 text-center">
+              <p className="text-sm text-[#6E6E73]">
+                No categories yet. Add your first service category.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+              {settings?.categories.map((category) => (
+                <div
+                  key={category.id}
+                  className="flex justify-between rounded-md border border-[#E0E0E5] bg-[#F5F5F7]/50 p-3"
+                >
+                  <div className="flex flex-col">
+                    <div className="font-medium">{category.name}</div>
+                    <div className="mt-1 text-xs text-[#6E6E73]">
+                      {
+                        settings?.services.filter((svc) => {
+                          // console.log(svc, category.id)
+                          return svc.CategoryId === category.id;
+                        }).length
+                      }{" "}
+                      services
+                    </div>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Actions</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => handleEditCategory(category)}
+                      >
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={() => setShowDeleteCategoryModal(true)}
+                      >
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Dialog
+                    open={showDeleteCategoryModal}
+                    onOpenChange={(val) => setShowDeleteCategoryModal(val)}
+                  >
+                    <DialogContent className="sm:max-w-[480px]">
+                      <DialogHeader>
+                        <DialogTitle>
+                          Are you sure you want to delete this category?
+                        </DialogTitle>
+                        <DialogDescription>
+                          Deleting this category is irreversible and associated
+                          services will be deleted too.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setShowDeleteCategoryModal(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            handleCategoryDelete(category.id);
+                            setShowDeleteCategoryModal(false);
+                          }}
+                          type="button"
+                          variant="destructive"
+                        >
+                          Delete
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card className="shadow-card">
         <CardHeader className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
@@ -506,47 +797,161 @@ export default function ServicesPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="all">
-            <TabsList className="mb-4">
-              <TabsTrigger value="all">All Services</TabsTrigger>
-              {settings && settings.categories.map((cat) => (
-                <TabsTrigger key={cat.id} value={cat.id}>
-                  {cat.name}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            {settings && settings.categories.map((cat) => (
-              <TabsContent key={cat.id} value={cat.id} className="m-0">
-                {settings && settings.services.filter(
-                  (service) => service.CategoryId === cat.id
-                ).length ? (
-                  <div className="rounded-md border">
-                    <table className="hidden w-full md:table">
-                      <thead>
-                        <tr className="border-b bg-muted/50 text-left text-sm font-medium">
-                          <th className="px-4 py-3">Service</th>
-                          <th className="px-4 py-3">Category</th>
-                          <th className="px-4 py-3">Duration</th>
-                          <th className="px-4 py-3">Price</th>
-                          <th className="px-4 py-3 text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {settings && settings.services
-                          .filter((service) => service.CategoryId === cat.id)
-                          .map((service) => (
-                            <tr key={service.id} className="border-b">
-                              <td className="px-4 py-3">
-                                <div>
-                                  <div className="font-medium">
-                                    {service.name}
-                                  </div>
-                                  <div className="text-xs text-muted-foreground">
-                                    {service.description}
-                                  </div>
+          {settings?.services.length === 0 ? (
+            <div className="rounded-md border border-dashed border-[#E0E0E5] p-6 text-center">
+              <p className="text-sm text-[#6E6E73]">
+                No services yet. Add your first service.
+              </p>
+            </div>
+          ) : (
+            <Tabs defaultValue="all">
+              <TabsList className="mb-4">
+                <TabsTrigger value="all">All Services</TabsTrigger>
+                {settings &&
+                  settings.categories.map((cat) => (
+                    <TabsTrigger key={cat.id} value={cat.id.toString()}>
+                      {cat.name}
+                    </TabsTrigger>
+                  ))}
+              </TabsList>
+              {settings &&
+                settings.categories.map((cat) => (
+                  <TabsContent
+                    key={cat.id}
+                    value={cat.id.toString()}
+                    className="m-0"
+                  >
+                    {settings &&
+                    settings.services.filter(
+                      (service) => service.CategoryId === cat.id
+                    ).length ? (
+                      <div className="rounded-md border">
+                        <table className="hidden w-full md:table">
+                          <thead>
+                            <tr className="border-b bg-muted/50 text-left text-sm font-medium">
+                              <th className="px-4 py-3">Service</th>
+                              <th className="px-4 py-3">Category</th>
+                              <th className="px-4 py-3">Duration</th>
+                              <th className="px-4 py-3">Price</th>
+                              <th className="px-4 py-3 text-right">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {settings &&
+                              settings.services
+                                .filter(
+                                  (service) => service.CategoryId === cat.id
+                                )
+                                .map((service) => (
+                                  <tr key={service.id} className="border-b">
+                                    <td className="px-4 py-3">
+                                      <div>
+                                        <div className="font-medium">
+                                          {service.name}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                          {service.description}
+                                        </div>
+                                      </div>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                      <Badge variant="outline">
+                                        {
+                                          settings.categories.find(
+                                            (cat) =>
+                                              cat.id === service.CategoryId
+                                          )!.name
+                                        }
+                                      </Badge>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                      <div className="flex items-center gap-1">
+                                        <Clock className="h-4 w-4 text-muted-foreground" />
+                                        {service.duration}
+                                      </div>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                      £{service.fullPrice}
+                                    </td>
+                                    <td className="px-4 py-3 text-right">
+                                      <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                          <Button variant="ghost" size="icon">
+                                            <MoreHorizontal className="h-4 w-4" />
+                                            <span className="sr-only">
+                                              Actions
+                                            </span>
+                                          </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                          <DropdownMenuLabel>
+                                            Actions
+                                          </DropdownMenuLabel>
+                                          <DropdownMenuSeparator />
+                                          <DropdownMenuItem
+                                            onClick={() =>
+                                              handleEditService(service)
+                                            }
+                                          >
+                                            Edit service
+                                          </DropdownMenuItem>
+                                          <DropdownMenuItem>
+                                            View bookings
+                                          </DropdownMenuItem>
+                                          <DropdownMenuSeparator />
+                                          <DropdownMenuItem className="text-destructive">
+                                            Delete service
+                                          </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                      </DropdownMenu>
+                                    </td>
+                                  </tr>
+                                ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center p-4">
+                        <p className="text-sm text-muted-foreground">
+                          No services available in this category.
+                        </p>
+                      </div>
+                    )}
+                  </TabsContent>
+                ))}
+              <TabsContent value="all" className="m-0">
+                <div className="rounded-md border">
+                  <table className="hidden w-full md:table">
+                    <thead>
+                      <tr className="border-b bg-muted/50 text-left text-sm font-medium">
+                        <th className="px-4 py-3">Service</th>
+                        <th className="px-4 py-3">Category</th>
+                        <th className="px-4 py-3">Duration</th>
+                        <th className="px-4 py-3">Price</th>
+                        <th className="px-4 py-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {settings &&
+                        settings.services.map((service) => (
+                          <tr
+                            key={`service_${service.id}_${service.name}`}
+                            className="border-b"
+                          >
+                            <td className="px-4 py-3">
+                              <div>
+                                <div className="font-medium">
+                                  {service.name}
                                 </div>
-                              </td>
-                              <td className="px-4 py-3">
+                                <div className="text-xs text-muted-foreground">
+                                  {service.description}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              {settings.categories.find(
+                                (cat) => cat.id === service.CategoryId
+                              ) && (
                                 <Badge variant="outline">
                                   {
                                     settings.categories.find(
@@ -554,128 +959,93 @@ export default function ServicesPage() {
                                     )!.name
                                   }
                                 </Badge>
-                              </td>
-                              <td className="px-4 py-3">
-                                <div className="flex items-center gap-1">
-                                  <Clock className="h-4 w-4 text-muted-foreground" />
-                                  {service.duration}
-                                </div>
-                              </td>
-                              <td className="px-4 py-3">
-                                £{service.fullPrice}
-                              </td>
-                              <td className="px-4 py-3 text-right">
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                      <MoreHorizontal className="h-4 w-4" />
-                                      <span className="sr-only">Actions</span>
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel>
-                                      Actions
-                                    </DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem
-                                      onClick={() => handleEditService(service)}
-                                    >
-                                      Edit service
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                      View bookings
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="text-destructive">
-                                      Delete service
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </td>
-                            </tr>
-                          ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center p-4">
-                    <p className="text-sm text-muted-foreground">
-                      No services available in this category.
-                    </p>
-                  </div>
-                )}
-              </TabsContent>
-            ))}
-            <TabsContent value="all" className="m-0">
-              <div className="rounded-md border">
-                <table className="hidden w-full md:table">
-                  <thead>
-                    <tr className="border-b bg-muted/50 text-left text-sm font-medium">
-                      <th className="px-4 py-3">Service</th>
-                      <th className="px-4 py-3">Category</th>
-                      <th className="px-4 py-3">Duration</th>
-                      <th className="px-4 py-3">Price</th>
-                      <th className="px-4 py-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {settings && settings.services.map((service) => (
-                      <tr key={service.id} className="border-b">
-                        <td className="px-4 py-3">
-                          <div>
-                            <div className="font-medium">{service.name}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {service.description}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <Badge variant="outline">
-                            {
-                              settings.categories.find(
-                                (cat) => cat.id === service.CategoryId
-                              )!.name
-                            }
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-4 w-4 text-muted-foreground" />
-                            {service.duration}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">£{service.fullPrice}</td>
-                        <td className="px-4 py-3 text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Actions</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => handleEditService(service)}
+                              )}
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                {service.duration}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">£{service.fullPrice}</td>
+                            <td className="px-4 py-3 text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    <span className="sr-only">Actions</span>
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      handleEditService(service);
+                                    }}
+                                  >
+                                    Edit
+                                  </DropdownMenuItem>
+                                  {/* <DropdownMenuItem>
+                                  View bookings
+                                </DropdownMenuItem> */}
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    className="text-destructive"
+                                    onClick={() =>
+                                      setShowDeleteServiceModal(true)
+                                    }
+                                  >
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                              <Dialog
+                                open={showDeleteServiceModal}
+                                onOpenChange={setShowDeleteServiceModal}
                               >
-                                Edit service
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>View bookings</DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-destructive">
-                                Delete service
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </TabsContent>
-          </Tabs>
+                                <DialogContent className="sm:max-w-[480px]">
+                                  <DialogHeader>
+                                    <DialogTitle>
+                                      Are you sure you want to delete this
+                                      service?
+                                    </DialogTitle>
+                                    <DialogDescription>
+                                      Deleting this service is irreversible.
+                                    </DialogDescription>
+                                  </DialogHeader>
+                                  <DialogFooter>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      onClick={() =>
+                                        setShowDeleteServiceModal(false)
+                                      }
+                                    >
+                                      Cancel
+                                    </Button>
+                                    <Button
+                                      onClick={() => {
+                                        handleServiceDelete(service.id);
+                                        setShowDeleteServiceModal(false);
+                                      }}
+                                      type="button"
+                                      variant="destructive"
+                                    >
+                                      Delete
+                                    </Button>
+                                  </DialogFooter>
+                                </DialogContent>
+                              </Dialog>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </TabsContent>
+            </Tabs>
+          )}
         </CardContent>
       </Card>
     </div>
