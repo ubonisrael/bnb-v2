@@ -94,7 +94,7 @@ export interface UserSettings {
 // Create the context
 type UserSettingsContextType = {
   settings: UserSettings | null;
-  updateSettings: (section: keyof UserSettings, data: any) => Promise<void>;
+  updateSettings: (section: keyof UserSettings | 'batch', data: any) => Promise<void>;
   isLoading: boolean;
 };
 
@@ -135,27 +135,39 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Update settings
-  const updateSettings = async (section: keyof UserSettings, data: any) => {
+  const updateSettings = async (section: keyof UserSettings | "batch", data: any) => {
     setIsLoading(true);
     try {
       if (settings) {
-        let updatedSettings: UserSettings | null = null;
-        if (section === "categories" || section === "services") {
-          updatedSettings = {
-            ...settings,
-            [section]: data,
-          };
-        } else {
-          updatedSettings = {
-            ...settings,
-            [section]: {
-              ...settings[section],
+        if (section === "batch") {
+          setSettings(prev => {
+            if (!prev) return null;
+            return {
+              ...prev,
               ...data,
-            },
-          };
+            } as UserSettings;
+          })
+        } else if (section === "categories" || section === "services") {
+        setSettings(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            [section]: data,
+          } as UserSettings;
+        });
+        } else {
+          setSettings(prev => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              [section]: {
+                ...prev[section],
+                ...data,
+              },
+            } as UserSettings;
+          });
         }
 
-        setSettings(updatedSettings);
       }
     } catch (error) {
       toast.error(error as string);
