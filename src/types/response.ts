@@ -10,6 +10,16 @@ export interface AnalyticsResponse {
   [key: string]: any;
 }
 
+export interface PeriodicStatsResponse {
+  status: boolean;
+  data: { name: string; bookings: number; revenue: number; clients: number }[];
+}
+
+export interface AnalyticsServiceDataResponse {
+  status: boolean;
+  data: {serviceId: number; name: string; value: number;}[];
+}
+
 export interface Summary {
   total_bookings: number;
   total_earnings: number;
