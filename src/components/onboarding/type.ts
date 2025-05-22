@@ -19,20 +19,27 @@ export interface VisualSettingsData {
 }
 
 export interface ServiceCategory {
-  id: string;
+  id: number;
   name: string;
 }
 
 export interface Service {
   id: string;
   name: string;
-  categoryId: string;
-  CategoryId?: string;
+  categoryId: number;
+  CategoryId?: number;
   price: number;
   fullPrice?: number;
   duration: number;
   description: string;
   availableDays: string[];
+  monday_enabled?: boolean;
+  tuesday_enabled?: boolean;
+  wednesday_enabled?: boolean;
+  thursday_enabled?: boolean;
+  friday_enabled?: boolean;
+  saturday_enabled?: boolean;
+  sunday_enabled?: boolean;
 }
 
 export interface ServicesSetupData {

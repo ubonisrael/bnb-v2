@@ -85,7 +85,7 @@ export const serviceSchema = z.object({
   name: z
     .string()
     .min(2, { message: "Service name must be at least 2 characters" }),
-  categoryId: z.string().min(1, { message: "Please select a category" }),
+  categoryId: z.coerce.number().min(1, { message: "Please select a category" }),
   price: z.coerce
     .number()
     .min(0, { message: "Price must be a positive number" }),
@@ -120,7 +120,7 @@ export function ServicesSetupStep({
     resolver: zodResolver(serviceSchema),
     defaultValues: {
       name: "",
-      categoryId: "",
+      categoryId: 0,
       price: 0,
       duration: 60,
       description: "",
@@ -143,7 +143,7 @@ export function ServicesSetupStep({
   // Add a new category
   const handleAddCategory = (values: { name: string }) => {
     const newCategory: ServiceCategory = {
-      id: `cat_${Date.now()}`,
+      id: Date.now(),
       name: values.name,
     };
 
@@ -203,14 +203,6 @@ export function ServicesSetupStep({
     setEditingService(service);
     serviceForm.reset(service);
     setIsAddingService(true);
-  };
-
-  // Get category name by ID
-  const getCategoryName = (categoryId: string) => {
-    const category = data.servicesSetup.categories.find(
-      (cat) => cat.id === categoryId
-    );
-    return category ? category.name : "Uncategorized";
   };
 
   return (
@@ -377,8 +369,8 @@ export function ServicesSetupStep({
                         <FormLabel>Category</FormLabel>
                         <Select
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          value={field.value}
+                          defaultValue={field.value && field.value !== 0 ? field.value.toString() : ""}
+                          value={field.value && field.value !== 0 ? field.value.toString() : ""}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -387,7 +379,7 @@ export function ServicesSetupStep({
                           </FormControl>
                           <SelectContent>
                             {data.servicesSetup.categories.map((category) => (
-                              <SelectItem key={category.id} value={category.id}>
+                              <SelectItem key={category.id} value={category.id.toString()}>
                                 {category.name}
                               </SelectItem>
                             ))}
