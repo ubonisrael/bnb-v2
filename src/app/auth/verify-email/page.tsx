@@ -26,7 +26,7 @@ function VerifyEmail() {
     { token: string }
   >({
     mutationFn: (data: { token: string }) => {
-      return api.post<AuthResponse>("/auth/verify-email", data);
+      return api.post<AuthResponse>("auth/verify-email", data);
     },
     onSuccess: (data: AuthResponse) => {
       api.setCsrfToken(data.csrfToken);

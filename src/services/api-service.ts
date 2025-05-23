@@ -17,7 +17,7 @@ class ApiService {
   constructor() {
     this.baseUrl =
       process.env.NEXT_PUBLIC_API_URL ||
-      "http://localhost:8000/api/v1/web/booking_services/";
+      "http://localhost:8000/api/v1/web/";
     this.csrfToken = null;
     this.api = axios.create({
       baseURL: this.baseUrl,

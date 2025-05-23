@@ -10,7 +10,7 @@ export function useLogoutMutation() {
     return useMutation({
         mutationFn: async () => {
             try {
-                const response = await api.post('/auth/logout', {});
+                const response = await api.post('auth/logout', {});
                 return response;
             } catch (error) {
                 if (axios.isCancel(error)) {

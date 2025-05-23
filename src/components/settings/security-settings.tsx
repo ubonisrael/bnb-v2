@@ -100,7 +100,7 @@ mutationFn: async (values: z.infer<typeof passwordSchema>) => {
       const signal = controller.signal;
 
       try {
-        await api.post('/user/password/change', {
+        await api.post('user/password/change', {
 			...values },
 			{ signal });
       } catch (error: unknown) {
@@ -128,7 +128,7 @@ mutationFn: async (values: z.infer<typeof passwordSchema>) => {
       const signal = controller.signal;
 
       try {
-        await api.delete('/sp', { signal });
+        await api.delete('sp', { signal });
       } catch (error: unknown) {
         if (error instanceof Error && error.name === 'AbortError') {
           toast('Request was cancelled', { icon: '❌' });

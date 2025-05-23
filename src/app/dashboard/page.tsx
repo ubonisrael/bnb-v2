@@ -65,7 +65,7 @@ export default function DashboardPage() {
   const { data: analytics, isLoading } = useQuery({
     queryKey: ["dashboard-analytics"],
     queryFn: () => {
-      return api.get<AnalyticsResponse>("/sp/dashboard");
+      return api.get<AnalyticsResponse>("sp/dashboard");
       // return { data: { summary: { total_earnings: 1000, total_bookings: 50, total_unique_customers: 30 } } }
     },
   });

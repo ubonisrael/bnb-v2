@@ -98,7 +98,7 @@ export default function TemplatesPage() {
 
       try {
         const response = await api.patch<TemplateDataResponse>(
-          "/sp/templates",
+          "sp/templates",
           {
             template_type: values.templateType,
             desc: values.description,

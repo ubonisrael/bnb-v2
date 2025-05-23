@@ -67,13 +67,13 @@ export function BookingWizard(props: BusinessDataType) {
   >({
     mutationFn: (data: BookingFormValues) => {
       toast.loading("Scheduling appointment...", { id: "booking" });
-      return api.post<BookingResponse>(`/sp/${props.bUrl}/booking`, data);
+      return api.post<BookingResponse>(`sp/${props.bUrl}/booking`, data);
     },
     onSuccess: async (data: BookingResponse) => {
       toast.dismiss("booking");
       toast.success(data.message);
       setShowServiceModal(false);
-      setCurrentStepIndex(3); // Go to confirmation step
+      setCurrentStepIndex(3);
     },
     onError: (error: ErrorResponse) => {
       toast.dismiss("booking");

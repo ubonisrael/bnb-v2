@@ -42,11 +42,11 @@ const sidebarItems = [
     href: "/dashboard/services",
     icon: Scissors,
   },
-  // {
-  //   title: "Payments",
-  //   href: "/dashboard/payments",
-  //   icon: CreditCard,
-  // },
+  {
+    title: "Payments",
+    href: "/dashboard/payments",
+    icon: CreditCard,
+  },
   {
     title: "Templates",
     href: "/dashboard/templates",

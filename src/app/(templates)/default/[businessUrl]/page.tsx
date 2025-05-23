@@ -49,23 +49,23 @@ async function getServiceProviderDetails(url: string) {
         utcOffset: 0,
         categories: [
           {
-            id: "1",
+            id: 1,
             name: "Hair cut",
           },
           {
-            id: "2",
+            id: 2,
             name: "Hair style",
           },
           {
-            id: "3",
+            id: 3,
             name: "Make up",
           },
         ],
         services: [
           {
             id: "1",
-            CategoryId: "1",
-            categoryId: "1",
+            CategoryId: 1,
+            categoryId: 1,
             name: "Skin cut",
             description: "Get a nice hair cut",
             price: 20,
@@ -74,8 +74,8 @@ async function getServiceProviderDetails(url: string) {
           },
           {
             id: "3",
-            CategoryId: "2",
-            categoryId: "2",
+            CategoryId: 2,
+            categoryId: 2,
             name: "Weave",
             description: "Get a nice hair cut",
             price: 20,
@@ -84,8 +84,8 @@ async function getServiceProviderDetails(url: string) {
           },
           {
             id: "5",
-            CategoryId: "3",
-            categoryId: "3",
+            CategoryId: 3,
+            categoryId: 3,
             name: "Natural Glam",
             description: "Get a nice hair cut",
             price: 20,
@@ -95,7 +95,7 @@ async function getServiceProviderDetails(url: string) {
         ],
       };
     } 
-    const reponse = await api.get<TemplateResponse>(`/sp/${url}`);
+    const reponse = await api.get<TemplateResponse>(`sp/${url}`);
     return reponse.data;
   } catch (error) {
     console.error(error);

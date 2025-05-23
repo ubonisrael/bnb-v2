@@ -52,7 +52,7 @@ export function LoginForm() {
   >({
     mutationFn: (data: LoginFormValues) => {
       toast.loading("Signing in...", { id: "login-loading" });
-      return api.post("/auth/login/email", data);
+      return api.post("auth/login/email", data);
     },
     onSuccess: (data: AuthResponse) => {
       toast.dismiss("login-loading");

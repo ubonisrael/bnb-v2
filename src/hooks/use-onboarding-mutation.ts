@@ -79,7 +79,7 @@ export function useOnboardingMutation() {
                 }))
             };
 
-            return api.post('/onboarding', payload);
+            return api.post('auth/sp/onboarding', payload);
         },
         onSuccess: (data) => {
             toast.success('Onboarding completed successfully!');

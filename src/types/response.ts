@@ -240,13 +240,13 @@ export interface LandingTemplate {
     sunday: string;
   };
   categories: {
-    id: string;
+    id: number;
     name: string;
   }[];
   services: {
     id: string;
-    CategoryId: string;
-    categoryId: string;
+    CategoryId: number;
+    categoryId: number;
     name: string;
     description: string;
     price: number;

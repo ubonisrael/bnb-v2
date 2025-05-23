@@ -35,7 +35,7 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
   const { selectedServices } = useApp();
   const timezone = dayjs.tz.guess();
   const clientOffset = dayjs().tz(timezone).utcOffset();
-  const urlString = `/sp/${bUrl}/available-time-slots?date=${selectedDate}&clientTz=${timezone}${selectedServices
+  const urlString = `sp/${bUrl}/available-time-slots?date=${selectedDate}&clientTz=${timezone}${selectedServices
     .map((s) => `&service_ids[]=${s.id}`)
     .join("")}&duration=${totalDuration}`;
   // fetch available time slots based on selected date

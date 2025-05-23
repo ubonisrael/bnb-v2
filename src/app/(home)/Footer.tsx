@@ -9,7 +9,7 @@ const Footer = () => {
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-lg font-serif font-medium mb-4">BookWise</h3>
+            <h3 className="text-lg font-serif font-medium mb-4">BankNBook</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Simple, beautiful booking experiences for businesses of all sizes.
             </p>
@@ -48,7 +48,7 @@ const Footer = () => {
 
         <div className="mt-12 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-muted-foreground">
-            &copy; {currentYear} BookWise. All rights reserved.
+            &copy; {currentYear} BankNBook. All rights reserved.
           </p>
           <div className="mt-4 md:mt-0 flex items-center space-x-6">
             <a href="#" className="text-muted-foreground hover:text-brand-500 transition-colors">

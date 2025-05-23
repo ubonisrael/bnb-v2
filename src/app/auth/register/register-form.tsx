@@ -54,7 +54,7 @@ export function RegisterForm() {
   >({
     mutationFn: (data: RegisterFormValues) => {
       toast.loading("Creating account...", { id: "register-loading" });
-      return api.post<SignupResponse>("/auth/signup", data);
+      return api.post<SignupResponse>("auth/signup", data);
     },
     onSuccess: async (data: SignupResponse) => {
       toast.loading("Setting up account...", { id: "register-loading" });

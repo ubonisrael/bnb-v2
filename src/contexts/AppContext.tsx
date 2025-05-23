@@ -1,9 +1,7 @@
 "use client";
 
 import { Service, ServiceCategory } from "@/components/onboarding/type";
-import api from "@/services/api-service";
-import { TemplateResponse } from "@/types/response";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext } from "react";
 import useLocalStorage from "use-local-storage";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -36,7 +34,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const [activeCategoryTab, setActiveCategoryTab] =
     useLocalStorage<ServiceCategory>("activeCategoryTab", {
-      id: "",
+      id: 0,
       name: "",
     });
   const [selectedServices, setSelectedServices] = useLocalStorage<Service[]>(

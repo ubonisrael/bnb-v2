@@ -1,7 +1,7 @@
 export interface Service {
   id: string;
-  CategoryId: string;
-  categoryId: string;
+  CategoryId: number;
+  categoryId: number;
   name: string;
   description: string;
   price: number;
@@ -10,7 +10,7 @@ export interface Service {
 }
 
 export interface Category {
-  id: string;
+  id: number;
   name: string;
 }
 
@@ -82,7 +82,7 @@ export interface LandingTabPropsInterface {
   bannerHeader: string;
   bannerMessage: string;
   categories: {
-    id: string;
+    id: number;
     name: string;
   }[];
 }

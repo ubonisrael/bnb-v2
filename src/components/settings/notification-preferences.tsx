@@ -53,7 +53,7 @@ export function NotificationPreferences() {
 
       try {
         const response = await api.patch<NotificationSettingsResponse>(
-          "/sp/notifications",
+          "sp/notifications",
           {
             cancellation_policy: values.cancelNoticeHours,
             email_confirmation: values.emailSettings.sendBookingConfirmations,

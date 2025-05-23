@@ -85,14 +85,14 @@ export default function AnalyticsPage() {
     useQuery({
       queryKey: ["bookings-by-day-of-week"],
       queryFn: () => {
-        return api.get<AnalyticsResponse>("/sp/analytics/day-booking-stats");
+        return api.get<AnalyticsResponse>("sp/analytics/day-booking-stats");
       },
     });
     
   const { data: servicesData, isLoading: servicesDataIsLoading } = useQuery({
     queryKey: [settings?.services.map((service) => service.id).join(",")],
     queryFn: () => {
-      return api.get<AnalyticsServiceDataResponse>("/sp/analytics/service-booking-stats");
+      return api.get<AnalyticsServiceDataResponse>("sp/analytics/service-booking-stats");
     },
   });
   
@@ -100,7 +100,7 @@ export default function AnalyticsPage() {
     queryKey: [`overview-${dateRange}`],
     queryFn: () => {
       return api.get<AnalyticsResponse>(
-        `/sp/analytics/overview?period=${dateRange}`
+        `sp/analytics/overview?period=${dateRange}`
       );
     },
   });
@@ -108,7 +108,7 @@ export default function AnalyticsPage() {
     queryKey: [`period-${dateRange}`],
     queryFn: () => {
       return api.get<PeriodicStatsResponse>(
-        `/sp/analytics/periodic-stats?period=${dateRange}`
+        `sp/analytics/periodic-stats?period=${dateRange}`
       );
     },
   });

@@ -95,7 +95,7 @@ export function BookingDaysSettings() {
 
       try {
         const response = await api.patch<BusinessSettingsResponse>(
-          "/sp/booking_settings",
+          "sp/booking_settings",
           {
             ...values,
           },

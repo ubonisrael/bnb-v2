@@ -131,7 +131,7 @@ export function ProfileSettings() {
 
       try {
         const response = await api.patch<BusinessProfileResponse>(
-          "/sp/info",
+          "sp/info",
           {
             ...values,
             logo: logoUrl || "",

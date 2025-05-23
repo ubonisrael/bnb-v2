@@ -88,7 +88,7 @@ export default function CalendarPage() {
 
   const { data, isLoading } = useQuery<BookingDataResponse>({
     queryKey: [date.toISOString()],
-    queryFn: () => api.get(`/sp/bookings?date=${format(date, "yyyy-MM-dd")}`),
+    queryFn: () => api.get(`sp/bookings?date=${format(date, "yyyy-MM-dd")}`),
   });
 
   const [filters, setFilters] = useState<FilterType>({

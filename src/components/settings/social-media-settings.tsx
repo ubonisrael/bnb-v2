@@ -64,7 +64,7 @@ export function SocialMediaSettings() {
 
       try {
         const response = await api.patch<BusinessSocialResponse>(
-          '/sp/socials',
+          'sp/socials',
           {
             website_url: values.website,
             instagram_url: values.instagram,

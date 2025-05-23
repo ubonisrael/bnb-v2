@@ -1,10 +1,6 @@
 import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard"
-import { requireAuth } from "@/actions/auth"
-import api from "@/services/api-service"
 
 export default async function OnboardingPage() {
-  // Ensure the user is authenticated
-  // await requireAuth()
 
   return (
     <div className="min-h-screen bg-white">

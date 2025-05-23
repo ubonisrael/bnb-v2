@@ -115,7 +115,7 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
       try {
         // get user data
         // check if csrftoken exists
-        const businessData = await api.get("/sp");
+        const businessData = await api.get("sp");
         if (businessData) {
           setSettings(businessData as UserSettings);
         }

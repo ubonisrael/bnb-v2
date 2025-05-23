@@ -1,16 +1,10 @@
 import {
-  Bell,
-  Search,
   Calendar,
-  ChevronDown,
-  User,
-  Settings,
   LogOut,
   Loader2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,12 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { useLogoutMutation } from "@/hooks/use-logout-mutation";
-import { useQuery } from "@tanstack/react-query";
-import ApiService from "@/services/api-service";
-import { UserResponse } from "@/types/response";
 import { useUserSettings } from "@/contexts/user-settings-context";
 
 export function Header() {
@@ -37,12 +26,6 @@ export function Header() {
     year: "numeric",
   });
   const logoutMutation = useLogoutMutation();
-
-  // const { data: user } = useQuery({
-  //   queryKey: ["user"],
-  //   staleTime: 60 * 1000,
-  //   queryFn: () => new ApiService().get<UserResponse>("/user/profile"),
-  // })
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">

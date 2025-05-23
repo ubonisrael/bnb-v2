@@ -125,8 +125,8 @@ export default function ServicesPage() {
       try {
         const response = await api.post(
           editingCategory
-            ? `/sp/categories/${editingCategory.id}`
-            : "/sp/categories",
+            ? `sp/categories/${editingCategory.id}`
+            : "sp/categories",
           {
             ...values,
           },
@@ -192,7 +192,7 @@ export default function ServicesPage() {
           daysStatus[`${day}_enabled`] = true;
         });
         const response = await api.post(
-          editingService ? `/sp/services/${editingService.id}` : "/sp/services",
+          editingService ? `sp/services/${editingService.id}` : "/sp/services",
           {
             ...values,
             fullPrice: values.price,
@@ -250,7 +250,7 @@ export default function ServicesPage() {
       const signal = controller.signal;
 
       try {
-        await api.delete(`/sp/categories/${id}`, { signal });
+        await api.delete(`sp/categories/${id}`, { signal });
         return { id };
       } catch (error: unknown) {
         if (error instanceof Error && error.name === "AbortError") {
@@ -292,7 +292,7 @@ export default function ServicesPage() {
       const signal = controller.signal;
 
       try {
-        await api.delete(`/sp/services/${id}`, { signal });
+        await api.delete(`sp/services/${id}`, { signal });
         return { id };
       } catch (error: unknown) {
         if (error instanceof Error && error.name === "AbortError") {
