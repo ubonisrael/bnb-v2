@@ -95,7 +95,7 @@ async function getServiceProviderDetails(url: string) {
         ],
       };
     } 
-    const reponse = await api.get<TemplateResponse>(`sp/${url}`);
+    const reponse = await api.get<TemplateResponse>(`sp/${url}/data`);
     return reponse.data;
   } catch (error) {
     console.error(error);

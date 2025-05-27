@@ -25,6 +25,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import api from "@/services/api-service";
+import { loadStripe } from "@stripe/stripe-js";
+import toast from "react-hot-toast";
+import { useUserSettings } from "@/contexts/user-settings-context";
+import SubscriptionDetails from "@/components/payments/subscription-card";
 
 // ------------------- Zod Schema -------------------
 export const settingsSchema = z
@@ -72,7 +77,6 @@ type Subscription = {
   status: string;
   nextBillingDate: string;
   cancelAtPeriodEnd: boolean;
-  trialEndDate?: string;
 };
 
 type Invoice = {
@@ -89,9 +93,8 @@ type Invoice = {
 
 // ------------------- Component -------------------
 export default function PaymentDashboardPage() {
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const { settings } = useUserSettings();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const form = useForm<SettingsFormData>({
     resolver: zodResolver(settingsSchema),
@@ -105,58 +108,6 @@ export default function PaymentDashboardPage() {
 
   const watchDeposits = form.watch("allowDeposits");
 
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-
-      // Replace with real API call
-      const mockSubscription: Subscription = {
-        planName: "Pro Plan",
-        status: "active",
-        nextBillingDate: "2025-06-01",
-        cancelAtPeriodEnd: false,
-      };
-
-      const mockInvoices: Invoice[] = [
-        {
-          id: "inv_001",
-          date: "2025-05-01",
-          amountPaid: 1000,
-          status: "paid",
-          invoiceUrl: "#",
-          description: "Booking Fee",
-          customerName: "Jane Doe",
-          customerEmail: "jane@example.com",
-          direction: "incoming",
-        },
-        {
-          id: "inv_002",
-          date: "2025-04-20",
-          amountPaid: 1000,
-          status: "refunded",
-          invoiceUrl: "#",
-          description: "Refund",
-          customerName: "John Smith",
-          customerEmail: "john@example.com",
-          direction: "outgoing",
-        },
-      ];
-
-      setSubscription(mockSubscription);
-      setInvoices(mockInvoices);
-      form.reset({
-        stripeAccountId: "acct_1234",
-        stripePublishableKey: "pk_test_XXXX",
-        allowDeposits: true,
-        depositPercentage: 30,
-      });
-
-      setLoading(false);
-    }
-
-    // fetchData();
-  }, [form]);
-
   return (
     <div className="space-y-6">
       <div>
@@ -168,70 +119,7 @@ export default function PaymentDashboardPage() {
 
       {/* Stripe Account Settings Form */}
       {/* Subscription Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Subscription Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm text-muted-foreground">
-          {subscription ? (
-            <>
-              <p>
-                <strong>Plan:</strong> {subscription.planName}
-              </p>
-              <p>
-                <strong>Status:</strong> {subscription.status}
-              </p>
-              <p>
-                <strong>Next Billing:</strong> {subscription.nextBillingDate}
-              </p>
-              {subscription.trialEndDate && (
-                <p>
-                  <strong>Trial Ends:</strong> {subscription.trialEndDate}
-                </p>
-              )}
-              <p>
-                <strong>Auto-renew:</strong>{" "}
-                {subscription.cancelAtPeriodEnd ? "No (canceling)" : "Yes"}
-              </p>
-
-              <Button asChild className="mt-4">
-                <a href="/api/stripe/portal">Manage Subscription</a>
-              </Button>
-            </>
-          ) : (
-            <>
-              <p className="text-muted-foreground text-sm">
-                You don’t have an active subscription. Choose a plan to get
-                started:
-              </p>
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                {/* Example Plans */}
-                {[
-                  { name: "Pro", price: "£10/mo", stripePriceId: "price_456" },
-                ].map((plan) => (
-                  <Card
-                    key={plan.stripePriceId}
-                    className="border shadow-sm p-4 space-y-2"
-                  >
-                    <h4 className="font-semibold">{plan.name}</h4>
-                    <p className="text-muted-foreground">{plan.price}</p>
-                    <Button
-                      onClick={async () => {
-                        // Replace with call to initiate Stripe Checkout
-                        console.log("open checkout")
-                        // window.location.href = `/api/stripe/checkout?priceId=${plan.stripePriceId}`;
-                      }}
-                    >
-                      Subscribe
-                    </Button>
-                  </Card>
-                ))}
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+      <SubscriptionDetails />
       <Card>
         <CardHeader>
           <CardTitle>Stripe Account Settings</CardTitle>

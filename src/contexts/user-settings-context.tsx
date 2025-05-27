@@ -32,15 +32,15 @@ export interface UserSettings {
   };
   notifications: {
     cancelNoticeHours: number;
-      emailSettings: {
-        sendBookingConfirmations: boolean;
-        sendReminders: boolean;
-        reminderHours: number;
-        sendCancellationNotices: boolean;
-        sendNoShowNotifications: boolean;
-        sendFollowUpEmails: boolean;
-        followUpDelayHours: number;
-      },
+    emailSettings: {
+      sendBookingConfirmations: boolean;
+      sendReminders: boolean;
+      reminderHours: number;
+      sendCancellationNotices: boolean;
+      sendNoShowNotifications: boolean;
+      sendFollowUpEmails: boolean;
+      followUpDelayHours: number;
+    };
   };
   social: {
     website: string;
@@ -88,13 +88,24 @@ export interface UserSettings {
     aboutSubHeader: string;
     description: string;
     bannerUrl: string;
-  }
+  };
+  subscription: {
+    planName: string;
+    stripeSubscriptionId: string;
+    status: string;
+    nextBillingDate: string;
+    cancelAtPeriodEnd: boolean;
+    trialEndDate?: string | null;
+  };
 }
 
 // Create the context
 type UserSettingsContextType = {
   settings: UserSettings | null;
-  updateSettings: (section: keyof UserSettings | 'batch', data: any) => Promise<void>;
+  updateSettings: (
+    section: keyof UserSettings | "batch",
+    data: any
+  ) => Promise<void>;
   isLoading: boolean;
 };
 
@@ -116,6 +127,8 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
         // get user data
         // check if csrftoken exists
         const businessData = await api.get("sp");
+        console.log(businessData);
+
         if (businessData) {
           setSettings(businessData as UserSettings);
         }
@@ -124,7 +137,7 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
         toast.error(error as string);
         console.error("Failed to load settings:", error);
         // if (settings === null) {
-          // window.location.href = "/auth/login"
+        // window.location.href = "/auth/login"
         // }
       } finally {
         setIsLoading(false);
@@ -135,28 +148,31 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Update settings
-  const updateSettings = async (section: keyof UserSettings | "batch", data: any) => {
+  const updateSettings = async (
+    section: keyof UserSettings | "batch",
+    data: any
+  ) => {
     setIsLoading(true);
     try {
       if (settings) {
         if (section === "batch") {
-          setSettings(prev => {
+          setSettings((prev) => {
             if (!prev) return null;
             return {
               ...prev,
               ...data,
             } as UserSettings;
-          })
+          });
         } else if (section === "categories" || section === "services") {
-        setSettings(prev => {
-          if (!prev) return null;
-          return {
-            ...prev,
-            [section]: data,
-          } as UserSettings;
-        });
+          setSettings((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              [section]: data,
+            } as UserSettings;
+          });
         } else {
-          setSettings(prev => {
+          setSettings((prev) => {
             if (!prev) return null;
             return {
               ...prev,
@@ -167,7 +183,6 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
             } as UserSettings;
           });
         }
-
       }
     } catch (error) {
       toast.error(error as string);
