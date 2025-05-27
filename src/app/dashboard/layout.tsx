@@ -9,14 +9,34 @@ import api, { getCsrfTokenFromCookie } from "@/services/api-service";
 
 function CSRFInitializer() {
   useEffect(() => {
+    // Check if CSRF token is already set in the API service
+    console.log("Checking CSRF token in API service...");
+    console.log("Current CSRF token:", api.getCsrfToken());
+    
+    if (api.getCsrfToken()) {
+      return;
+    }
+    // If not, fetch it from the cookie or API endpoint
+    // and set it in the API service
+    // This ensures that the CSRF token is available for subsequent requests
+    // when the app is loaded
+    // This is especially important for state-changing requests
+    // like POST, PUT, DELETE, etc.
     const token = getCsrfTokenFromCookie();
     if (token) {
       api.setCsrfToken(token);
-    } else {
-      api.get<{ csrfToken: string }>("/csrf-token").then((data) => {
-        api.setCsrfToken(data.csrfToken);
-      });
+      return;
     }
+    async function fetchCsrfToken() {
+      try {
+        const response = await api.get<{ csrfToken: string }>("/csrf-token");
+        api.setCsrfToken(response.csrfToken);
+      } catch (error) {
+        console.error("Failed to fetch CSRF token:", error);
+      }
+    }
+    // Fetch CSRF token from the API endpoint
+    fetchCsrfToken();
   }, []);
 
   return null;
