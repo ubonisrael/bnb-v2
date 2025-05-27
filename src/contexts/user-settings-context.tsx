@@ -91,9 +91,9 @@ export interface UserSettings {
   };
   subscription: {
     planName: string;
-    stripeSubscriptionId: string;
-    status: string;
-    nextBillingDate: string;
+    stripeSubscriptionId: string | null;
+    status: string | null;
+    nextBillingDate: string | null;
     cancelAtPeriodEnd: boolean;
     trialEndDate?: string | null;
   };
