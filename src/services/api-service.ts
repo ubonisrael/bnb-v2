@@ -1,6 +1,11 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig } from "axios";
 import toast from "react-hot-toast";
 
+export const getCsrfTokenFromCookie = () => {
+  const match = document.cookie.match(/(^| )csrfToken=([^;]+)/);
+  return match ? decodeURIComponent(match[2]) : null;
+};
+
 export interface ApiResponse<T> {
   data: T;
   status: number;
@@ -32,6 +37,9 @@ class ApiService {
       (config) => {
         // Attach CSRF token only on state-changing requests
         const method = config.method?.toUpperCase();
+        if (!this.csrfToken) {
+            this.csrfToken = getCsrfTokenFromCookie();
+          }
         if (
           ["POST", "PUT", "PATCH", "DELETE"].includes(method || "") &&
           this.csrfToken

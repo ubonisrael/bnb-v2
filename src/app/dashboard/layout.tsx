@@ -5,6 +5,23 @@ import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
 import { UserSettingsProvider } from "@/contexts/user-settings-context";
+import api, { getCsrfTokenFromCookie } from "@/services/api-service";
+
+function CSRFInitializer() {
+  useEffect(() => {
+    const token = getCsrfTokenFromCookie();
+    if (token) {
+      api.setCsrfToken(token);
+    } else {
+      api.get<{ csrfToken: string }>("/csrf-token").then((data) => {
+        api.setCsrfToken(data.csrfToken);
+      });
+    }
+  }, []);
+
+  return null;
+}
+
 
 export default function DashboardLayout({
   children,
@@ -35,6 +52,7 @@ export default function DashboardLayout({
 
   return (
     <UserSettingsProvider>
+      <CSRFInitializer />
       <div className="flex min-h-screen">
         <Sidebar />
         <div
