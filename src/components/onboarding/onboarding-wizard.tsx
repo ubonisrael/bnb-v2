@@ -17,6 +17,7 @@ import { NotificationSettingsStep } from "./steps/notification-settings"
 import { BookingSettingsSetupStep } from "./steps/booking-settings"
 import { OnboardingFormData } from "./type"
 import { useOnboardingMutation } from '@/hooks/use-onboarding-mutation';
+import useLocalStorage from "use-local-storage"
 
 
 const steps = [
@@ -33,9 +34,9 @@ const steps = [
 ]
 
 export function OnboardingWizard() {
-  const [currentStepIndex, setCurrentStepIndex] = useState(0)
+  const [currentStepIndex, setCurrentStepIndex] = useLocalStorage('onboarding-step', 0)
   const stepRef = useRef<{ validate: () => Promise<boolean> }>(null);
-  const [formData, setFormData] = useState<OnboardingFormData>({
+  const [formData, setFormData] = useLocalStorage<OnboardingFormData>('onboarding-data', {
     businessInfo: {
       name: "",
       email: "",
@@ -117,7 +118,7 @@ export function OnboardingWizard() {
 
   const updateFormData = (stepId: string, data: any) => {
     setFormData((prev) => ({
-      ...prev,
+      ...(prev ?? formData),
       [stepId]: data,
     }))
   }
@@ -125,7 +126,7 @@ export function OnboardingWizard() {
   const goToNextStep = async () => {
     const isValid = await stepRef.current?.validate?.();
     if (isValid) {
-      setCurrentStepIndex((prev) => prev + 1);
+      setCurrentStepIndex((prev) => (prev ?? 0) + 1);
       window.scrollTo(0, 0);
     }
   };

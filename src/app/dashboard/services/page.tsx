@@ -188,9 +188,13 @@ export default function ServicesPage() {
 
       try {
         const daysStatus: { [key in daysStatusType]: boolean } = {};
-        values.availableDays.forEach((day) => {
-          daysStatus[`${day}_enabled`] = true;
-        });
+        for (const day of days) {
+          if (values.availableDays.includes(day)) {
+            daysStatus[`${day}_enabled`] = true;
+            continue;
+          }
+          daysStatus[`${day}_enabled`] = false;
+        }
         const response = await api.post(
           editingService ? `sp/services/${editingService.id}` : "/sp/services",
           {
