@@ -102,20 +102,25 @@ export default function CalendarPage() {
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
   // Function to get appointment color
-  const getAppointmentColor = (color: string) => {
-    switch (color) {
-      case "blue":
-        return "bg-[hsl(var(--appointment-blue))]";
-      case "pink":
-        return "bg-[hsl(var(--appointment-pink))]";
-      case "teal":
-        return "bg-[hsl(var(--appointment-teal))]";
-      case "orange":
-        return "bg-[hsl(var(--appointment-orange))]";
-      default:
-        return "bg-[hsl(var(--appointment-blue))]";
-    }
-  };
+  const getAppointmentColor = (() => {
+    let lastColor = '';
+    return () => {
+      const colors = [
+        "bg-[hsl(var(--appointment-blue))]",
+        "bg-[hsl(var(--appointment-pink))]", 
+        "bg-[hsl(var(--appointment-teal))]",
+        "bg-[hsl(var(--appointment-orange))]"
+      ];
+      
+      let newColor;
+      do {
+        newColor = colors[Math.floor(Math.random() * colors.length)];
+      } while (newColor === lastColor && colors.length > 1);
+      
+      lastColor = newColor;
+      return newColor;
+    };
+  })();
 
   // Function to get time slot index
   const getTimeSlotIndex = (time: string) => {
@@ -330,7 +335,7 @@ export default function CalendarPage() {
                             key={appointment.id}
                             className={cn(
                               "absolute rounded-md p-3 shadow-sm",
-                              getAppointmentColor("teal")
+                              getAppointmentColor()
                             )}
                             style={{
                               top: `${startTimeIndex * 48}px`,
