@@ -6,6 +6,7 @@ import { toast } from "react-hot-toast";
 import api from "@/services/api-service";
 import { AuthResponse, ErrorResponse } from "@/types/response";
 import { useMutation } from "@tanstack/react-query";
+import Link from "next/link";
 
 export default function VerifyEmailPage() {
   return (
@@ -60,17 +61,22 @@ function VerifyEmail() {
   }, [router, searchParams]);
 
   return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        {verifying ? (
-          <div>Verifying your email...</div>
-        ) : (
-          <div>
-            <p className="text-red-500">
-              Verification failed. Please try again or request a new
-              verification link.
-            </p>
-          </div>
-        )}
-      </div>
+    <div className="flex flex-col items-center justify-center min-h-screen">
+      {verifying ? (
+        <div>Verifying your email...</div>
+      ) : (
+        <div>
+          <p className="text-red-500">
+            Verification failed. Please try again or{" "}
+            <Link
+              href={"/auth/resend-verification-email"}
+              className="text-blue-500 hover:underline"
+            >
+              request a new verification link.
+            </Link>
+          </p>
+        </div>
+      )}
+    </div>
   );
 }

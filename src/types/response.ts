@@ -17,7 +17,7 @@ export interface PeriodicStatsResponse {
 
 export interface AnalyticsServiceDataResponse {
   status: boolean;
-  data: {serviceId: number; name: string; value: number;}[];
+  data: { serviceId: number; name: string; value: number }[];
 }
 
 export interface Summary {
@@ -189,6 +189,11 @@ export interface AuthResponse {
   data: Data;
   csrfToken: string;
   onBoardingCompleted: boolean;
+}
+
+export interface ResendVerificationResponse {
+  status: boolean;
+  message: string;
 }
 
 export interface Data {

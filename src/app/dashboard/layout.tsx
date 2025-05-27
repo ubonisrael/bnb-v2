@@ -10,9 +10,6 @@ import api, { getCsrfTokenFromCookie } from "@/services/api-service";
 function CSRFInitializer() {
   useEffect(() => {
     // Check if CSRF token is already set in the API service
-    console.log("Checking CSRF token in API service...");
-    console.log("Current CSRF token:", api.getCsrfToken());
-    
     if (api.getCsrfToken()) {
       return;
     }
