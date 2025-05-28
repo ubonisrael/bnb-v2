@@ -143,6 +143,34 @@ export function OnboardingWizard() {
       const isValid = await stepRef.current?.validate?.();
       if (isValid) {
         await onboardingMutation.mutateAsync(formData)
+        // reset form data to initial state
+        setFormData({
+          businessInfo: { name: "", email: "", phone: "" },
+          location: { address: "", city: "", state: "", postalCode: "", country: "" },
+          visualSettings: { logoUrl: "", primaryColor: "#7B68EE", accentColor: "" },
+          servicesSetup: { categories: [], services: [] },
+          bookingTemplate: { templateType: "default", bannerHeader: "", bannerMessage: "", aboutSubHeader: "", description: "", bannerImageUrl: "" },
+          paymentDetails: { provider: "", accountDetails: {} },
+          bookingSettings: {
+            welcome_message: "", maximum_notice: 0, minimum_notice: 0, time_zone: "",
+            sunday_enabled: false, sunday_opening: 480, sunday_closing: 1080,
+            monday_enabled: false, monday_opening: 480, monday_closing: 1080,
+            tuesday_enabled: false, tuesday_opening: 480, tuesday_closing: 1080,
+            wednesday_enabled: false, wednesday_opening: 480, wednesday_closing: 1080,
+            thursday_enabled: false, thursday_opening: 480, thursday_closing: 1080,
+            friday_enabled: false, friday_opening: 480, friday_closing: 1080,
+            saturday_enabled: false, saturday_opening: 480, saturday_closing: 1080,
+          },
+          notificationSettings: {
+            cancelNoticeHours: 24,
+            emailSettings: {
+              sendBookingConfirmations: true, sendReminders: true, reminderHours: 24,
+              sendCancellationNotices: true, sendNoShowNotifications: true,
+              sendFollowUpEmails: false, followUpDelayHours: 48,
+            }
+          }
+        });
+        setCurrentStepIndex(0);
       }
     } catch (error) {
       console.error("Failed to complete onboarding:", error)

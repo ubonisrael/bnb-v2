@@ -57,7 +57,6 @@ export function RegisterForm() {
       return api.post<SignupResponse>("auth/signup", data);
     },
     onSuccess: async (data: SignupResponse) => {
-      toast.loading("Setting up account...", { id: "register-loading" });
       toast.dismiss("register-loading");
       toast.success(data.message);
       if (data.token) {
@@ -68,19 +67,22 @@ export function RegisterForm() {
       }
       // await verifyEmailMutation.mutateAsync({ token: data.token })
     },
-    onError: (error: ErrorResponse) => {
+    onError: (error: any) => {
       toast.dismiss("register-loading");
-      toast.remove("register-loading");
-      toast.error(error.errors[0].message, { id: "register-error" });
+      // toast.remove("register-loading");
+      toast.error(`Error creating account - ${error.response.data.message}`, {
+        id: "register-error",
+      });
     },
   });
 
   async function onSubmit(data: RegisterFormValues) {
     try {
-      registerMutation.mutateAsync(data);
+      await registerMutation.mutateAsync(data);
     } catch (error: any) {
-      toast.dismiss("register-loading");
-      toast.error("Error creating account", { id: "register-error" });
+      console.error("Error creating account:", error);
+      // toast.dismiss("register-loading");
+      // toast.error("Error creating account", { id: "register-error" });
     }
   }
 
