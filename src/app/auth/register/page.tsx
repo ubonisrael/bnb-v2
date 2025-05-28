@@ -1,8 +1,6 @@
-
-import Image from "next/image"
-import Link from "next/link"
-import { RegisterForm } from "./register-form"
-
+import Image from "next/image";
+import Link from "next/link";
+import { RegisterForm } from "./register-form";
 
 export default function RegisterPage() {
   return (
@@ -13,10 +11,15 @@ export default function RegisterPage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[#7B68EE]">
               <span className="text-xl font-bold text-white">B</span>
             </div>
-            <h2 className="mt-6 text-2xl font-bold tracking-tight text-[#121212]">Create your account</h2>
+            <h2 className="mt-6 text-2xl font-bold tracking-tight text-[#121212]">
+              Create your account
+            </h2>
             <p className="mt-2 text-sm text-[#6E6E73]">
               Already have an account?{" "}
-              <Link href="/auth/login" className="font-medium text-[#7B68EE] hover:text-[#7B68EE]/90">
+              <Link
+                href="/auth/login"
+                className="font-medium text-[#7B68EE] hover:text-[#7B68EE]/90"
+              >
                 Sign in
               </Link>
             </p>
@@ -41,13 +44,13 @@ export default function RegisterPage() {
           <div className="mb-4 max-w-md rounded-xl bg-[#121212]/70 p-6 backdrop-blur-sm">
             <h3 className="mb-2 text-xl font-bold">Join BanknBook Today</h3>
             <p className="text-sm text-white/80">
-              The all-in-one platform for beauty and wellness professionals. Streamline bookings, manage clients, and
-              grow your business.
+              The all-in-one platform for businesses to manage bookings and
+              appointments. Streamline your operations, enhance customer
+              experience, and grow your business effortlessly.
             </p>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
-

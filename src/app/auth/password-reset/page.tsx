@@ -1,141 +1,52 @@
-"use client";
+import Image from "next/image";
+import Link from "next/link";
+import ResetPasswordForm from "./password-reset-form";
 
-import { Suspense, useState } from "react";
-import { toast } from "react-hot-toast";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useMutation } from "@tanstack/react-query";
-import { ErrorResponse } from "react-router-dom";
-import api from "@/services/api-service";
-import { useRouter, useSearchParams } from "next/navigation";
-
-const formSchema = z
-  .object({
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
-
-type ResetPasswordFormValues = z.infer<typeof formSchema>;
-
-export default function ResetPasswordPage() {
+export default function PasswordResetPage() {
   return (
-    <Suspense>
-      <ResetPassword />
-    </Suspense>
-  );
-}
+    <div className="flex min-h-screen">
+      <div className="flex flex-1 flex-col justify-center px-4 py-12 sm:px-6 lg:flex-none lg:px-20 xl:px-24">
+        <div className="mx-auto w-full max-w-sm lg:w-96">
+          <div className="flex flex-col items-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[#7B68EE]">
+              <Image src="/logo.png" alt="logo" width={100} height={100} />
+            </div>
+            <h2 className="mt-6 text-2xl font-bold tracking-tight text-[#121212]">Create new password</h2>
+            <p className="mt-2 text-sm text-[#6E6E73]">
+              Remember your password?{" "}
+              <Link href="/auth/login" className="font-medium text-[#7B68EE] hover:text-[#7B68EE]/90">
+                Sign in
+              </Link>
+            </p>
+          </div>
 
-function ResetPassword() {
-  const [loading, setLoading] = useState(false);
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token");
-
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      password: "",
-      confirmPassword: "",
-    },
-  });
-  const router = useRouter()
-
-  const resetPasswordMutation = useMutation<
-    { status: boolean; message: string },
-    ErrorResponse,
-    ResetPasswordFormValues & { token: string }
-  >({
-    mutationFn: (data) => {
-      return api.post("auth/password-reset", data);
-    },
-    onSuccess: (data) => {
-      toast.success(data.message, { id: "reset-password" });
-      form.reset();
-      router.push("/auth/login");
-    },
-    onError: (error: any) => {
-      toast.error(error.message, { id: "reset-password" });
-    },
-  });
-
-  const onSubmit = async (values: ResetPasswordFormValues) => {
-    if (!token) {
-      toast.error("Reset token is missing");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      resetPasswordMutation.mutate({ ...values, token });
-    } catch (err: any) {
-      toast.error(err.message || "Failed to reset password");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-4 max-w-sm mx-auto"
-      >
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>New Password</FormLabel>
-              <FormControl>
-                <Input
-                  type="password"
-                  placeholder="Enter new password"
-                  {...field}
-                  disabled={loading}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          <div className="mt-8">
+            <div className="text-sm text-[#6E6E73] mb-6">
+              Create a new password for your account. Make sure it's strong and unique.
+            </div>
+            <ResetPasswordForm />
+          </div>
+        </div>
+      </div>
+      <div className="relative hidden w-0 flex-1 lg:block">
+        <Image
+          className="absolute inset-0 h-full w-full object-cover"
+          src="/login.png"
+          width={1920}
+          height={1080}
+          alt="Beauty salon"
+          priority
         />
-
-        <FormField
-          control={form.control}
-          name="confirmPassword"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Confirm Password</FormLabel>
-              <FormControl>
-                <Input
-                  type="password"
-                  placeholder="Confirm new password"
-                  {...field}
-                  disabled={loading}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button type="submit" disabled={loading} className="w-full">
-          {loading ? "Resetting..." : "Reset Password"}
-        </Button>
-      </form>
-    </Form>
-  );
+        <div className="absolute inset-0 bg-[#7B68EE]/10 backdrop-blur-sm"></div>
+        <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
+          <div className="mb-4 max-w-md rounded-xl bg-[#121212]/70 p-6 backdrop-blur-sm">
+            <h3 className="mb-2 text-xl font-bold">Create New Password</h3>
+            <p className="text-sm text-white/80">
+              Choose a strong password to secure your BanknBook account. Make sure to include a mix of letters, numbers, and special characters.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }

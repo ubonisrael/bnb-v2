@@ -39,7 +39,7 @@ export default function LoginPage() {
           <div className="mb-4 max-w-md rounded-xl bg-[#121212]/70 p-6 backdrop-blur-sm">
             <h3 className="mb-2 text-xl font-bold">Welcome Back</h3>
             <p className="text-sm text-white/80">
-              Log in to manage your beauty and wellness business with BanknBook's powerful suite of tools.
+              Log in to manage your business with BanknBook's powerful suite of tools.
             </p>
           </div>
         </div>
