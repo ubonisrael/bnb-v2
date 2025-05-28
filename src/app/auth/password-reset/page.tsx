@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import ResetPasswordForm from "./password-reset-form";
+import { Suspense } from "react";
 
 export default function PasswordResetPage() {
   return (
@@ -24,7 +25,9 @@ export default function PasswordResetPage() {
             <div className="text-sm text-[#6E6E73] mb-6">
               Create a new password for your account. Make sure it's strong and unique.
             </div>
-            <ResetPasswordForm />
+            <Suspense>
+              <ResetPasswordForm />
+            </Suspense>
           </div>
         </div>
       </div>
