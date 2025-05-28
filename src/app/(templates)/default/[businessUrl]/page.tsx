@@ -94,18 +94,43 @@ async function getServiceProviderDetails(url: string) {
           },
         ],
       };
-    } 
-    const reponse = await api.get<TemplateResponse>(`sp/${url}/data`);
-    return reponse.data;
+    }
+    const response = await api.get<TemplateResponse>(`sp/${url}/data`);
+    return { data: response.data, error: null };
   } catch (error) {
-    console.error(error);
-    return null;
+    return { data: null, error };
   }
 }
 
 export default async function LandingPage(props: Params) {
   const { businessUrl } = await props.params;
-  let data = await getServiceProviderDetails(businessUrl) as LandingTemplate;
+  let { data, error } = (await getServiceProviderDetails(businessUrl)) as {
+    data: LandingTemplate;
+    error: any;
+  };
+
+  if (error) {
+    console.error("Failed to load business details:", error.response || error);
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center p-4">
+          <h1 className="text-4xl font-bold text-red-600 mb-4">
+            {error.response?.data?.field || "Sorry, an error occurred."}
+          </h1>
+          <p className="text-gray-600 mb-4">
+            {error.response?.data?.message ||
+              "We couldn't load the business details. Please try again later."}
+          </p>
+          <Link
+            href="/"
+            className="text-blue-500 hover:text-blue-700 underline"
+          >
+            Return to Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (businessUrl === "preview") {
     return <DynamicComponentWrapper />;

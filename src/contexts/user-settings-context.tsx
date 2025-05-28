@@ -97,6 +97,10 @@ export interface UserSettings {
     cancelAtPeriodEnd: boolean;
     trialEndDate?: string | null;
   };
+  stripeAccount: {
+    id: string | null;
+    status: string | null;
+  }
 }
 
 // Create the context
