@@ -2,6 +2,9 @@ import axios, { type AxiosInstance, type AxiosRequestConfig } from "axios";
 import toast from "react-hot-toast";
 
 export const getCsrfTokenFromCookie = () => {
+  if (typeof document === "undefined") {
+    return null
+  }
   const match = document.cookie.match(/(^| )csrfToken=([^;]+)/);
   return match ? decodeURIComponent(match[2]) : null;
 };
