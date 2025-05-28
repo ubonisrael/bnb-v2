@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
 import { UserSettingsProvider } from "@/contexts/user-settings-context";
 import api, { getCsrfTokenFromCookie } from "@/services/api-service";
+import { InfoBar } from "@/components/dashboard/info-bar";
 
 function CSRFInitializer() {
   useEffect(() => {
@@ -77,6 +78,7 @@ export default function DashboardLayout({
           style={{ marginLeft: sidebarWidth }}
         >
           <Header />
+          <InfoBar />
           <main className="flex-1 p-6">{children}</main>
         </div>
       </div>
