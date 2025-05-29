@@ -62,6 +62,8 @@ export function BookingDaysSettings() {
     defaultValues: {
       welcome_message: settings?.bookingSettings?.welcome_message || "",
       time_zone: settings?.bookingSettings?.time_zone || "",
+      allow_deposits: settings?.bookingSettings?.allow_deposits || false,
+      deposit_amount: settings?.bookingSettings?.deposit_amount || undefined,
       minimum_notice: settings?.bookingSettings?.minimum_notice || 0,
       maximum_notice: settings?.bookingSettings?.maximum_notice || 0,
       monday_enabled: settings?.bookingSettings?.monday_enabled || false,
@@ -138,6 +140,8 @@ export function BookingDaysSettings() {
     }
   };
 
+  const watchDeposits = form.watch("allow_deposits");
+
   return (
     <div className="space-y-6">
       <Form {...form}>
@@ -205,52 +209,97 @@ export function BookingDaysSettings() {
           />
 
           <FormField
-            control={form.control}
-            name="minimum_notice"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Minimum Notice</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="0"
-                    value={field.value || ""}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Enter the minimum number of days' notice required before a
-                  customer can book an appointment. For example, if set to 2,
-                  the earliest available booking will be two days from today.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          control={form.control}
+          name="minimum_notice"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Minimum Notice</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={field.value || ""}
+                  onChange={(e) => field.onChange(Number(e.target.value))}
+                />
+              </FormControl>
+              <FormDescription>
+                Enter the minimum number of days required before a
+                customer can book an appointment. For example, if set to 2, the
+                earliest available booking will be two days from today.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <FormField
-            control={form.control}
-            name="maximum_notice"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Maximum Notice</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="0"
-                    value={field.value || ""}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
+        <FormField
+          control={form.control}
+          name="maximum_notice"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Maximum Notice</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={field.value || ""}
+                  onChange={(e) => field.onChange(Number(e.target.value))}
+                />
+              </FormControl>
+              <FormDescription>
+                Enter the maximum number of days from the current day within which a
+                customer can book an appointment. For example, if set to 14, the
+                latest available booking will be 14 days from today.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {/* Allow Deposits Toggle */}
+        <FormField
+          control={form.control}
+          name="allow_deposits"
+          render={({ field }) => (
+            <FormItem className="flex items-center justify-between space-y-0 border p-3 rounded-lg">
+              <div className="space-y-0.5">
+                <FormLabel>Allow Deposits</FormLabel>
                 <FormDescription>
-                  Enter the maximum number of days' notice required before a
-                  customer can book an appointment. For example, if set to 14,
-                  the latest available booking will be 14 days from today.
+                  Enable this option to require only a portion of the total
+                  service fee upfront.
                 </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="deposit_amount"
+          disabled={!watchDeposits}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Deposit Amount</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="e.g. 30"
+                  {...field}
+                  value={field.value ?? ""}
+                />
+              </FormControl>
+              <FormDescription>
+                Specify the minimum amout required for a deposit.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
           {/* Booking Days Section */}
           <div className="mb-6">
             <h3 className="font-medium text-[#121212]">Booking Days & Hours</h3>

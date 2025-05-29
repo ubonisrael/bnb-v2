@@ -57,6 +57,8 @@ export interface BookingSettingsData {
   maximum_notice: number;
   minimum_notice: number;
   welcome_message: string;
+  allow_deposits: boolean;
+  deposit_amount?: number | undefined;
   sunday_enabled: boolean;
   sunday_opening: number;
   sunday_closing: number;
@@ -82,13 +84,13 @@ export interface BookingSettingsData {
 }
 
 export interface BookingTemplateData {
-    templateType: string;
-    bannerHeader: string;
-    bannerMessage: string;
-    aboutSubHeader: string;
-    bannerImageUrl: string;
-    description: string;
-  }
+  templateType: string;
+  bannerHeader: string;
+  bannerMessage: string;
+  aboutSubHeader: string;
+  bannerImageUrl: string;
+  description: string;
+}
 
 export interface OnboardingFormData {
   businessInfo: BusinessInfoData;

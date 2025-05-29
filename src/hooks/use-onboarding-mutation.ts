@@ -35,6 +35,8 @@ export function useOnboardingMutation() {
                 follow_up_delay: data.notificationSettings.emailSettings.followUpDelayHours,
                 welcome_message: data.bookingSettings.welcome_message,
                 time_zone: data.bookingSettings.time_zone,
+                allow_deposits: data.bookingSettings.allow_deposits,
+                deposit_amount: data.bookingSettings.deposit_amount,
                 minimum_notice: data.bookingSettings.minimum_notice,
                 maximum_notice: data.bookingSettings.maximum_notice,
                 sunday_enabled: data.bookingSettings.sunday_enabled,

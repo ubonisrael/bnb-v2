@@ -1,13 +1,11 @@
 "use client";
 
-import { Ref, useImperativeHandle, useState } from "react";
+import { Ref, useImperativeHandle } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Plus, Clock, DollarSign, Calendar, Edit, Trash } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-
 import {
   Form,
   FormControl,
@@ -18,14 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -43,6 +34,17 @@ const createBookingSettingsSchema = (allowedTimeZones: string[]) =>
       welcome_message: z
         .string()
         .min(24, { message: "Welcome message must be at least 24 characters" }),
+      allow_deposits: z.boolean({
+        message: "allow deposits must be a boolean",
+      }),
+      deposit_amount: z
+        .number({
+          required_error:
+            "Deposit amount is required when deposits are allowed.",
+          invalid_type_error: "Deposit amount must be a number.",
+        })
+        .min(5, "Must be at least 5")
+        .optional(),
       maximum_notice: z
         .number()
         .min(0, { message: "Maximum notice must be at least 0" }),
@@ -79,6 +81,26 @@ const createBookingSettingsSchema = (allowedTimeZones: string[]) =>
       saturday_closing: z.number().default(0),
     })
     .superRefine((data: Record<string, any>, ctx) => {
+      if (
+        data.allow_deposits &&
+        (data.deposit_amount === undefined ||
+          data.deposit_amount === undefined)
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Deposit amount is required when deposits are enabled.",
+          path: ["deposit_amount"],
+        });
+      }
+
+      if (!data.allow_deposits && data.deposit_amount !== undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            "Deposit amount must be empty when deposits are disabled.",
+          path: ["deposit_amount"],
+        });
+      }
       const days = [
         "sunday",
         "monday",
@@ -154,13 +176,11 @@ export function BookingSettingsSetupStep({
     },
   }));
 
-  function onSubmit(values: BookingSettingsData) {
-    // onUpdate(values)
-  }
+  const watchDeposits = form.watch("allow_deposits");
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form className="space-y-6">
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-[#121212]">
             Booking Settings Setup
@@ -238,9 +258,9 @@ export function BookingSettingsSetupStep({
                 />
               </FormControl>
               <FormDescription>
-                Enter the minimum number of days' notice required before a
-                customer can book an appointment. For example, if set to 2, the
-                earliest available booking will be two days from today.
+                Enter the minimum number of days required before a customer can
+                book an appointment. For example, if set to 2, the earliest
+                available booking will be two days from today.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -262,9 +282,54 @@ export function BookingSettingsSetupStep({
                 />
               </FormControl>
               <FormDescription>
-                Enter the maximum number of days' notice required before a
-                customer can book an appointment. For example, if set to 14, the
-                latest available booking will be 14 days from today.
+                Enter the maximum number of days from the current day within
+                which a customer can book an appointment. For example, if set to
+                14, the latest available booking will be 14 days from today.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {/* Allow Deposits Toggle */}
+        <FormField
+          control={form.control}
+          name="allow_deposits"
+          render={({ field }) => (
+            <FormItem className="flex items-center justify-between space-y-0 border p-3 rounded-lg">
+              <div className="space-y-0.5">
+                <FormLabel>Allow Deposits</FormLabel>
+                <FormDescription>
+                  Enable this option to require only a portion of the total
+                  service fee upfront.
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="deposit_amount"
+          disabled={!watchDeposits}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Deposit Amount</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="e.g. 30"
+                  {...field}
+                  value={field.value ?? ""}
+                />
+              </FormControl>
+              <FormDescription>
+                Specify the minimum amout required for a deposit.
               </FormDescription>
               <FormMessage />
             </FormItem>

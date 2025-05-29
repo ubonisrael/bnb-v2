@@ -36,7 +36,7 @@ export function PaymentDetailsStep({ data, onUpdate, ref }: PaymentDetailsStepPr
         stripeAccountId: data.paymentDetails.accountDetails?.stripeAccountId || "",
         stripePublishableKey: data.paymentDetails.accountDetails?.stripePublishableKey || "",
         requireFullPayment: data.paymentDetails.accountDetails?.requireFullPayment || false,
-        allowDeposits: data.paymentDetails.accountDetails?.allowDeposits || false,
+        allow_deposits: data.paymentDetails.accountDetails?.allow_deposits || false,
         paypalEmail: data.paymentDetails.accountDetails?.paypalEmail || "",
         paypalClientId: data.paymentDetails.accountDetails?.paypalClientId || "",
         squareAccessToken: data.paymentDetails.accountDetails?.squareAccessToken || "",
@@ -195,7 +195,7 @@ export function PaymentDetailsStep({ data, onUpdate, ref }: PaymentDetailsStepPr
 
                 <FormField
                   control={form.control}
-                  name="accountDetails.allowDeposits"
+                  name="accountDetails.allow_deposits"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                       <div className="space-y-0.5">

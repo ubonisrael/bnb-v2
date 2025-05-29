@@ -55,6 +55,8 @@ export interface UserSettings {
   services: Service[];
   bookingSettings: {
     url: string;
+    allow_deposits: boolean;
+    deposit_amount:  number | undefined;
     minimum_notice: number;
     maximum_notice: number;
     time_zone: string;
@@ -131,7 +133,7 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
         // get user data
         // check if csrftoken exists
         const businessData = await api.get("sp");
-        console.log(businessData);
+        // console.log(businessData);
 
         if (businessData) {
           setSettings(businessData as UserSettings);
