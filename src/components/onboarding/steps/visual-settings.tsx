@@ -70,7 +70,6 @@ export function VisualSettingsStep({
   }));
 
   // Handle logo upload
-  // Handle logo upload
   const handleLogoUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {

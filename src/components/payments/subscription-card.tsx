@@ -3,39 +3,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { loadStripe } from "@stripe/stripe-js";
-import { useEffect, useState } from "react";
 import api from "@/services/api-service";
 import toast from "react-hot-toast";
 import { useUserSettings } from "@/contexts/user-settings-context";
 
-interface Subscription {
-  stripeSubscriptionId: string | null;
-  planName: string;
-  status: string;
-  cancelAtPeriodEnd: boolean;
-  nextBillingDate: string | null;
-  trialEndDate?: string | null;
-}
-
 export default function SubscriptionDetails() {
     const { settings } = useUserSettings()
-//   const [subscription, setSubscription] = useState<Subscription | null>(null);
-//   const [loading, setLoading] = useState(true);
-
-//   useEffect(() => {
-//     const fetchSubscription = async () => {
-//       try {
-//         const res = await api.get<{ subscription: Subscription | null }>("stripe/subscription-settings");
-//         setSubscription(res.subscription);
-//       } catch (err) {
-//         toast.error("Failed to load subscription details.");
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchSubscription();
-//   }, []);
 
   if (!settings) {
     return (
@@ -109,9 +82,9 @@ export default function SubscriptionDetails() {
               You don’t have an active subscription. Choose a plan to get started:
             </p>
 
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
               {[
-                { name: "Pro", price: "£10/mo", stripePriceId: "price_456" },
+                { name: "Pro Plan", price: "£10/mo", stripePriceId: "price_456" },
               ].map((plan) => (
                 <Card key={plan.stripePriceId} className="border shadow-sm p-4 space-y-2">
                   <h4 className="font-semibold">{plan.name}</h4>
@@ -119,7 +92,7 @@ export default function SubscriptionDetails() {
                   <Button
                     onClick={async () => {
                       try {
-                        const res = await api.post<{ session_id: string }>(
+                        const res = await api.post<{ status: boolean; message?:string; session_id?: string }>(
                           "stripe/create-subscription-session",
                           {}
                         );
@@ -131,7 +104,7 @@ export default function SubscriptionDetails() {
                           return;
                         }
                         if (!res.session_id) {
-                          toast.error("Failed to create checkout session");
+                          toast.error(res.message || "Failed to create checkout session");
                           return;
                         }
                         await stripe.redirectToCheckout({

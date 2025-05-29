@@ -1,21 +1,12 @@
 export interface BusinessInfoData {
+  logoUrl: string;
   name: string;
-  email: string;
   phone: string;
-}
-
-export interface LocationData {
   address: string;
   city: string;
   state: string;
   postalCode: string;
   country: string;
-}
-
-export interface VisualSettingsData {
-  logoUrl: string;
-  primaryColor: string;
-  accentColor: string;
 }
 
 export interface ServiceCategory {
@@ -45,11 +36,6 @@ export interface Service {
 export interface ServicesSetupData {
   categories: ServiceCategory[];
   services: Service[];
-}
-
-export interface PaymentDetailsData {
-  provider: string;
-  accountDetails: Record<string, string>;
 }
 
 export interface EmailSettingsData {
@@ -106,10 +92,7 @@ export interface BookingTemplateData {
 
 export interface OnboardingFormData {
   businessInfo: BusinessInfoData;
-  location: LocationData;
-  visualSettings: VisualSettingsData;
   servicesSetup: ServicesSetupData;
-  paymentDetails: PaymentDetailsData;
   notificationSettings: NotificationSettingsData;
   bookingSettings: BookingSettingsData;
   bookingTemplate: BookingTemplateData;

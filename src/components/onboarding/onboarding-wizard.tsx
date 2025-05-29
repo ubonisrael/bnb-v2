@@ -1,15 +1,9 @@
 "use client"
 
-import { useState, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { useRef } from "react"
 import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import { BusinessInfoStep } from "./steps/business-info"
-import { LocationStep } from "./steps/location"
-import { VisualSettingsStep } from "./steps/visual-settings"
-import { TeamSizeStep } from "./steps/team-size"
-import { BusinessTypeStep } from "./steps/business-type"
 import { ServicesSetupStep } from "./steps/services-setup"
 import { BookingTemplateStep } from "./steps/booking-template"
 import { PaymentDetailsStep } from "./steps/payment-details"
@@ -18,17 +12,18 @@ import { BookingSettingsSetupStep } from "./steps/booking-settings"
 import { OnboardingFormData } from "./type"
 import { useOnboardingMutation } from '@/hooks/use-onboarding-mutation';
 import useLocalStorage from "use-local-storage"
+import toast from "react-hot-toast"
 
 
 const steps = [
   { id: "business-info", title: "Business Information" },
   // { id: "business-type", title: "Business Type" },
-  { id: "location", title: "Location" },
+  // { id: "location", title: "Location" },
   // { id: "team-size", title: "Team Size" },
-  { id: "visual-settings", title: "Visual Settings" },
+  // { id: "visual-settings", title: "Visual Settings" },
   { id: "services-setup", title: "Services" },
   { id: "booking-template", title: "Booking Template" },
-  { id: "payment-details", title: "Payment Details" },
+  // { id: "payment-details", title: "Payment Details" },
   { id: "booking-settings", title: "Booking Settings" },
   { id: "notification-settings", title: "Notifications" },
 ]
@@ -39,21 +34,13 @@ export function OnboardingWizard() {
   const [formData, setFormData] = useLocalStorage<OnboardingFormData>('onboarding-data', {
     businessInfo: {
       name: "",
-      email: "",
       phone: "",
-    },
-    location: {
       address: "",
       city: "",
       state: "",
       postalCode: "",
       country: "",
-    },
-    // teamSize: "",
-    visualSettings: {
       logoUrl: "",
-      primaryColor: "#7B68EE",
-      accentColor: "",
     },
     servicesSetup: {
       categories: [],
@@ -66,10 +53,6 @@ export function OnboardingWizard() {
       aboutSubHeader: "",
       description: "",
       bannerImageUrl: ""
-    },
-    paymentDetails: {
-      provider: "",
-      accountDetails: {},
     },
     bookingSettings: {
       welcome_message: "",
@@ -145,12 +128,9 @@ export function OnboardingWizard() {
         await onboardingMutation.mutateAsync(formData)
         // reset form data to initial state
         setFormData({
-          businessInfo: { name: "", email: "", phone: "" },
-          location: { address: "", city: "", state: "", postalCode: "", country: "" },
-          visualSettings: { logoUrl: "", primaryColor: "#7B68EE", accentColor: "" },
+          businessInfo: { logoUrl: "", name: "", phone: "", address: "", city: "", state: "", postalCode: "", country: "" },
           servicesSetup: { categories: [], services: [] },
           bookingTemplate: { templateType: "default", bannerHeader: "", bannerMessage: "", aboutSubHeader: "", description: "", bannerImageUrl: "" },
-          paymentDetails: { provider: "", accountDetails: {} },
           bookingSettings: {
             welcome_message: "", maximum_notice: 0, minimum_notice: 0, time_zone: "",
             sunday_enabled: false, sunday_opening: 480, sunday_closing: 1080,
@@ -172,8 +152,8 @@ export function OnboardingWizard() {
         });
         setCurrentStepIndex(0);
       }
-    } catch (error) {
-      console.error("Failed to complete onboarding:", error)
+    } catch (error: any) {
+      toast.error("Failed to complete onboarding:", error.message)
     }
   }
 
@@ -227,27 +207,6 @@ export function OnboardingWizard() {
             <BusinessInfoStep ref={stepRef} data={formData} onUpdate={(data) => updateFormData("businessInfo", data)} />
           )}
 
-          {/* {currentStep.id === "business-type" && (
-            <BusinessTypeStep data={formData.businessType} onUpdate={(data) => updateFormData("businessType", data)} />
-          )} */}
-
-          {currentStep.id === "location" && (
-            <LocationStep
-             ref={stepRef} data={formData} onUpdate={(data) => updateFormData("location", data)} />
-          )}
-
-          {/* {currentStep.id === "team-size" && (
-            <TeamSizeStep data={formData.teamSize} onUpdate={(data) => updateFormData("teamSize", data)} />
-          )} */}
-
-          {currentStep.id === "visual-settings" && (
-            <VisualSettingsStep
-             ref={stepRef}
-              data={formData.visualSettings}
-              onUpdate={(data) => updateFormData("visualSettings", data)}
-            />
-          )}
-
           {currentStep.id === "services-setup" && (
             <ServicesSetupStep
              ref={stepRef} data={formData} onUpdate={(data) => updateFormData("servicesSetup", data)} />
@@ -260,14 +219,6 @@ export function OnboardingWizard() {
             onUpdate={(data) => updateFormData("bookingTemplate", data)}
           />
         )}
-
-          {currentStep.id === "payment-details" && (
-            <PaymentDetailsStep
-             ref={stepRef}
-              data={formData}
-              onUpdate={(data) => updateFormData("paymentDetails", data)}
-            />
-          )}
 
           {currentStep.id === "booking-settings" && (
             <BookingSettingsSetupStep
