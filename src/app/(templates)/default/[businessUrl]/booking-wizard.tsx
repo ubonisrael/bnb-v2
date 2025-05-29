@@ -24,8 +24,8 @@ dayjs.extend(timezone);
 interface BookingFormValues {
   name: string;
   email: string;
-  fee: number;
-  total_amount: number;
+  amount_paid: number;
+  amount_due: number;
   gender: string;
   age_category: string;
   event_date: string;
@@ -88,8 +88,8 @@ export function BookingWizard(props: BusinessDataType) {
     if (selectedDate && selectedTime) {
       const bookingData: BookingFormValues = {
         ...data,
-        fee: getTotalPrice(),
-        total_amount: getTotalPrice(),
+        amount_paid: getTotalPrice(),
+        amount_due: getTotalPrice(),
         event_date: selectedDate,
         event_time: selectedTime,
         event_duration: getTotalDuration(),
