@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { LandingTab } from "./tabs/landing";
-import { BusinessDataType } from "./types";
 import { useApp } from "@/contexts/AppContext";
 import BookingForm, {
   BookingType,
@@ -14,9 +12,11 @@ import api from "@/services/api-service";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import { BusinessLanding } from "./tabs/landing";
 import { ServicesTab } from "./tabs/services";
 import { DateTimePickerTab } from "./tabs/pickdatetime";
 import { ConfirmationTab } from "./tabs/confirmation";
+import { BusinessData } from "./types";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -24,8 +24,6 @@ dayjs.extend(timezone);
 interface BookingFormValues {
   name: string;
   email: string;
-  amount_paid: number;
-  amount_due: number;
   gender: string;
   age_category: string;
   event_date: string;
@@ -42,7 +40,7 @@ const steps = [
   { id: "confirmation", title: "Confirmation" },
 ];
 
-export function BookingWizard(props: BusinessDataType) {
+export function BookingWizard(props: BusinessData) {
   const {
     selectedServices,
     getTotalDuration,
@@ -88,8 +86,6 @@ export function BookingWizard(props: BusinessDataType) {
     if (selectedDate && selectedTime) {
       const bookingData: BookingFormValues = {
         ...data,
-        amount_paid: getTotalPrice(),
-        amount_due: getTotalPrice(),
         event_date: selectedDate,
         event_time: selectedTime,
         event_duration: getTotalDuration(),
@@ -109,7 +105,7 @@ export function BookingWizard(props: BusinessDataType) {
     <div className="mx-auto max-w-7xl w-full">
       <div className="px-6 py-6">
         {currentStep.id === "landing" && (
-          <LandingTab gotoBooking={goToTab} {...props} />
+          <BusinessLanding gotoBooking={goToTab} {...props} />
         )}
         {currentStep.id === "services" && (
           <ServicesTab
@@ -136,6 +132,12 @@ export function BookingWizard(props: BusinessDataType) {
         {/* Booking Form Modal */}
         {showServiceModal && selectedDate && selectedTime && (
           <BookingForm
+            bookingPolicy={props.bookingPolicy}
+            additionalPolicy={props.additionalPolicies}
+            currencySymbol={props.currencySymbol}
+            amount={getTotalPrice()}
+            allowDeposits={props.allowDeposits}
+            depositAmount={props.depositAmount}
             showServiceModal={showServiceModal}
             setShowServiceModal={setShowServiceModal}
             onSubmit={onSubmit}

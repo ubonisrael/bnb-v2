@@ -34,7 +34,7 @@ const Cart: React.FC<CartProps> = ({
   } = useApp();
 
   return (
-    <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 h-auto">
+    <div className="md:sticky md:top-4 w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 h-auto">
       <div className="flex items-center mb-6">
         <AvatarImage url={logo} name={name} />
         <h3 className="ml-3 text-xl font-bold text-gray-900 dark:text-white">

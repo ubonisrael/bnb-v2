@@ -1,18 +1,17 @@
 "use client";
 
-import ServiceCardGrid from "@/components/templates/default/ServiceCardGrid";
 import Cart from "@/components/templates/default/Cart";
 import { ServicesTabPropsInterface } from "../types";
 import { Button } from "@/components/templates/default/ui/button";
 import { Home } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useEffect } from "react";
+import ServicesSection from "./components/services-section";
 
 export function ServicesTab({
   name,
   logo,
-  categories,
-  services,
+  serviceCategories,
   gotoNextTab,
   gotoPrevTab,
 }: ServicesTabPropsInterface) {
@@ -42,11 +41,11 @@ export function ServicesTab({
         <div className="flex flex-col lg:flex-row">
           {/* Left Column: Services (3/5 width) */}
           <div className="w-full lg:w-3/5 pr-0 lg:pr-8 mb-6 lg:mb-0">
-            <ServiceCardGrid categories={categories} services={services} />
+            <ServicesSection serviceCategories={serviceCategories} index={1} />
           </div>
 
           {/* Right Column: Cart (2/5 width) */}
-          <div className="w-full lg:w-2/5">
+          <div className="relative w-full lg:w-2/5">
             <Cart name={name} logo={logo} gotoBooking={gotoNextTab} />
           </div>
         </div>

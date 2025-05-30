@@ -11,11 +11,9 @@ export default function LandingPageLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ThemeProvider>
       <AppProvider>
-        <Navbar />
+        {/* <Navbar /> */}
         {children}
       </AppProvider>
-    </ThemeProvider>
   );
 }

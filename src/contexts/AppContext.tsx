@@ -1,11 +1,11 @@
 "use client";
 
-import { Service, ServiceCategory } from "@/components/onboarding/type";
 import React, { createContext, useContext } from "react";
 import useLocalStorage from "use-local-storage";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import { Service } from "@/app/(templates)/default/[businessUrl]/types";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -14,8 +14,6 @@ dayjs.extend(timezone);
 export type AppStep = "home" | "services" | "datetime" | "confirmation";
 
 type AppContextType = {
-  activeCategoryTab?: ServiceCategory;
-  setActiveCategoryTab: (category: ServiceCategory) => void;
   selectedServices: Service[];
   addService: (service: Service) => void;
   removeService: (serviceId: string) => void;
@@ -32,11 +30,6 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
 
-  const [activeCategoryTab, setActiveCategoryTab] =
-    useLocalStorage<ServiceCategory>("activeCategoryTab", {
-      id: 0,
-      name: "",
-    });
   const [selectedServices, setSelectedServices] = useLocalStorage<Service[]>(
     "selectedServices",
     []
@@ -79,8 +72,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   return (
     <AppContext.Provider
       value={{
-        activeCategoryTab,
-        setActiveCategoryTab,
         selectedServices,
         addService,
         removeService,
