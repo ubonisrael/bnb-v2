@@ -38,7 +38,7 @@ export const settingsSchema = z
     stripePublishableKey: z
       .string()
       .min(1, "Stripe Publishable Key is required."),
-    allowDeposits: z.boolean(),
+    allow_deposits: z.boolean(),
     depositPercentage: z
       .number({
         required_error:
@@ -51,7 +51,7 @@ export const settingsSchema = z
   })
   .superRefine((data, ctx) => {
     if (
-      data.allowDeposits &&
+      data.allow_deposits &&
       (data.depositPercentage === undefined || data.depositPercentage === null)
     ) {
       ctx.addIssue({
@@ -61,7 +61,7 @@ export const settingsSchema = z
       });
     }
 
-    if (!data.allowDeposits && data.depositPercentage !== undefined) {
+    if (!data.allow_deposits && data.depositPercentage !== undefined) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Deposit percentage must be empty when deposits are disabled.",
@@ -101,12 +101,12 @@ export default function PaymentDashboardPage() {
     defaultValues: {
       stripeAccountId: "",
       stripePublishableKey: "",
-      allowDeposits: false,
+      allow_deposits: false,
       depositPercentage: undefined,
     },
   });
 
-  const watchDeposits = form.watch("allowDeposits");
+  const watchDeposits = form.watch("allow_deposits");
 
   return (
     <div className="space-y-6">
@@ -178,7 +178,7 @@ export default function PaymentDashboardPage() {
               {/* Allow Deposits Toggle */}
               <FormField
                 control={form.control}
-                name="allowDeposits"
+                name="allow_deposits"
                 render={({ field }) => (
                   <FormItem className="flex items-center justify-between space-y-0 border p-3 rounded-lg">
                     <div className="space-y-0.5">

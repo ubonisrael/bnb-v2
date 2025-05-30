@@ -21,39 +21,29 @@ import {
 } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { Ref, useImperativeHandle, useState } from "react";
+import { Ref, useImperativeHandle, useRef, useState } from "react";
 import { storage } from "@/services/firebase";
 import toast from "react-hot-toast";
 import Image from "next/image";
 import { Button } from "@/components/templates/default/ui/button";
 import { BookingTemplateData } from "../type";
+import { da } from "date-fns/locale";
 
 export const bookingTemplateSchema = z.object({
   templateType: z
     .string()
     .min(1, { message: "Please select a booking template" }),
-  bannerHeader: z
+  aboutUs: z
     .string()
-    .min(16, { message: "Banner header must be at least 16 characters" })
-    .max(100, { message: "Banner header must be at most 100 characters" }),
-  bannerMessage: z
+    .min(24, { message: "About Us must be at least 24 characters" })
+    .max(500, { message: "Banner header must be at most 500 characters" }),
+  additionalPolicies: z
     .string()
-    .min(24, { message: "Banner message must be at least 24 characters" })
-    .max(200, { message: "Banner message must be at most 200 characters" }),
-  aboutSubHeader: z
-    .string()
-    .min(16, {
-      message: "About section subheader must be at least 16 characters",
+    .max(1024, {
+      message: "Additional Policies must be at most 1024 characters",
     })
-    .max(100, {
-      message: "About section subheader must be at most 100 characters",
-    }),
-  description: z
-    .string()
-    .min(24, { message: "Description must be at least 24 characters" })
-    .max(500, { message: "Description must be at most 500 characters" }),
+    .optional(),
 });
-
 
 interface BookingTemplateStepProps {
   data: BookingTemplateData;
@@ -66,34 +56,53 @@ export function BookingTemplateStep({
   onUpdate,
   ref,
 }: BookingTemplateStepProps) {
-  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const form = useForm<Omit<BookingTemplateData, "bannerImageUrl">>({
+  const [images, setImages] = useState<
+    {
+      id: string;
+      src: string;
+      alt: string;
+    }[]
+  >([...data.images]);
+  const form = useForm<Omit<BookingTemplateData, "images">>({
     resolver: zodResolver(bookingTemplateSchema),
     defaultValues: {
       templateType: data.templateType || "",
-      bannerHeader: data.bannerHeader || "",
-      bannerMessage: data.bannerMessage || "",
-      aboutSubHeader: data.aboutSubHeader || "",
-      description: data.description || "",
+      aboutUs: data.aboutUs || "",
+      additionalPolicies: data.additionalPolicies || "",
     },
   });
+  const formRef = useRef<HTMLFormElement | null>(null);
+
+  const onError = (errors: any) => {
+    if (!formRef.current) return;
+    const firstErrorField = Object.keys(errors)[0];
+    const errorElement = formRef.current.querySelector(
+      `[name="${firstErrorField}"]`
+    );
+    if (errorElement) {
+      errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
+      (errorElement as HTMLElement).focus();
+    }
+  };
 
   useImperativeHandle(ref, () => ({
     async validate() {
-      const bannerUrlPresent = !!bannerUrl
-      if (!bannerUrlPresent) {
-        toast.error("Please upload a banner image");
+      const imagePresent = !!images.length;
+      if (!imagePresent) {
+        toast.error("Please upload at least one image");
         return false;
       }
       const isValid = await form.trigger(); // runs validation
+      if (!isValid) {
+        onError(form.formState.errors);
+      }
       if (isValid) {
         onUpdate({
           ...form.getValues(),
-          bannerImageUrl: bannerUrl
+          images: [...images],
         });
       }
-      return isValid && bannerUrlPresent;
+      return isValid && imagePresent;
     },
   }));
 
@@ -101,8 +110,7 @@ export function BookingTemplateStep({
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
-    if (!file) return;
-    setIsUploading(true);
+    if (!file || (data.images && data.images.length >= 4)) return;
     try {
       // toast.loading('Uploading logo...', { id: 'logo-upload' });
       const storageRef = fRef(storage, `bnb/${Date.now()}/banner-image`);
@@ -112,39 +120,48 @@ export function BookingTemplateStep({
         (snapshot) => {
           const progress =
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          toast.loading(`Uploading logo... ${Math.round(progress)}%`, {
+            id: "image-upload",
+          });
+          if (progress === 100) {
+            toast.dismiss("image-upload");
+            toast.success("Logo uploaded successfully", { id: "image-upload" });
+          }
         },
         (error) => toast.error(error.message),
         () =>
           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            setBannerUrl(downloadURL);
+            const id = Date.now();
+            setImages((prev) => [
+              ...prev,
+              { id: `${id}`, src: downloadURL, alt: `image-${id}` },
+            ]);
           })
       );
 
       toast.success("Banner image uploaded successfully", {
-        id: "banner-image-upload",
+        id: "image-upload",
       });
     } catch (error: unknown) {
-      console.error("Failed to upload banner image:", error);
-      toast.error("Failed to upload banner image", {
-        id: "banner-image-upload",
+      console.error("Failed to upload image:", error);
+      toast.error("Failed to upload image", {
+        id: "image-upload",
       });
-    } finally {
-      setIsUploading(false);
     }
   };
 
-  const removeBanner = () => {
-    setBannerUrl(null);
+  const removeBanner = (id: string) => {
+    setImages((prev) => prev.filter((img) => img.id !== id));
     const currentValues = form.getValues();
     onUpdate({
       ...currentValues,
-      bannerImageUrl: "",
+      images: [...data.images.filter((img) => img.id !== id)],
     });
   };
 
   return (
     <Form {...form}>
-      <form className="space-y-6">
+      <form ref={formRef} className="space-y-6">
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-[#121212]">
             Booking Template
@@ -162,6 +179,7 @@ export function BookingTemplateStep({
               <FormLabel>Booking Template</FormLabel>
               <FormControl>
                 <RadioGroup
+                name="templateType"
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                   className="grid grid-cols-1 gap-4 md:grid-cols-3"
@@ -201,13 +219,6 @@ export function BookingTemplateStep({
                         </div>
                       </FormItem>
                       <div className="mt-3 flex space-x-2">
-                        {/* <button
-              type="button"
-              onClick={() => window.open('/template-preview', '_blank')}
-              className="text-xs px-3 py-1 rounded bg-[#7B68EE] text-white hover:bg-[#7B68EE]/90"
-            >
-              Preview
-            </button> */}
                         <button
                           type="button"
                           onClick={() =>
@@ -227,27 +238,9 @@ export function BookingTemplateStep({
           )}
         />
         <FormItem>
-          <FormLabel>Banner Image</FormLabel>
+          <FormLabel>Upload banner images (min: 1, max: 4)</FormLabel>
           <div className="mt-2">
-            {bannerUrl ? (
-              <div className="relative h-80 w-full">
-                <Image
-                  src={bannerUrl || "/placeholder.svg"}
-                  alt="Business Logo"
-                  fill
-                  className="rounded-md object-contain"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="absolute -right-2 -top-2 h-7 w-7 rounded-full border-gray-200 bg-white"
-                  onClick={removeBanner}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ) : (
+            {images.length < 4 && (
               <div className="flex items-center justify-center rounded-md border border-dashed border-[#E0E0E5] px-6 py-10">
                 <div className="text-center">
                   <Upload className="mx-auto h-12 w-12 text-[#6E6E73]" />
@@ -274,17 +267,38 @@ export function BookingTemplateStep({
                 </div>
               </div>
             )}
+            {images.map((img) => (
+              <div key={img.id} className="relative h-80 w-full mt-2">
+                <Image
+                  src={img.src || "/placeholder.svg"}
+                  alt={img.alt}
+                  fill
+                  placeholder="blur"
+                  blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mM8++JFPQAIRQMetjSWgwAAAABJRU5ErkJggg=="
+                  className="rounded-md object-contain"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="absolute -right-2 -top-2 h-7 w-7 rounded-full border-gray-200 bg-white"
+                  onClick={() => removeBanner(img.id)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
           </div>
-          <FormDescription>
-            Your logo will appear on your booking page and receipts
+          <FormDescription className="text-center">
+            Your images will appear on the hero section of your booking page
           </FormDescription>
         </FormItem>
         <FormField
           control={form.control}
-          name="bannerHeader"
+          name="aboutUs"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Banner Header</FormLabel>
+              <FormLabel>About Us</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="e.g Discover beauty at BeautySpot"
@@ -292,8 +306,9 @@ export function BookingTemplateStep({
                 />
               </FormControl>
               <FormDescription>
-                Write a short, bold sentence or phrase that captures what your
-                business offers. Think of it as a quick hook to draw attention.
+                Write a friendly introduction to your business. This will appear
+                in the “About” section of your booking page. Mention what you
+                do, who you serve, and what makes your service special.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -301,61 +316,17 @@ export function BookingTemplateStep({
         />
         <FormField
           control={form.control}
-          name="bannerMessage"
+          name="additionalPolicies"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Banner message</FormLabel>
+              <FormLabel>Additional Policies (Optional)</FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder="e.g Elevate your look with our premium salon and spa services..."
-                  {...field}
-                />
+                <Textarea placeholder="" {...field} />
               </FormControl>
               <FormDescription>
-                Describe your services and what clients can expect in one short
-                sentence. This should support your banner header and encourage
-                bookings.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="aboutSubHeader"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>About subheader</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="e.g Your Beauty, Our Passion"
-                  {...field}
-                />
-              </FormControl>
-              <FormDescription>
-                Write a short tagline that reflects your business’s values or
-                what you’re passionate about.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="e.g Since 2010, BeautySpot has been helping clients look and feel their best with expert services and premium products."
-                  {...field}
-                />
-              </FormControl>
-              <FormDescription>
-                Write a short, friendly introduction to your business. This will
-                appear in the “About” section of your booking page. Mention what
-                you do, who you serve, and what makes your service special.
+                Specify any additional rules, cancellation policies, or special
+                requirements that clients should know before booking. This helps
+                set clear expectations and ensures smooth service delivery.
               </FormDescription>
               <FormMessage />
             </FormItem>

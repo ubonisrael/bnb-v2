@@ -15,14 +15,9 @@ import toast from "react-hot-toast";
 
 const steps = [
   { id: "business-info", title: "Business Information" },
-  // { id: "business-type", title: "Business Type" },
-  // { id: "location", title: "Location" },
-  // { id: "team-size", title: "Team Size" },
-  // { id: "visual-settings", title: "Visual Settings" },
   { id: "services-setup", title: "Services" },
-  { id: "booking-template", title: "Booking Template" },
-  // { id: "payment-details", title: "Payment Details" },
   { id: "booking-settings", title: "Booking Settings" },
+  { id: "booking-template", title: "Booking Template" },
   { id: "notification-settings", title: "Notifications" },
 ];
 
@@ -50,12 +45,10 @@ export function OnboardingWizard() {
         services: [],
       },
       bookingTemplate: {
-        templateType: "default",
-        bannerHeader: "",
-        bannerMessage: "",
-        aboutSubHeader: "",
-        description: "",
-        bannerImageUrl: "",
+        templateType: "",
+        images: [],
+        aboutUs: "",
+        additionalPolicies: ""
       },
       bookingSettings: {
         welcome_message: "",
@@ -64,6 +57,13 @@ export function OnboardingWizard() {
         time_zone: "",
         allow_deposits: false,
         deposit_amount: undefined,
+        cancellation_allowed: false,
+        cancellation_notice_hours: undefined,
+        cancellation_fee_percent: undefined,
+        reschedule_allowed: false,
+        reschedule_notice_hours: undefined,
+        reschedule_fee_percent: undefined,
+        no_show_fee_percent: 100,
         sunday_enabled: false,
         sunday_opening: 480,
         sunday_closing: 1080,
@@ -87,7 +87,6 @@ export function OnboardingWizard() {
         saturday_closing: 1080,
       },
       notificationSettings: {
-        cancelNoticeHours: 24,
         emailSettings: {
           sendBookingConfirmations: true,
           sendReminders: true,
@@ -146,16 +145,21 @@ export function OnboardingWizard() {
           },
           servicesSetup: { categories: [], services: [] },
           bookingTemplate: {
-            templateType: "default",
-            bannerHeader: "",
-            bannerMessage: "",
-            aboutSubHeader: "",
-            description: "",
-            bannerImageUrl: "",
+            templateType: "",
+            images: [],
+            aboutUs: "",
+            additionalPolicies: ""
           },
           bookingSettings: {
             allow_deposits: false,
             deposit_amount: undefined,
+            cancellation_allowed: false,
+            cancellation_notice_hours: undefined,
+            cancellation_fee_percent: undefined,
+            no_show_fee_percent: 100,
+            reschedule_allowed: false,
+            reschedule_notice_hours: undefined,
+            reschedule_fee_percent: undefined,
             welcome_message: "",
             maximum_notice: 0,
             minimum_notice: 0,
@@ -183,7 +187,6 @@ export function OnboardingWizard() {
             saturday_closing: 1080,
           },
           notificationSettings: {
-            cancelNoticeHours: 24,
             emailSettings: {
               sendBookingConfirmations: true,
               sendReminders: true,

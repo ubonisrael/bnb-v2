@@ -49,7 +49,6 @@ export interface EmailSettingsData {
 }
 
 export interface NotificationSettingsData {
-  cancelNoticeHours: number;
   emailSettings: EmailSettingsData;
 }
 
@@ -57,8 +56,18 @@ export interface BookingSettingsData {
   maximum_notice: number;
   minimum_notice: number;
   welcome_message: string;
+  // deposit policy
   allow_deposits: boolean;
   deposit_amount?: number | undefined;
+  // cancellation policy
+  cancellation_allowed: boolean;
+  cancellation_notice_hours?: number | undefined;
+  cancellation_fee_percent?: number | undefined;
+  no_show_fee_percent: number;
+  // rescheduling policy
+  reschedule_allowed: boolean;
+  reschedule_notice_hours?: number | undefined;
+  reschedule_fee_percent?: number | undefined;
   sunday_enabled: boolean;
   sunday_opening: number;
   sunday_closing: number;
@@ -85,11 +94,13 @@ export interface BookingSettingsData {
 
 export interface BookingTemplateData {
   templateType: string;
-  bannerHeader: string;
-  bannerMessage: string;
-  aboutSubHeader: string;
-  bannerImageUrl: string;
-  description: string;
+  images: {
+    id: string;
+    src: string;
+    alt: string;
+  }[];
+  aboutUs: string;
+  additionalPolicies?: string;
 }
 
 export interface OnboardingFormData {

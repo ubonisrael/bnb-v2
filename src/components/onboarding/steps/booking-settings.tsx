@@ -1,6 +1,6 @@
 "use client";
 
-import { Ref, useImperativeHandle } from "react";
+import { Ref, useImperativeHandle, useRef } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -31,31 +31,78 @@ import { Textarea } from "@/components/ui/textarea";
 const createBookingSettingsSchema = (allowedTimeZones: string[]) =>
   z
     .object({
-      welcome_message: z
-        .string()
-        .min(24, { message: "Welcome message must be at least 24 characters" }),
-      allow_deposits: z.boolean({
-        message: "allow deposits must be a boolean",
+      welcome_message: z.string().min(24, {
+        message:
+          "Welcome message must be at least 24 characters long to provide sufficient information",
       }),
+      allow_deposits: z.boolean(),
       deposit_amount: z
         .number({
           required_error:
-            "Deposit amount is required when deposits are allowed.",
-          invalid_type_error: "Deposit amount must be a number.",
+            "Please specify a deposit amount when deposits are allowed",
+          invalid_type_error: "Deposit amount must be a valid number",
         })
-        .min(5, "Must be at least 5")
+        .min(5, "Deposit amount must be at least 5 to cover processing fees")
+        .optional(),
+      cancellation_allowed: z.boolean(),
+      cancellation_notice_hours: z
+        .number()
+        .refine((value) => [0, 4, 8, 12, 24, 48, 72].includes(value), {
+          message:
+            "Cancellation notice hours must be one of the following: 0, 4, 8, 12, 24, 48, or 72",
+        })
+        .optional(),
+      cancellation_fee_percent: z
+        .number({
+          invalid_type_error: "Cancellation fee must be a valid percentage",
+          required_error: "Please specify cancellation fee percentage",
+        })
+        .min(0, "Cancellation fee cannot be negative")
+        .max(100, "Cancellation fee cannot exceed 100%")
+        .optional(),
+      no_show_fee_percent: z
+        .number({
+          invalid_type_error: "No-show fee must be a valid percentage",
+          required_error: "Please specify no-show fee percentage",
+        })
+        .min(10, "No-show fee must be at least 10%")
+        .max(100, "No-show fee cannot exceed 100%"),
+      reschedule_allowed: z.boolean(),
+      reschedule_notice_hours: z
+        .number()
+        .refine((value) => [0, 4, 8, 12, 24, 48, 72].includes(value), {
+          message:
+            "Reschedule notice hours must be one of the following: 0, 4, 8, 12, 24, 48, or 72",
+        })
+        .optional(),
+      reschedule_fee_percent: z
+        .number({
+          invalid_type_error: "Reschedule fee must be a valid percentage",
+          required_error: "Please specify reschedule fee percentage",
+        })
+        .min(0, "Reschedule fee cannot be negative")
+        .max(100, "Reschedule fee cannot exceed 100%")
         .optional(),
       maximum_notice: z
-        .number()
-        .min(0, { message: "Maximum notice must be at least 0" }),
+        .number({
+          invalid_type_error: "Maximum notice must be a valid number",
+          required_error: "Please specify maximum advance booking notice",
+        })
+        .min(0, "Maximum advance booking notice cannot be negative"),
       minimum_notice: z
-        .number()
-        .min(0, { message: "Minimum notice must be at least 0" }),
+        .number({
+          invalid_type_error: "Minimum notice must be a valid number",
+          required_error: "Please specify minimum advance booking notice",
+        })
+        .min(0, "Minimum advance booking notice cannot be negative"),
       time_zone: z
-        .string()
-        .min(2, { message: "Time zone must be at least 2 characters" })
+        .string({
+          required_error: "Please select a time zone",
+          invalid_type_error: "Time zone must be a valid string",
+        })
+        .min(2, "Please select a valid time zone")
         .refine((val) => allowedTimeZones.includes(val), {
-          message: "Invalid time zone selected",
+          message: "Please select a time zone from the provided list",
         }),
 
       sunday_enabled: z.boolean().default(false),
@@ -80,27 +127,59 @@ const createBookingSettingsSchema = (allowedTimeZones: string[]) =>
       saturday_opening: z.number().default(0),
       saturday_closing: z.number().default(0),
     })
+    .refine((data) => data.maximum_notice >= data.minimum_notice + 1, {
+      message:
+        "Maximum advance booking notice must be atleast 1 day more than minimum notice for proper scheduling",
+      path: ["maximum_notice"],
+    })
     .superRefine((data: Record<string, any>, ctx) => {
       if (
         data.allow_deposits &&
-        (data.deposit_amount === undefined ||
-          data.deposit_amount === undefined)
+        (data.deposit_amount === undefined || data.deposit_amount === undefined)
       ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Deposit amount is required when deposits are enabled.",
+          message:
+            "When deposits are enabled, you must specify a deposit amount",
           path: ["deposit_amount"],
         });
       }
 
-      if (!data.allow_deposits && data.deposit_amount !== undefined) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message:
-            "Deposit amount must be empty when deposits are disabled.",
-          path: ["deposit_amount"],
-        });
+      if (data.cancellation_allowed) {
+        if (data.cancellation_notice_hours === undefined) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message:
+              "Please specify how many hours in advance a cancellation must be made",
+            path: ["cancellation_notice_hours"],
+          });
+        }
+        if (data.cancellation_fee_percent === undefined) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Please specify the cancellation fee percentage",
+            path: ["cancellation_fee_percent"],
+          });
+        }
       }
+      if (data.reschedule_allowed) {
+        if (data.reschedule_notice_hours === undefined) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message:
+              "Please specify how many hours in advance a reschedule must be requested",
+            path: ["reschedule_notice_hours"],
+          });
+        }
+        if (data.reschedule_fee_percent === undefined) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Please specify the reschedule fee percentage",
+            path: ["reschedule_fee_percent"],
+          });
+        }
+      }
+
       const days = [
         "sunday",
         "monday",
@@ -120,7 +199,9 @@ const createBookingSettingsSchema = (allowedTimeZones: string[]) =>
           if (closing >= 1380) {
             ctx.addIssue({
               path: [`${day}_closing`],
-              message: `${day} closing time must be less than 1380`,
+              message: `${
+                day.charAt(0).toUpperCase() + day.slice(1)
+              } closing time must be before 11:00 PM`,
               code: z.ZodIssueCode.custom,
             });
           }
@@ -128,7 +209,9 @@ const createBookingSettingsSchema = (allowedTimeZones: string[]) =>
           if (closing <= opening) {
             ctx.addIssue({
               path: [`${day}_closing`],
-              message: `${day} closing time must be after opening time`,
+              message: `${
+                day.charAt(0).toUpperCase() + day.slice(1)
+              } closing time must be later than opening time`,
               code: z.ZodIssueCode.custom,
             });
           }
@@ -162,13 +245,32 @@ export function BookingSettingsSetupStep({
   ref,
 }: BookingSetupStepProps) {
   const form = useForm<BookingSettingsData>({
+    mode: "all",
     resolver: zodResolver(bookingSettingsSchema),
     defaultValues: data.bookingSettings,
   });
 
+  const formRef = useRef<HTMLFormElement | null>(null);
+
+  const onError = (errors: any) => {
+    if (!formRef.current) return;
+    const firstErrorField = Object.keys(errors)[0];
+    const errorElement = formRef.current.querySelector(
+      `[name="${firstErrorField}"]`
+    );
+    if (errorElement) {
+      errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
+      (errorElement as HTMLElement).focus();
+    }
+  };
+
   useImperativeHandle(ref, () => ({
     async validate() {
       const isValid = await form.trigger(); // runs validation
+      if (!isValid) {
+        onError(form.formState.errors);
+        return false;
+      }
       if (isValid) {
         onUpdate(form.getValues());
       }
@@ -177,13 +279,15 @@ export function BookingSettingsSetupStep({
   }));
 
   const watchDeposits = form.watch("allow_deposits");
+  const watchCancellationAllowed = form.watch("cancellation_allowed");
+  const watchRescheduleAllowed = form.watch("reschedule_allowed");
 
   return (
     <Form {...form}>
-      <form className="space-y-6">
+      <form ref={formRef} className="space-y-6">
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-[#121212]">
-            Booking Settings Setup
+            Booking Settings and Policy Setup
           </h2>
           <p className="text-sm text-[#6E6E73]">
             Configure your booking settings, including the welcome message sent
@@ -222,6 +326,7 @@ export function BookingSettingsSetupStep({
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  name="time_zone"
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a time zone" />
@@ -251,6 +356,7 @@ export function BookingSettingsSetupStep({
               <FormLabel>Minimum Notice</FormLabel>
               <FormControl>
                 <Input
+                  name="minimum_notice"
                   type="number"
                   placeholder="0"
                   value={field.value || ""}
@@ -276,6 +382,7 @@ export function BookingSettingsSetupStep({
               <FormControl>
                 <Input
                   type="number"
+                  name="maximum_notice"
                   placeholder="0"
                   value={field.value || ""}
                   onChange={(e) => field.onChange(Number(e.target.value))}
@@ -305,6 +412,7 @@ export function BookingSettingsSetupStep({
               </div>
               <FormControl>
                 <Switch
+                  name="allow_deposits"
                   checked={field.value}
                   onCheckedChange={field.onChange}
                 />
@@ -313,28 +421,229 @@ export function BookingSettingsSetupStep({
           )}
         />
 
+        {watchDeposits && (
+          <>
+            <FormField
+              control={form.control}
+              name="deposit_amount"
+              disabled={!watchDeposits}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Deposit Amount</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="e.g. 30"
+                      {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                      value={field.value ? String(field.value) : ""}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Specify the minimum amout required for a deposit. Should not
+                    be less than 5.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        )}
+
+        {/* Cancellation */}
         <FormField
           control={form.control}
-          name="deposit_amount"
-          disabled={!watchDeposits}
+          name="cancellation_allowed"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Deposit Amount</FormLabel>
+            <FormItem className="flex items-center justify-between space-y-0 border p-3 rounded-lg">
+              <div className="space-y-0.5">
+                <FormLabel>Allow Cancellation</FormLabel>
+                <FormDescription>
+                  Enable this option to allow your clients to cancel bookings.
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  name="cancellation_allowed"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        {watchCancellationAllowed && (
+          <>
+            <FormField
+              control={form.control}
+              name="cancellation_notice_hours"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cancellation Notice (Hours)</FormLabel>
+                  <Select
+                    name="cancellation_notice_hours"
+                    onValueChange={(value) => field.onChange(Number(value))}
+                    value={field.value ? field.value.toString() : ""}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select hours" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="0">No notice required</SelectItem>
+                      <SelectItem value="4">4 hours</SelectItem>
+                      <SelectItem value="8">8 hours</SelectItem>
+                      <SelectItem value="12">12 hours</SelectItem>
+                      <SelectItem value="24">24 hours (1 day)</SelectItem>
+                      <SelectItem value="48">48 hours (2 days)</SelectItem>
+                      <SelectItem value="72">72 hours (3 days)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Specify how many hours in advance clients must notify you to
+                    cancel their booking without taking a penalty
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="cancellation_fee_percent"
+              disabled={!watchCancellationAllowed}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cancellation Fee (%)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="e.g. 30"
+                      {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                      value={field.value ? Number(field.value) : ""}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Set the percentage of the booking fee charged as
+                    cancellation penalty
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        )}
+        <FormField
+          control={form.control}
+          name="reschedule_allowed"
+          render={({ field }) => (
+            <FormItem className="flex items-center justify-between space-y-0 border p-3 rounded-lg">
+              <div className="space-y-0.5">
+                <FormLabel>Allow Rescheduling</FormLabel>
+                <FormDescription>
+                  Enable this option to allow your clients to reschedule
+                  bookings.
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  name="reschedule_allowed"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        {watchRescheduleAllowed && (
+          <>
+            <FormField
+              control={form.control}
+              name="reschedule_notice_hours"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Rescheduling Notice (Hours)</FormLabel>
+                  <Select
+                    name="reschedule_notice_hours"
+                    onValueChange={(value) => field.onChange(Number(value))}
+                    value={field.value ? field.value.toString() : ""}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select hours" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="0">No notice required</SelectItem>
+                      <SelectItem value="4">4 hours</SelectItem>
+                      <SelectItem value="8">8 hours</SelectItem>
+                      <SelectItem value="12">12 hours</SelectItem>
+                      <SelectItem value="24">24 hours (1 day)</SelectItem>
+                      <SelectItem value="48">48 hours (2 days)</SelectItem>
+                      <SelectItem value="72">72 hours (3 days)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Specify how many hours in advance clients must notify you to
+                    reschedule their booking without taking a penalty
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="reschedule_fee_percent"
+              disabled={!watchCancellationAllowed}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Reschedule Fee (%)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="e.g. 30"
+                      {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                      value={field.value ? Number(field.value) : ""}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Set the percentage of the booking fee charged as
+                    rescheduling penalty
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        )}
+
+        <FormField
+          control={form.control}
+          name="no_show_fee_percent"
+          render={({ field }) => (
+            <FormItem className="flex items-center justify-between space-y-0 border p-3 rounded-lg">
+              <div className="space-y-0.5">
+                <FormLabel>No-Show Fee (%)</FormLabel>
+                <FormDescription>
+                  Percentage of booking fee charged when clients don't show up
+                  for their appointment
+                </FormDescription>
+              </div>
               <FormControl>
                 <Input
                   type="number"
                   placeholder="e.g. 30"
                   {...field}
-                  value={field.value ?? ""}
+                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  value={field.value ? Number(field.value) : ""}
                 />
               </FormControl>
-              <FormDescription>
-                Specify the minimum amout required for a deposit.
-              </FormDescription>
-              <FormMessage />
             </FormItem>
           )}
         />
+
         {/* Booking Days Section */}
         <div className="mb-6">
           <h3 className="font-medium text-[#121212]">Booking Days & Hours</h3>
@@ -356,6 +665,9 @@ export function BookingSettingsSetupStep({
                         <div className="flex items-center space-x-4">
                           <FormControl>
                             <Switch
+                              name={
+                                `${day.id}_enabled` as keyof BookingSettingsData
+                              }
                               checked={Boolean(field.value)}
                               onCheckedChange={field.onChange}
                             />
@@ -375,6 +687,9 @@ export function BookingSettingsSetupStep({
                                 return (
                                   <FormControl>
                                     <Input
+                                      name={
+                                        `${day.id}_opening` as keyof BookingSettingsData
+                                      }
                                       type="time"
                                       value={minutesToTimeString(
                                         openingField.value as number
@@ -400,6 +715,9 @@ export function BookingSettingsSetupStep({
                               render={({ field: closingField }) => (
                                 <FormControl>
                                   <Input
+                                    name={
+                                      `${day.id}_closing` as keyof BookingSettingsData
+                                    }
                                     type="time"
                                     value={minutesToTimeString(
                                       closingField.value as number

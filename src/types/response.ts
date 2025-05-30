@@ -217,57 +217,6 @@ export interface ErrorResponse {
   }[];
 }
 
-export interface LandingTemplate {
-  type: string;
-  name: string;
-  bannerHeader: string;
-  bannerMessage: string;
-  aboutSubHeader: string;
-  bUrl: string;
-  banner: string;
-  logo: string;
-  email: string;
-  phone: string;
-  address: string;
-  city: string;
-  state: string;
-  zip: string;
-  minNotice: number;
-  maxNotice: number;
-  description: string;
-  hours: {
-    monday: string;
-    tuesday: string;
-    wednesday: string;
-    thursday: string;
-    friday: string;
-    saturday: string;
-    sunday: string;
-  };
-  categories: {
-    id: number;
-    name: string;
-  }[];
-  services: {
-    id: string;
-    CategoryId: number;
-    categoryId: number;
-    name: string;
-    description: string;
-    price: number;
-    duration: number;
-    availableDays: string[];
-  }[];
-  utcOffset: number;
-  latitude?: number;
-  longitude?: number;
-}
-
-export interface TemplateResponse {
-  status: boolean;
-  data: LandingTemplate;
-}
-
 export interface AvailableTimeSlotsResponse {
   status: boolean;
   message: string;

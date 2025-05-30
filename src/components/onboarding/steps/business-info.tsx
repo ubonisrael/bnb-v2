@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useEffect, Ref, useImperativeHandle, useState } from "react";
+import { useEffect, Ref, useImperativeHandle, useState, useRef } from "react";
 
 import {
   Form,
@@ -33,6 +33,7 @@ import useLocalStorage from "use-local-storage";
 import toast from "react-hot-toast";
 import { Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 const countries = [{ value: "United Kingdom", label: "United Kingdom" }];
 
@@ -71,15 +72,32 @@ export function BusinessInfoStep({
     "previewLogo",
     data.businessInfo.logoUrl || ""
   );
-  const [isUploading, setIsUploading] = useState(false);
   const form = useForm<BusinessInfoData>({
+    mode: "all",
     resolver: zodResolver(businessInfoSchema),
     defaultValues: data.businessInfo,
   });
 
+  const formRef = useRef<HTMLFormElement | null>(null);
+
+  const onError = (errors: any) => {
+    if (!formRef.current) return;
+    const firstErrorField = Object.keys(errors)[0];
+    const errorElement = formRef.current.querySelector(
+      `[name="${firstErrorField}"]`
+    );
+    if (errorElement) {
+      errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
+      (errorElement as HTMLElement).focus();
+    }
+  };
+
   useImperativeHandle(ref, () => ({
     async validate() {
       const isValid = await form.trigger(); // runs validation
+      if (!isValid) {
+        onError(form.formState.errors);
+      }
       if (isValid) {
         onUpdate({
           ...form.getValues(),
@@ -95,7 +113,6 @@ export function BusinessInfoStep({
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    setIsUploading(true);
     try {
       // toast.loading('Uploading logo...', { id: 'logo-upload' });
       const storageRef = fRef(storage, `bnb/${Date.now()}/logo`);
@@ -105,6 +122,14 @@ export function BusinessInfoStep({
         (snapshot) => {
           const progress =
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            toast.loading(
+              `Uploading logo... ${Math.round(progress)}%`,
+              { id: "logo-upload-percentage" }
+            );
+            if (progress === 100) {
+              toast.dismiss("logo-upload-percentage");
+              toast.success("Logo uploaded successfully", { id: "logo-upload" });
+            }
         },
         (error) => toast.error(error.message),
         () =>
@@ -112,13 +137,9 @@ export function BusinessInfoStep({
             setPreviewLogo(downloadURL);
           })
       );
-
-      toast.success("Logo uploaded successfully", { id: "logo-upload" });
     } catch (error: unknown) {
       console.error("Failed to upload logo:", error);
       toast.error("Failed to upload logo", { id: "logo-upload" });
-    } finally {
-      setIsUploading(false);
     }
   };
 
@@ -133,7 +154,7 @@ export function BusinessInfoStep({
 
   return (
     <Form {...form}>
-      <form className="space-y-6">
+      <form ref={formRef} className="space-y-6">
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-[#121212]">
             Business Information
@@ -144,9 +165,13 @@ export function BusinessInfoStep({
           <FormLabel>Business Logo</FormLabel>
           <div className="mt-2">
             {previewLogo ? (
-              <div className="relative h-40 w-40">
-                <img
+              <div className="relative h-40 w-40 mx-auto">
+                <Image
                   src={previewLogo || "/placeholder.svg"}
+                  width={160}
+                  height={160}
+                  placeholder="blur"
+                  blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mM8++JFPQAIRQMetjSWgwAAAABJRU5ErkJggg=="
                   alt="Business Logo"
                   className="rounded-full h-40 w-40 shadow-xl"
                 />
@@ -188,7 +213,7 @@ export function BusinessInfoStep({
               </div>
             )}
           </div>
-          <FormDescription>
+          <FormDescription className="text-center">
             Your logo will appear on your booking page and receipts
           </FormDescription>
         </FormItem>
@@ -301,6 +326,7 @@ export function BusinessInfoStep({
               <FormItem>
                 <FormLabel>Country</FormLabel>
                 <Select
+                  name="country"
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
