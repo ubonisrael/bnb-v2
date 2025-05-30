@@ -179,7 +179,7 @@ export function BookingTemplateStep({
               <FormLabel>Booking Template</FormLabel>
               <FormControl>
                 <RadioGroup
-                name="templateType"
+                  name="templateType"
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                   className="grid grid-cols-1 gap-4 md:grid-cols-3"
@@ -324,7 +324,9 @@ export function BookingTemplateStep({
                 <Textarea placeholder="" {...field} />
               </FormControl>
               <FormDescription>
-                Specify any additional rules, cancellation policies, or special
+                General policies for deposits, cancellations, rescheduling and
+                no shows will be generated based on your settings in the booking
+                settings section. Specify any additional rules, or special
                 requirements that clients should know before booking. This helps
                 set clear expectations and ensures smooth service delivery.
               </FormDescription>
