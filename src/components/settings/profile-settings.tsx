@@ -1,8 +1,6 @@
 "use client";
 
-import type React from "react";
-
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -13,7 +11,6 @@ import toast from "react-hot-toast";
 import { ref, getDownloadURL, uploadBytesResumable } from "firebase/storage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
@@ -27,6 +24,14 @@ import { useUserSettings } from "@/contexts/user-settings-context";
 import api from "@/services/api-service";
 import { storage } from "@/services/firebase";
 import { BusinessProfileResponse } from "@/types/response";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { countries } from "../onboarding/steps/business-info";
 
 const profileSchema = z.object({
   name: z.string().min(2, "Business name must be at least 2 characters"),
@@ -70,6 +75,20 @@ export function ProfileSettings() {
     },
   });
 
+  const formRef = useRef<HTMLFormElement | null>(null);
+
+  const onError = (errors: any) => {
+    if (!formRef.current) return;
+    const firstErrorField = Object.keys(errors)[0];
+    const errorElement = formRef.current.querySelector(
+      `[name="${firstErrorField}"]`
+    );
+    if (errorElement) {
+      errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
+      (errorElement as HTMLElement).focus();
+    }
+  };
+
   useEffect(() => {
     if (settings) {
       form.reset({
@@ -102,6 +121,13 @@ export function ProfileSettings() {
         (snapshot) => {
           const progress =
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          toast.loading(`Uploading logo... ${Math.round(progress)}%`, {
+            id: "logo-upload-percentage",
+          });
+          if (progress === 100) {
+            toast.dismiss("logo-upload-percentage");
+            toast.success("Logo uploaded successfully", { id: "logo-upload" });
+          }
         },
         (error) => toast.error(error.message),
         () =>
@@ -170,7 +196,11 @@ export function ProfileSettings() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form
+        ref={formRef}
+        onSubmit={form.handleSubmit(onSubmit, onError)}
+        className="space-y-6"
+      >
         <div>
           <h3 className="text-lg font-medium">Business Profile</h3>
           <p className="text-sm text-muted-foreground">
@@ -259,6 +289,7 @@ export function ProfileSettings() {
             <FormField
               control={form.control}
               name="email"
+              disabled
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Email</FormLabel>
@@ -349,9 +380,24 @@ export function ProfileSettings() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Country</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
+                <Select
+                  name="country"
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a country" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {countries.map((country) => (
+                      <SelectItem key={country.value} value={country.value}>
+                        {country.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -361,7 +407,9 @@ export function ProfileSettings() {
         <div className="flex justify-end">
           <Button
             type="submit"
-            disabled={updateProfileMutation.isPending || isUploading}
+            disabled={
+              updateProfileMutation.isPending || settingsLoading || isUploading
+            }
           >
             {updateProfileMutation.isPending ? (
               <>

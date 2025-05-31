@@ -31,7 +31,6 @@ export interface UserSettings {
     activeSessions: number;
   };
   notifications: {
-    cancelNoticeHours: number;
     emailSettings: {
       sendBookingConfirmations: boolean;
       sendReminders: boolean;
@@ -56,7 +55,14 @@ export interface UserSettings {
   bookingSettings: {
     url: string;
     allow_deposits: boolean;
-    deposit_amount:  number | undefined;
+    deposit_amount: number | undefined;
+    cancellation_allowed: boolean;
+    cancellation_notice_hours: number | undefined;
+    cancellation_fee_percent: number | undefined;
+    reschedule_allowed: boolean;
+    reschedule_notice_hours: number | undefined;
+    reschedule_fee_percent: number | undefined;
+    no_show_fee_percent: number;
     minimum_notice: number;
     maximum_notice: number;
     time_zone: string;
@@ -85,11 +91,9 @@ export interface UserSettings {
   };
   template: {
     templateType: string;
-    bannerHeader: string;
-    bannerMessage: string;
-    aboutSubHeader: string;
-    description: string;
-    bannerUrl: string;
+    aboutUs: string;
+    imageUrls: string[];
+    additionalPolicies: string;
   };
   subscription: {
     planName: string;
@@ -102,7 +106,7 @@ export interface UserSettings {
   stripeAccount: {
     id: string | null;
     status: string | null;
-  }
+  };
 }
 
 // Create the context

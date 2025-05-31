@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import Image from "next/image";
 import { BookingTemplateData } from "@/components/onboarding/type";
 import { bookingTemplateSchema } from "@/components/onboarding/steps/booking-template";
@@ -37,21 +37,31 @@ export default function TemplatesPage() {
     updateSettings,
     isLoading: settingsLoading,
   } = useUserSettings();
-  const [bannerUrl, setBannerUrl] = useState(
-    settings?.template.bannerUrl ?? ""
-  );
+  const [images, setImages] = useState(settings?.template.imageUrls ?? []);
   const [isUploading, setIsUploading] = useState(false);
 
-  const form = useForm<Omit<BookingTemplateData, "bannerImageUrl">>({
+  const form = useForm<Omit<BookingTemplateData, "images">>({
     resolver: zodResolver(bookingTemplateSchema),
     defaultValues: {
       templateType: settings?.template.templateType || "",
-      bannerHeader: settings?.template.bannerHeader || "",
-      bannerMessage: settings?.template.bannerMessage || "",
-      aboutSubHeader: settings?.template.aboutSubHeader || "",
-      description: settings?.template.description || "",
+      aboutUs: settings?.template.aboutUs || "",
+      additionalPolicies: settings?.template.additionalPolicies || "",
     },
   });
+
+  const formRef = useRef<HTMLFormElement | null>(null);
+
+  const onError = (errors: any) => {
+    if (!formRef.current) return;
+    const firstErrorField = Object.keys(errors)[0];
+    const errorElement = formRef.current.querySelector(
+      `[name="${firstErrorField}"]`
+    );
+    if (errorElement) {
+      errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
+      (errorElement as HTMLElement).focus();
+    }
+  };
 
   const handleBannerImageUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -68,11 +78,20 @@ export default function TemplatesPage() {
         (snapshot) => {
           const progress =
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          toast.loading(`Uploading logo... ${Math.round(progress)}%`, {
+            id: "banner-image-upload",
+          });
+          if (progress === 100) {
+            toast.dismiss("banner-image-upload");
+            toast.success("Logo uploaded successfully", {
+              id: "banner-image-upload",
+            });
+          }
         },
         (error) => toast.error(error.message),
         () =>
           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            setBannerUrl(downloadURL);
+            setImages((prev) => [...prev, downloadURL]);
           })
       );
 
@@ -89,10 +108,12 @@ export default function TemplatesPage() {
     }
   };
 
-  const removeBanner = () => setBannerUrl("");
+  const removeBanner = (id: string) => {
+    setImages((prev) => prev.filter((img) => img !== id));
+  };
 
   const updateTemplateMutation = useMutation({
-    mutationFn: async (values: Omit<BookingTemplateData, "bannerImageUrl">) => {
+    mutationFn: async (values: Omit<BookingTemplateData, "images">) => {
       const controller = new AbortController();
       const signal = controller.signal;
 
@@ -101,11 +122,9 @@ export default function TemplatesPage() {
           "sp/templates",
           {
             template_type: values.templateType,
-            desc: values.description,
-            banner_header: values.bannerHeader,
-            banner_message: values.bannerMessage,
-            about_subheader: values.aboutSubHeader,
-            banner_image_url: bannerUrl,
+            image_urls: [...images],
+            about_us: values.aboutUs,
+            additional_policies: values.aboutUs,
           },
           { signal }
         );
@@ -135,10 +154,10 @@ export default function TemplatesPage() {
     },
   });
 
-  async function onSubmit(values: Omit<BookingTemplateData, "bannerImageUrl">) {
-    if (!bannerUrl) {
+  async function onSubmit(values: Omit<BookingTemplateData, "images">) {
+    if (images.length < 1) {
       toast.error("Please upload a banner image");
-      return
+      return;
     }
     try {
       await updateTemplateMutation.mutateAsync(values);
@@ -161,7 +180,11 @@ export default function TemplatesPage() {
 
         {/* Templates Grid */}
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form
+            ref={formRef}
+            onSubmit={form.handleSubmit(onSubmit, onError)}
+            className="space-y-6"
+          >
             <div className="mb-6">
               <h2 className="text-lg font-semibold text-[#121212]">
                 Booking Template
@@ -218,13 +241,6 @@ export default function TemplatesPage() {
                             </div>
                           </FormItem>
                           <div className="mt-3 flex space-x-2">
-                            {/* <button
-              type="button"
-              onClick={() => window.open('/template-preview', '_blank')}
-              className="text-xs px-3 py-1 rounded bg-[#7B68EE] text-white hover:bg-[#7B68EE]/90"
-            >
-              Preview
-            </button> */}
                             <button
                               type="button"
                               onClick={() =>
@@ -246,25 +262,7 @@ export default function TemplatesPage() {
             <FormItem>
               <FormLabel>Banner Image</FormLabel>
               <div className="mt-2">
-                {bannerUrl ? (
-                  <div className="relative h-80 w-full">
-                    <Image
-                      src={bannerUrl || "/placeholder.svg"}
-                      alt="Business Logo"
-                      fill
-                      className="rounded-md object-contain"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      className="absolute -right-2 -top-2 h-7 w-7 rounded-full border-gray-200 bg-white"
-                      onClick={removeBanner}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
+                {images.length < 4 && (
                   <div className="flex items-center justify-center rounded-md border border-dashed border-[#E0E0E5] px-6 py-10">
                     <div className="text-center">
                       <Upload className="mx-auto h-12 w-12 text-[#6E6E73]" />
@@ -291,6 +289,30 @@ export default function TemplatesPage() {
                     </div>
                   </div>
                 )}
+                {images.map((img, i) => (
+                  <div
+                    key={`${img}-${i}`}
+                    className="relative h-80 w-full mt-2"
+                  >
+                    <Image
+                      src={img || "/placeholder.svg"}
+                      alt={`Banner image ${i}`}
+                      fill
+                      placeholder="blur"
+                      blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mM8++JFPQAIRQMetjSWgwAAAABJRU5ErkJggg=="
+                      className="rounded-md object-contain"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="absolute -right-2 -top-2 h-7 w-7 rounded-full border-gray-200 bg-white"
+                      onClick={() => removeBanner(img)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
               </div>
               <FormDescription>
                 Your logo will appear on your booking page and receipts
@@ -298,10 +320,10 @@ export default function TemplatesPage() {
             </FormItem>
             <FormField
               control={form.control}
-              name="bannerHeader"
+              name="aboutUs"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Banner Header</FormLabel>
+                  <FormLabel>About Us</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="e.g Discover beauty at BeautySpot"
@@ -309,9 +331,10 @@ export default function TemplatesPage() {
                     />
                   </FormControl>
                   <FormDescription>
-                    Write a short, bold sentence or phrase that captures what
-                    your business offers. Think of it as a quick hook to draw
-                    attention.
+                    Write a friendly introduction to your business. This will
+                    appear in the “About” section of your booking page. Mention
+                    what you do, who you serve, and what makes your service
+                    special.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -319,62 +342,20 @@ export default function TemplatesPage() {
             />
             <FormField
               control={form.control}
-              name="bannerMessage"
+              name="additionalPolicies"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Banner message</FormLabel>
+                  <FormLabel>Additional Policies (Optional)</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="e.g Elevate your look with our premium salon and spa services..."
-                      {...field}
-                    />
+                    <Textarea placeholder="" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Describe your services and what clients can expect in one
-                    short sentence. This should support your banner header and
-                    encourage bookings.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="aboutSubHeader"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>About subheader</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="e.g Your Beauty, Our Passion"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Write a short tagline that reflects your business’s values
-                    or what you’re passionate about.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="e.g Since 2010, BeautySpot has been helping clients look and feel their best with expert services and premium products."
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Write a short, friendly introduction to your business. This
-                    will appear in the “About” section of your booking page.
-                    Mention what you do, who you serve, and what makes your
-                    service special.
+                    General policies for deposits, cancellations, rescheduling
+                    and no shows will be generated based on your settings in the
+                    booking settings section. Specify any additional rules, or
+                    special requirements that clients should know before
+                    booking. This helps set clear expectations and ensures
+                    smooth service delivery.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -383,7 +364,7 @@ export default function TemplatesPage() {
             <div className="flex justify-end">
               <Button
                 type="submit"
-                disabled={updateTemplateMutation.isPending || settingsLoading}
+                disabled={updateTemplateMutation.isPending || settingsLoading || isUploading}
               >
                 {updateTemplateMutation.isPending ? (
                   <>

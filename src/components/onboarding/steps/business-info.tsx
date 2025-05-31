@@ -35,7 +35,7 @@ import { Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
-const countries = [{ value: "United Kingdom", label: "United Kingdom" }];
+export const countries = [{ value: "United Kingdom", label: "United Kingdom" }];
 
 const businessInfoSchema = z.object({
   name: z

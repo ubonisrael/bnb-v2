@@ -3,7 +3,6 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-
 import {
   Form,
   FormControl,
@@ -23,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { OnboardingFormData } from "../type";
-import { Ref, useEffect, useImperativeHandle, useRef } from "react";
+import { Ref, useImperativeHandle, useRef } from "react";
 
 export const notificationSettingsSchema = z.object({
   emailSettings: z.object({

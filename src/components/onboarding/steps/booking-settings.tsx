@@ -229,7 +229,7 @@ interface BookingSetupStepProps {
   }>;
 }
 
-const days = [
+export const days = [
   { id: "monday", label: "Monday" },
   { id: "tuesday", label: "Tuesday" },
   { id: "wednesday", label: "Wednesday" },
