@@ -38,6 +38,7 @@ export const DateTimePickerTab = ({
     selectedTime,
     setSelectedTime,
     getTotalDuration,
+    selectedServices
   } = useApp();
 
   return (
@@ -85,6 +86,7 @@ export const DateTimePickerTab = ({
               selectedDate={selectedDate}
               selectedTime={selectedTime}
               onSelectTime={setSelectedTime}
+              selectedServices={selectedServices}
               totalDuration={getTotalDuration()}
             />
           </div>

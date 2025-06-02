@@ -255,3 +255,112 @@ export interface TemplateDataResponse {
     bannerUrl: string;
   };
 }
+
+interface BookingData {
+  id: number;
+  event_date: string;
+  event_duration: number;
+  amount_paid: number;
+  amount_due: number;
+  status: string;
+  payment_status: string;
+  services: { id: number | string; name: string }[];
+}
+
+interface FetchBookingByIdResponse {
+  status: boolean;
+  booking: BookingData;
+}
+
+type generatePolicyType =
+  | "no show"
+  | "cancellation"
+  | "rescheduling"
+  | "refund"
+  | "deposit";
+
+interface PolicyData {
+  type: generatePolicyType;
+  policy: string;
+}
+
+interface FetchBookingPolicyResponse {
+  status: boolean;
+  policies: PolicyData[];
+  minNotice: number;
+  maxNotice: number;
+  utcOffset: number;
+}
+
+export interface ServiceFrontend {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  duration: number;
+  availableDays: string[];
+}
+
+export interface ServiceCategory {
+  id: number;
+  name: string;
+  services: ServiceFrontend[];
+}
+
+export interface SocialMedia {
+  platform: string;
+  url: string;
+  icon: string;
+  color: string;
+  hoverColor: string;
+}
+
+export interface CarouselImage {
+  src: string;
+  alt: string;
+}
+
+export interface Review {
+  id: string;
+  customerName: string;
+  rating: number;
+  comment: string;
+  date: string;
+  service?: string;
+}
+
+interface BusinessDataResponse {
+  currencySymbol: string;
+  bUrl: string;
+  logo: string;
+  name: string;
+  email: string;
+  aboutUs: string;
+  state: string;
+  zip: string;
+  address: string;
+  city: string;
+  serviceCategories: ServiceCategory[];
+  businessHours: { day: string; hours: string }[];
+  phone: string;
+  latitude?: number;
+  longitude?: number;
+  reviews: Review[];
+  bookingPolicy: PolicyData[];
+  additionalPolicies?: string;
+  allowDeposits: boolean;
+  depositAmount: number;
+  images: CarouselImage[];
+  socialMedia: SocialMedia[];
+  utcOffset: number;
+  maxNotice: number;
+  minNotice: number;
+}
+
+export interface ServicesTabPropsInterface {
+  name: string;
+  logo: string;
+  serviceCategories: ServiceCategory[];
+  gotoNextTab: () => void;
+  gotoPrevTab: () => void;
+}

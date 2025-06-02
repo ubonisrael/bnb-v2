@@ -6,7 +6,6 @@ import { convertTimeSlotsToUserLocalTime, minutesToTimeString } from "@/utils/ti
 import { AvailableTimeSlotsResponse } from "@/types/response";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api-service";
-import { useApp } from "@/contexts/AppContext";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -19,6 +18,7 @@ interface TimeSlotsProps {
   selectedDate: string | null;
   selectedTime: number | null;
   onSelectTime: (time: number) => void;
+  selectedServices: {id: string | number; name: string}[];
   totalDuration: number;
   bUrl: string;
   utcOffset: number;
@@ -31,8 +31,8 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
   totalDuration,
   utcOffset,
   bUrl,
+  selectedServices
 }) => {
-  const { selectedServices } = useApp();
   const timezone = dayjs.tz.guess();
   const clientOffset = dayjs().tz(timezone).utcOffset();
   const urlString = `sp/${bUrl}/available-time-slots?date=${selectedDate}&clientTz=${timezone}${selectedServices

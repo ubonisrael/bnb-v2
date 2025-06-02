@@ -30,6 +30,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
+import { PolicyData } from "@/types/response";
 
 export const bookingSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -45,7 +46,7 @@ export const bookingSchema = z.object({
 export type BookingType = z.infer<typeof bookingSchema>;
 
 interface BookingFormProps {
-  bookingPolicy: string[];
+  policies: PolicyData[];
   additionalPolicy?: string;
   currencySymbol?: string;
   allowDeposits: boolean;
@@ -57,7 +58,7 @@ interface BookingFormProps {
 }
 
 const BookingForm = ({
-  bookingPolicy,
+  policies,
   additionalPolicy = "",
   currencySymbol = "£",
   allowDeposits,
@@ -217,9 +218,20 @@ const BookingForm = ({
           </DialogHeader>
           <div className="space-y-6 text-slate-600 text-sm">
             <ul className="space-y-1">
-              {bookingPolicy.map((item, index) => (
-                <li key={index}>• {item}</li>
-              ))}
+              {policies
+                .map((policy) => policy.type)
+                .map((policyType) => (
+                  <div>
+                    <h2>{policyType}</h2>
+                    <ul className="list-disc list-inside space-y-1">
+                      {policies
+                        .filter((policy) => policy.type === policyType)
+                        .map(({ policy }, i) => (
+                          <li key={`${policyType}-${i}`}>{policy}</li>
+                        ))}
+                    </ul>
+                  </div>
+                ))}
             </ul>
             <p className="text-sm">{additionalPolicy}</p>
           </div>

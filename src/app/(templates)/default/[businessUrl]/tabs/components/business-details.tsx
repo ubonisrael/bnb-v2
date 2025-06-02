@@ -17,11 +17,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { BusinessData } from "../../types";
 import Map from "@/components/templates/default/Map";
+import { BusinessDataResponse } from "@/types/response";
 
 interface BusinessDetailsProps {
-  businessData: BusinessData;
+  businessData: BusinessDataResponse;
 }
 
 export default function BusinessDetails({
@@ -29,6 +29,9 @@ export default function BusinessDetails({
 }: BusinessDetailsProps) {
   const [openAccordions, setOpenAccordions] = useState<Set<string>>(new Set());
   const [showFullAbout, setShowFullAbout] = useState(false);
+  const policyTypes = Array.from(
+    new Set(businessData.bookingPolicy.map((p) => p.type))
+  );
 
   const toggleAccordion = (section: string) => {
     const newOpenAccordions = new Set(openAccordions);
@@ -160,11 +163,18 @@ export default function BusinessDetails({
             </CollapsibleTrigger>
             <CollapsibleContent className="px-6 pb-6">
               <div className="space-y-6 text-slate-600 text-sm">
-                <ul className="space-y-1">
-                  {businessData.bookingPolicy.map((item, index) => (
-                    <li key={index}>• {item}</li>
-                  ))}
-                </ul>
+                {policyTypes.map((policyType) => (
+                  <div>
+                    <h2>{policyType}</h2>
+                    <ul className="list-disc list-inside space-y-1">
+                      {businessData.bookingPolicy
+                        .filter((policy) => policy.type === policyType)
+                        .map(({ policy }, i) => (
+                          <li key={`${policyType}-${i}`}>{policy}</li>
+                        ))}
+                    </ul>
+                  </div>
+                ))}
                 <p className="text-sm">{businessData.additionalPolicies}</p>
               </div>
             </CollapsibleContent>

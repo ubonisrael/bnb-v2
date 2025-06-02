@@ -6,7 +6,7 @@ import BookingForm, {
   BookingType,
 } from "@/components/templates/default/BookingForm";
 import { useMutation } from "@tanstack/react-query";
-import { BookingResponse, ErrorResponse } from "@/types/response";
+import { BookingResponse, BusinessDataResponse, ErrorResponse } from "@/types/response";
 import toast from "react-hot-toast";
 import api from "@/services/api-service";
 import dayjs from "dayjs";
@@ -16,7 +16,6 @@ import { BusinessLanding } from "./tabs/landing";
 import { ServicesTab } from "./tabs/services";
 import { DateTimePickerTab } from "./tabs/pickdatetime";
 import { ConfirmationTab } from "./tabs/confirmation";
-import { BusinessData } from "./types";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -40,7 +39,7 @@ const steps = [
   { id: "confirmation", title: "Confirmation" },
 ];
 
-export function BookingWizard(props: BusinessData) {
+export function BookingWizard(props: BusinessDataResponse) {
   const {
     selectedServices,
     getTotalDuration,
@@ -132,7 +131,7 @@ export function BookingWizard(props: BusinessData) {
         {/* Booking Form Modal */}
         {showServiceModal && selectedDate && selectedTime && (
           <BookingForm
-            bookingPolicy={props.bookingPolicy}
+            policies={props.bookingPolicy}
             additionalPolicy={props.additionalPolicies}
             currencySymbol={props.currencySymbol}
             amount={getTotalPrice()}
