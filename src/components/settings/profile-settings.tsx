@@ -383,7 +383,7 @@ export function ProfileSettings() {
                 <Select
                   name="country"
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
