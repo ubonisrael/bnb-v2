@@ -106,6 +106,9 @@ export interface UserSettings {
   stripeAccount: {
     id: string | null;
     status: string | null;
+    requirements: {
+      [key: string]: string[];
+    }
   };
 }
 
@@ -137,7 +140,6 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
         // get user data
         // check if csrftoken exists
         const businessData = await api.get("sp");
-        // console.log(businessData);
 
         if (businessData) {
           setSettings(businessData as UserSettings);
