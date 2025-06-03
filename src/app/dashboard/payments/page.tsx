@@ -1,9 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Card,
   CardHeader,
@@ -12,72 +9,13 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils"; // optional util for classnames
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import api from "@/services/api-service";
 import { loadStripe } from "@stripe/stripe-js";
 import toast from "react-hot-toast";
 import { useUserSettings } from "@/contexts/user-settings-context";
 import SubscriptionDetails from "@/components/payments/subscription-card";
-
-// ------------------- Zod Schema -------------------
-export const settingsSchema = z
-  .object({
-    stripeAccountId: z.string().min(1, "Stripe Account ID is required."),
-    stripePublishableKey: z
-      .string()
-      .min(1, "Stripe Publishable Key is required."),
-    allow_deposits: z.boolean(),
-    depositPercentage: z
-      .number({
-        required_error:
-          "Deposit percentage is required when deposits are allowed.",
-        invalid_type_error: "Deposit percentage must be a number.",
-      })
-      .min(1, "Must be at least 1%")
-      .max(99, "Cannot exceed 99%")
-      .optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (
-      data.allow_deposits &&
-      (data.depositPercentage === undefined || data.depositPercentage === null)
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Deposit percentage is required when deposits are enabled.",
-        path: ["depositPercentage"],
-      });
-    }
-
-    if (!data.allow_deposits && data.depositPercentage !== undefined) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Deposit percentage must be empty when deposits are disabled.",
-        path: ["depositPercentage"],
-      });
-    }
-  });
-
-type SettingsFormData = z.infer<typeof settingsSchema>;
-
-type Subscription = {
-  planName: string;
-  status: string;
-  nextBillingDate: string;
-  cancelAtPeriodEnd: boolean;
-};
+import { useSearchParams } from "next/navigation";
 
 type Invoice = {
   id: string;
@@ -95,18 +33,8 @@ type Invoice = {
 export default function PaymentDashboardPage() {
   const { settings } = useUserSettings();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-
-  const form = useForm<SettingsFormData>({
-    resolver: zodResolver(settingsSchema),
-    defaultValues: {
-      stripeAccountId: "",
-      stripePublishableKey: "",
-      allow_deposits: false,
-      depositPercentage: undefined,
-    },
-  });
-
-  const watchDeposits = form.watch("allow_deposits");
+  // const queryParams = useSearchParams()
+  console.log("settings", settings);
 
   return (
     <div className="space-y-6">
@@ -129,103 +57,87 @@ export default function PaymentDashboardPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit((data) => {
-                // Replace with your update API call
-                console.log("Updated settings:", data);
-              })}
-              className="space-y-4"
-            >
-              {/* Stripe Account ID */}
-              <FormField
-                control={form.control}
-                name="stripeAccountId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Stripe Account ID</FormLabel>
-                    <FormControl>
-                      <Input placeholder="acct_1234" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      This is your connected Stripe Account ID used to receive
-                      payments.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Stripe Publishable Key */}
-              <FormField
-                control={form.control}
-                name="stripePublishableKey"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Stripe Publishable Key</FormLabel>
-                    <FormControl>
-                      <Input placeholder="pk_test_XXXX" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      This key is used for securely interacting with Stripe from
-                      your frontend.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Allow Deposits Toggle */}
-              <FormField
-                control={form.control}
-                name="allow_deposits"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between space-y-0 border p-3 rounded-lg">
-                    <div className="space-y-0.5">
-                      <FormLabel>Allow Deposits</FormLabel>
-                      <FormDescription>
-                        Enable this option to require only a portion of the
-                        total service fee upfront.
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="depositPercentage"
-                disabled={!watchDeposits}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Deposit Percentage (%)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="e.g. 30"
-                        {...field}
-                        value={field.value ?? ""}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Specify what percentage of the total payment is required
-                      as a deposit.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
+          {settings?.stripeAccount.id ? (
+            <>
+              <div className="space-y-2">
+                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Stripe Account ID
+                </label>
+                <div className="h-10 px-3 py-2 border border-input bg-muted rounded-md text-sm flex items-center">
+                  {settings.stripeAccount.id}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Stripe Account Status
+                </label>
+                <div className="h-10 px-3 py-2 border border-input bg-muted rounded-md text-sm flex items-center">
+                  {settings.stripeAccount.status}
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                className="mt-4"
+                onClick={async () => {
+                  console.log("Redirecting to Stripe dashboard...");
+                  if (!settings.stripeAccount.id) {
+                    toast.error("Stripe account not found");
+                    return;
+                  }
+                  const res = await api.get<{
+                    loginLinkUrl: string;
+                  }>(`stripe/accounts/${settings.stripeAccount.id}`);
+                  if (!res.loginLinkUrl) {
+                    toast.error("Failed to get Stripe account link");
+                    return;
+                  }
+                  // Redirect to Stripe account dashboard
+                    window.open(res.loginLinkUrl, '_blank');
+                }}
+              >
+                View your Stripe Account dashboard
+              </Button>
+            </>
+          ) : (
+            <div className="space-y-2">
+              <p className="">
+                Click the button below to get redirected to Stripe to complete
+                onboarding process.
+              </p>
               {/* Submit Button */}
-              <Button type="submit">Save Changes</Button>
-            </form>
-          </Form>
+              <Button
+                onClick={async () => {
+                  console.log("Connecting to Stripe...");
+                  try {
+                    const res = await api.post<{
+                      status: boolean;
+                      message?: string;
+                      account?: string;
+                      accountLink?: string;
+                    }>("stripe/create-connected-account", {});
+                    if (!res.account || !res.accountLink) {
+                      toast.error(
+                        res.message || "Stripe account creation failed"
+                      );
+                      return;
+                    }
+                    window.location.href = res.accountLink || "";
+                  } catch (error) {
+                    console.error("Error subscribing:", error);
+                    toast.error("Failed to subscribe. Please try again.");
+                  }
+                }}
+                className="rounded"
+                type="button"
+              >
+                Connect your Stripe Account
+              </Button>
+              <p className="text-sm text-muted-foreground">
+                If you do not have a Stripe Account, one will be created for you
+                during the Stripe Onboarding process.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

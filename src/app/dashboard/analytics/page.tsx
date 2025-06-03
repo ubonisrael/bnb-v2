@@ -113,8 +113,6 @@ export default function AnalyticsPage() {
     },
   });
 
-  console.log(servicesData?.data);
-
   const avgRevenuePerBooking = (overview?.bookings.totalBookings / overview?.daysSinceCreation) || 0
   const avgBookingPerDay = (overview?.revenue.totalRevenue / overview?.bookings.totalBookings) || 0
   

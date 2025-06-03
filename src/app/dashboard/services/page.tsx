@@ -353,7 +353,6 @@ export default function ServicesPage() {
   };
 
   const handleEditService = (service: Service) => {
-    // console.log(service);
     const days_enabled: string[] = [];
     if (service.monday_enabled) days_enabled.push("monday");
     if (service.tuesday_enabled) days_enabled.push("tuesday");
@@ -708,10 +707,7 @@ export default function ServicesPage() {
                     <div className="font-medium">{category.name}</div>
                     <div className="mt-1 text-xs text-[#6E6E73]">
                       {
-                        settings?.services.filter((svc) => {
-                          // console.log(svc, category.id)
-                          return svc.CategoryId === category.id;
-                        }).length
+                        settings?.services.filter((svc) => svc.CategoryId === category.id).length
                       }{" "}
                       services
                     </div>
