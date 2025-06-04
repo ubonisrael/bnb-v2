@@ -18,7 +18,7 @@ export function BusinessLanding(props: BusinessDataResponse & { gotoBooking: (in
             <ImageCarousel images={props.images} />
             <BusinessInfo
               name={props.name} 
-              location={props.address} 
+              location={`${props.address}, ${props.city}, ${props.state}`} 
             />
             <ServicesSection index={0} serviceCategories={props.serviceCategories} gotoTab={gotoBooking}  />
             <ReviewsSection reviews={props.reviews} />

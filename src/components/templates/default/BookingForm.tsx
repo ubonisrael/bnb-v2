@@ -52,8 +52,8 @@ interface BookingFormProps {
   allowDeposits: boolean;
   amount: number;
   depositAmount?: number;
-  showServiceModal: boolean;
-  setShowServiceModal: (value: boolean) => void;
+  showBookingModal: boolean;
+  setShowBookingModal: (value: boolean) => void;
   onSubmit: (data: BookingType) => void;
 }
 
@@ -64,11 +64,12 @@ const BookingForm = ({
   allowDeposits,
   amount,
   depositAmount,
-  showServiceModal,
-  setShowServiceModal,
+  showBookingModal,
+  setShowBookingModal,
   onSubmit,
 }: BookingFormProps) => {
   const [TandCagreed, setTandCagreed] = useState(false);
+  const policyTypes = Array.from(new Set(policies.map((p) => p.type)));
   const form = useForm<z.infer<typeof bookingSchema>>({
     resolver: zodResolver(bookingSchema),
     defaultValues: {
@@ -80,7 +81,7 @@ const BookingForm = ({
   });
 
   return (
-    <Dialog open={showServiceModal} onOpenChange={setShowServiceModal}>
+    <Dialog open={showBookingModal} onOpenChange={setShowBookingModal}>
       <DialogTrigger asChild>
         <Button className="w-full py-3 px-4">Schedule Appointment</Button>
       </DialogTrigger>
@@ -200,7 +201,7 @@ const BookingForm = ({
                   variant="outline"
                   onClick={() => {
                     form.reset();
-                    setShowServiceModal(false);
+                    setShowBookingModal(false);
                   }}
                 >
                   Cancel
@@ -217,23 +218,24 @@ const BookingForm = ({
             <DialogDescription>Review business policy</DialogDescription>
           </DialogHeader>
           <div className="space-y-6 text-slate-600 text-sm">
-            <ul className="space-y-1">
-              {policies
-                .map((policy) => policy.type)
-                .map((policyType) => (
-                  <div>
-                    <h2>{policyType}</h2>
-                    <ul className="list-disc list-inside space-y-1">
-                      {policies
-                        .filter((policy) => policy.type === policyType)
-                        .map(({ policy }, i) => (
-                          <li key={`${policyType}-${i}`}>{policy}</li>
-                        ))}
-                    </ul>
-                  </div>
-                ))}
-            </ul>
-            <p className="text-sm">{additionalPolicy}</p>
+            {policyTypes.map((policyType) => (
+              <div>
+                <h3 className="capitalize">{policyType}</h3>
+                <ul className="list-disc list-inside space-y-1">
+                  {policies
+                    .filter((policy) => policy.type === policyType)
+                    .map(({ policy }, i) => (
+                      <li key={`${policyType}-${i}`}>{policy}</li>
+                    ))}
+                </ul>
+              </div>
+            ))}
+            {additionalPolicy && (
+              <div className="">
+                <h3>Additional Notes:</h3>
+                <p className="text-sm">{additionalPolicy}</p>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button
@@ -241,7 +243,7 @@ const BookingForm = ({
               variant="outline"
               onClick={() => {
                 form.reset();
-                setShowServiceModal(false);
+                setShowBookingModal(false);
               }}
             >
               Cancel

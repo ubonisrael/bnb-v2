@@ -225,7 +225,7 @@ export interface AvailableTimeSlotsResponse {
 
 export interface BookingResponse {
   status: boolean;
-  message: string;
+  url: string;
 }
 
 export interface NotificationSettingsResponse {
@@ -363,4 +363,19 @@ export interface ServicesTabPropsInterface {
   serviceCategories: ServiceCategory[];
   gotoNextTab: () => void;
   gotoPrevTab: () => void;
+}
+
+interface ConfirmationPageData {
+  status: "success" | "failed" | "expired" | "pending";
+  selectedServices?: {
+    id: number;
+    name: string;
+    price: number;
+    duration: number;
+  }[];
+  selectedDate?: string;
+  selectedTime?: number;
+  businessLocation?: string;
+  businessUtcOffset?: number;
+  url: string;
 }

@@ -1,12 +1,12 @@
 "use client";
 
 import Cart from "@/components/templates/default/Cart";
-import { ServicesTabPropsInterface } from "../types";
 import { Button } from "@/components/templates/default/ui/button";
 import { Home } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useEffect } from "react";
 import ServicesSection from "./components/services-section";
+import { ServicesTabPropsInterface } from "@/types/response";
 
 export function ServicesTab({
   name,

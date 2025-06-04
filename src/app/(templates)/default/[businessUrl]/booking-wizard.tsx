@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useApp } from "@/contexts/AppContext";
 import BookingForm, {
   BookingType,
@@ -15,7 +15,6 @@ import timezone from "dayjs/plugin/timezone";
 import { BusinessLanding } from "./tabs/landing";
 import { ServicesTab } from "./tabs/services";
 import { DateTimePickerTab } from "./tabs/pickdatetime";
-import { ConfirmationTab } from "./tabs/confirmation";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -36,7 +35,6 @@ const steps = [
   { id: "landing", title: "Landing" },
   { id: "services", title: "Services" },
   { id: "datetime", title: "datetime" },
-  { id: "confirmation", title: "Confirmation" },
 ];
 
 export function BookingWizard(props: BusinessDataResponse) {
@@ -46,9 +44,10 @@ export function BookingWizard(props: BusinessDataResponse) {
     getTotalPrice,
     selectedDate,
     selectedTime,
+    resetBooking
   } = useApp();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [showServiceModal, setShowServiceModal] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(false);
 
   const currentStep = steps[currentStepIndex];
 
@@ -68,9 +67,10 @@ export function BookingWizard(props: BusinessDataResponse) {
     },
     onSuccess: async (data: BookingResponse) => {
       toast.dismiss("booking");
-      toast.success(data.message);
-      setShowServiceModal(false);
-      setCurrentStepIndex(3);
+      resetBooking()
+      window.location.href = data.url;
+      // setShowBookingModal(false);
+      // setCurrentStepIndex(3);
     },
     onError: (error: ErrorResponse) => {
       toast.dismiss("booking");
@@ -100,6 +100,25 @@ export function BookingWizard(props: BusinessDataResponse) {
     }
   }
 
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const status = searchParams.get('status');
+    const productId = searchParams.get('productId');
+    const productType = searchParams.get('productType');
+
+    if (status === 'canceled' && productId && productType) {
+      const handleCancellation = async () => {
+        try {
+          await api.post('/cancel-reservation', { productId: parseInt(productId), productType });
+        } catch (error) {
+          console.error('Failed to process cancellation:', error);
+        }
+      };
+
+      handleCancellation();
+    }
+  }, []);
+
   return (
     <div className="mx-auto max-w-7xl w-full">
       <div className="px-6 py-6">
@@ -119,17 +138,14 @@ export function BookingWizard(props: BusinessDataResponse) {
             gotoPrevTab={() => goToTab(1)}
             showBookingForm={() => {
               if (selectedDate && selectedTime) {
-                setShowServiceModal(true);
+                setShowBookingModal(true);
               }
             }}
             {...props}
           />
         )}
-        {currentStep.id === "confirmation" && (
-          <ConfirmationTab gotoHome={() => goToTab(0)} {...props} />
-        )}
         {/* Booking Form Modal */}
-        {showServiceModal && selectedDate && selectedTime && (
+        {showBookingModal && selectedDate && selectedTime && (
           <BookingForm
             policies={props.bookingPolicy}
             additionalPolicy={props.additionalPolicies}
@@ -137,8 +153,8 @@ export function BookingWizard(props: BusinessDataResponse) {
             amount={getTotalPrice()}
             allowDeposits={props.allowDeposits}
             depositAmount={props.depositAmount}
-            showServiceModal={showServiceModal}
-            setShowServiceModal={setShowServiceModal}
+            showBookingModal={showBookingModal}
+            setShowBookingModal={setShowBookingModal}
             onSubmit={onSubmit}
           />
         )}

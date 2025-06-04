@@ -3,8 +3,8 @@ import { Search, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ServiceCategory } from "../../types";
 import ServiceCard from "./service-card";
+import { ServiceCategory } from "@/types/response";
 
 interface ServicesSectionProps {
   serviceCategories: ServiceCategory[];
@@ -67,7 +67,7 @@ export default function ServicesSection({ serviceCategories, index, gotoTab }: S
         <div className="space-y-4">
           {filteredCategories.map((category, i) => (
             <Collapsible
-              key={index}
+              key={`category-${i}`}
               open={openAccordions.has(i)}
               onOpenChange={() => toggleAccordion(i)}
             >

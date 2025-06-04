@@ -74,7 +74,7 @@ export default function BusinessDetails({
           <h2 className="text-xl font-bold text-slate-800 mb-1">
             {businessData.name}
           </h2>
-          <p className="text-slate-600">{businessData.address}</p>
+          <p className="text-slate-600">{`${businessData.address}, ${businessData.city}, ${businessData.state}`}</p>
         </CardContent>
       </Card>
 
@@ -165,7 +165,7 @@ export default function BusinessDetails({
               <div className="space-y-6 text-slate-600 text-sm">
                 {policyTypes.map((policyType) => (
                   <div>
-                    <h2>{policyType}</h2>
+                    <h3 className="capitalize">{policyType}</h3>
                     <ul className="list-disc list-inside space-y-1">
                       {businessData.bookingPolicy
                         .filter((policy) => policy.type === policyType)
@@ -201,30 +201,14 @@ export default function BusinessDetails({
             </CollapsibleTrigger>
             <CollapsibleContent className="px-6 pb-6">
               <div className="space-y-4">
-                <a
-                  href={`tel:${businessData.phone}`}
-                  className="flex items-center p-3 rounded-xl hover:bg-slate-50 transition-colors duration-200"
-                >
-                  <div className="w-10 h-10 bg-primary bg-opacity-10 rounded-full flex items-center justify-center mr-4">
-                    <Phone className="text-primary h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-slate-800">Phone</p>
-                    <p className="text-slate-600">{businessData.phone}</p>
-                  </div>
-                </a>
-                <a
-                  href={`mailto:${businessData.email}`}
-                  className="flex items-center p-3 rounded-xl hover:bg-slate-50 transition-colors duration-200"
-                >
-                  <div className="w-10 h-10 bg-accent bg-opacity-10 rounded-full flex items-center justify-center mr-4">
-                    <Mail className="text-accent h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-slate-800">Email</p>
-                    <p className="text-slate-600">{businessData.email}</p>
-                  </div>
-                </a>
+                <div className="flex items-center gap-2 sm:gap-4">
+                  <Phone className="h-4 w-4" />
+                  <p className="text-slate-600">{businessData.phone}</p>
+                </div>
+                <div className="flex items-center gap-2 sm:gap-4">
+                  <Mail className="h-4 w-4" />
+                  <p className="text-slate-600">{businessData.email}</p>
+                </div>
               </div>
             </CollapsibleContent>
           </Card>
