@@ -168,9 +168,10 @@ export default function RescheduleBookingClient({
                           </p>
                           <p className="mb-1">
                             <strong>Event Time:</strong>{" "}
-                            {`${eventDate.get("hour")}:${eventDate.get(
-                              "minute"
-                            )}`}
+                            {minutesToTimeString(
+                              eventDate.get("hour") * 60 +
+                                eventDate.get("minute")
+                            )}
                           </p>
                           <p className="mb-1">
                             <strong>Status:</strong> {booking.status}
@@ -183,7 +184,7 @@ export default function RescheduleBookingClient({
                           </p>
                         </div>
                       </div>
-                      <RescheduleForm id={id} setRequested={setRequested} />
+                      <RescheduleForm id={id} selectedDate={selectedDate} selectedTime={selectedTime} setRequested={setRequested} />
                     </CardContent>
                   </Card>
 
@@ -290,9 +291,13 @@ export default function RescheduleBookingClient({
 
 function RescheduleForm({
   id,
+  selectedDate,
+  selectedTime,
   setRequested,
 }: {
   id: string;
+  selectedDate: string;
+  selectedTime: number | null;
   setRequested: (val: boolean) => void;
 }) {
   const [showResheduleModal, setShowRescheduleModal] = useState(false);
@@ -308,10 +313,13 @@ function RescheduleForm({
 
       try {
         const response = await api.post(
-          `sp/reschedule-booking/${id}`,
+          `sp/reschedule-booking`,
           {
             ...values,
             id,
+            new_event_date: selectedDate,
+            new_event_time: selectedTime,
+            client_tz: dayjs.tz.guess(),
           },
           { signal }
         );
@@ -359,7 +367,7 @@ function RescheduleForm({
       }}
     >
       <DialogTrigger asChild>
-        <Button className="w-full mt-4" variant="default">
+        <Button className="w-full mt-4" variant="default" disabled={!selectedTime}>
           Reschedule
         </Button>
       </DialogTrigger>
@@ -371,7 +379,7 @@ function RescheduleForm({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-4">
             <FormField
               control={form.control}
               name="email"
@@ -385,7 +393,7 @@ function RescheduleForm({
                 </FormItem>
               )}
             />
-            <Button type="submit">Request Reschedule</Button>
+            <Button className="self-end" type="submit">Request Reschedule</Button>
           </form>
         </Form>
       </DialogContent>

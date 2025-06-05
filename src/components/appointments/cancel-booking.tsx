@@ -25,6 +25,7 @@ import { BookingData, PolicyData } from "@/types/response";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import { minutesToTimeString } from "@/utils/time";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -61,7 +62,7 @@ export default function CancelBookingClient({
 
       try {
         const response = await api.post(
-          `sp/cancel-booking/${id}`,
+          `sp/cancel-booking`,
           {
             ...values,
             id,
@@ -99,90 +100,105 @@ export default function CancelBookingClient({
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-4 space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Cancel Appointment</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {cancelled ? (
-            <div className="bg-green-100 text-green-800 p-4 rounded-lg">
-              Your appointment has been successfully cancelled.
-              <div className="pt-4">
-                <Link href="/" className="text-blue-600 underline text-sm">
-                  Return to Home
-                </Link>
+    <div className="w-full min-h-screen flex items-center justify-center">
+      <div className="max-w-2xl mx-auto p-4 space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-center">Cancel Appointment</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {cancelled ? (
+              <div className="bg-green-100 text-green-800 p-4 rounded-lg">
+                Your appointment has been successfully cancelled.
+                <div className="flex items-center justify-center pt-4">
+                  <Link href="/" className="text-blue-600 underline text-sm inline-block">
+                    Return to Home
+                  </Link>
+                </div>
               </div>
-            </div>
-          ) : (
-            <>
-              <div>
-                <h2 className="font-semibold">Cancellation Policy</h2>
+            ) : (
+              <>
                 <div>
-                  <div className="mb-4">
-                    {policyTypes.map((policyType) => (
-                      <ul className="list-disc list-inside space-y-1">
-                        {policies
-                          .filter((policy) => policy.type === policyType)
-                          .map(({ policy }, i) => (
-                            <li key={`${policyType}-${i}`}>{policy}</li>
-                          ))}
-                      </ul>
-                    ))}
-                  </div>
-                  <div className="">
-                    <h3 className="capitalize font-semibold">Booking Details</h3>
-                    <div className="p-1 pt-0">
-                      <p className="mb-1">
-                        <strong className="font-medium">Event Date:</strong>{" "}
-                        {`${eventDate.format("YYYY-MM-DD")}`}
-                      </p>
-                      <p className="mb-1">
-                        <strong className="font-medium">Event Time:</strong>{" "}
-                        {`${eventDate.get("hour")}:${eventDate.get("minute")}`}
-                      </p>
-                      <p className="mb-1">
-                        <strong className="font-medium">Status:</strong> {booking.status}
-                      </p>
-                      <p className="mb-1">
-                        <strong className="font-medium">Amount Paid:</strong> £{booking.amount_paid}
-                      </p>
-                      <p className="mb-1">
-                        <strong className="font-medium">Amount Due:</strong> £{booking.amount_due}
-                      </p>
+                  <h2 className="font-medium text-xl">Cancellation Policy</h2>
+                  <div>
+                    <div className="mb-4">
+                      {policyTypes.map((policyType) => (
+                        <ul
+                          key={policyType}
+                          className="list-disc list-inside space-y-1"
+                        >
+                          {policies
+                            .filter((policy) => policy.type === policyType)
+                            .map(({ policy }, i) => (
+                              <li key={`${policyType}-${policy}-${i}`}>
+                                {policy}
+                              </li>
+                            ))}
+                        </ul>
+                      ))}
+                    </div>
+                    <div className="">
+                      <h3 className="capitalize font-medium text-lg">
+                        Booking Details
+                      </h3>
+                      <div className="p-1 pt-0">
+                        <p className="mb-1">
+                          <strong className="font-medium">Event Date:</strong>{" "}
+                          {`${eventDate.format("YYYY-MM-DD")}`}
+                        </p>
+                        <p className="mb-1">
+                          <strong className="font-medium">Event Time:</strong>{" "}
+                          {minutesToTimeString(
+                            eventDate.get("hour") * 60 + eventDate.get("minute")
+                          )}
+                        </p>
+                        <p className="mb-1">
+                          <strong className="font-medium">Status:</strong>{" "}
+                          {booking.status}
+                        </p>
+                        <p className="mb-1">
+                          <strong className="font-medium">Amount Paid:</strong>{" "}
+                          £{booking.amount_paid}
+                        </p>
+                        <p className="mb-1">
+                          <strong className="font-medium">Amount Due:</strong> £
+                          {booking.amount_due}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-4"
-                >
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input placeholder="you@example.com" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          Enter the email you used when booking the appointment.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit">Confirm Cancellation</Button>
-                </form>
-              </Form>
-            </>
-          )}
-        </CardContent>
-      </Card>
+                <Form {...form}>
+                  <form
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    className="flex flex-col space-y-4"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input placeholder="you@example.com" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Enter the email you used when booking the
+                            appointment.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" className="self-end">Confirm Cancellation</Button>
+                  </form>
+                </Form>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

@@ -22,9 +22,11 @@ export default async function CancelBookingPage({
   try {
     const [bookingRes, policyRes] = await Promise.all([
       api.get<FetchBookingByIdResponse>(`sp/bookings/${id}`),
-      api.get<FetchBookingPolicyResponse>(`sp/${url}/booking-policies?type=cancellation`),
+      api.get<FetchBookingPolicyResponse>(
+        `sp/${url}/booking-policies?type=cancellation`
+      ),
     ]);
-    const { booking } = bookingRes;
+    const { data: booking } = bookingRes;
     const { policies } = policyRes;
     // const booking = {
     //   id: Number(id),
@@ -50,18 +52,27 @@ export default async function CancelBookingPage({
     // ];
 
     return (
-      <CancelBookingClient booking={booking} policies={policies as PolicyData[]} id={id} />
+      <div className="w-full min-h-screen flex items-center justify-center">
+        <CancelBookingClient
+          booking={booking}
+          policies={policies as PolicyData[]}
+          id={id}
+        />
+      </div>
     );
   } catch (error: any) {
+    console.error("Error loading booking or policy data:", error);
     return (
-      <div className="p-4 text-red-500 space-y-2">
-        <div>Error loading booking or policy data.</div>
-        {error?.message && (
-          <div className="text-sm text-muted-foreground">{error.message}</div>
-        )}
-        <Link href="/" className="text-blue-600 underline">
-          Return to Home
-        </Link>
+      <div className="w-full min-h-screen flex items-center justify-center">
+        <div className="p-4 text-red-500 space-y-2">
+          <div>Error loading booking or policy data.</div>
+          {error?.message && (
+            <div className="text-sm text-muted-foreground">{error.message}</div>
+          )}
+          <Link href="/" className="text-blue-600 underline">
+            Return to Home
+          </Link>
+        </div>
       </div>
     );
   }

@@ -24,7 +24,7 @@ export default async function RescheduleBookingPage({
       api.get<FetchBookingByIdResponse>(`sp/bookings/${id}`),
       api.get<FetchBookingPolicyResponse>(`sp/${url}/booking-policies?type=rescheduling`),
     ]);
-    const { booking } = bookingRes;
+    const { data: booking } = bookingRes;
     const { policies, minNotice, maxNotice, utcOffset } = policyRes;
 
     return (

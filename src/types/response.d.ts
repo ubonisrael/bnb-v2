@@ -269,7 +269,7 @@ interface BookingData {
 
 interface FetchBookingByIdResponse {
   status: boolean;
-  booking: BookingData;
+  data: BookingData;
 }
 
 type generatePolicyType =
