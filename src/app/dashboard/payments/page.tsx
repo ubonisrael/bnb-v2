@@ -50,12 +50,15 @@ export default function PaymentDashboardPage() {
         <CardHeader>
           <CardTitle>Stripe Account Settings</CardTitle>
           <CardDescription>
-            Configure your Stripe integration for receiving payments and
-            managing your subscription.
+            Configure your Stripe integration for receiving payments.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {settings?.stripeAccount.id ? (
+          {settings === null ? (
+            <div className="flex items-center justify-center py-6">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : settings.stripeAccount.id ? (
             <>
               <div className="space-y-2">
                 <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
@@ -89,8 +92,7 @@ export default function PaymentDashboardPage() {
                     toast.error("Failed to get Stripe account link");
                     return;
                   }
-                  // Redirect to Stripe account dashboard
-                    window.open(res.loginLinkUrl, '_blank');
+                  window.open(res.loginLinkUrl, "_blank");
                 }}
               >
                 View your Stripe Account dashboard
@@ -99,10 +101,12 @@ export default function PaymentDashboardPage() {
           ) : (
             <div className="space-y-2">
               <p className="">
-                Click the button below to get redirected to Stripe to complete
-                onboarding process.
+                To start receiving payments, you need to connect a Stripe
+                account. Stripe is a secure and trusted platform used by
+                millions of businesses to manage payments. If you already have a
+                Stripe account, you can link it. Otherwise, you'll be guided to
+                create one — it only takes a few minutes.
               </p>
-              {/* Submit Button */}
               <Button
                 onClick={async () => {
                   console.log("Connecting to Stripe...");
@@ -128,12 +132,8 @@ export default function PaymentDashboardPage() {
                 className="rounded"
                 type="button"
               >
-                Connect your Stripe Account
+                Connect with Stripe
               </Button>
-              <p className="text-sm text-muted-foreground">
-                If you do not have a Stripe Account, one will be created for you
-                during the Stripe Onboarding process.
-              </p>
             </div>
           )}
         </CardContent>
