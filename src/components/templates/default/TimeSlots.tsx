@@ -53,7 +53,7 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
     },
   });
 
-  if (isLoading) {
+  if (isLoading && !error) {
     return (
       <div className="mt-6">
         <div className="h-7 w-64 bg-gray-200 dark:bg-gray-700 rounded mb-4 animate-pulse" />
@@ -71,10 +71,11 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
 
   return (
     <div className="mt-6">
-      <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4"></h4>
+      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
       {selectedDate
         ? `Available Times on ${selectedDate}`
         : "Select a date to see available times"}
+      </h3>
       {error && (
         <div className="text-red-500 text-sm mt-2">{(error?.response?.data as { message: string })?.message}</div>
       )}
