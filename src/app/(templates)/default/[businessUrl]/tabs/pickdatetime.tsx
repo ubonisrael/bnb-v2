@@ -5,9 +5,15 @@ import Cart from "@/components/templates/default/Cart";
 import TimeSlots from "@/components/templates/default/TimeSlots";
 import { Button } from "@/components/templates/default/ui/button";
 import { useApp } from "@/contexts/AppContext";
-import { minutesToTimeString } from "@/utils/time";
+import { convertTimeSlotsToUserLocalTime, minutesToTimeString } from "@/utils/time";
 import { ArrowLeft, Home } from "lucide-react";
 import React from "react";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 interface DateTimePickerTabProps {
   bUrl: string;
@@ -40,6 +46,8 @@ export const DateTimePickerTab = ({
     getTotalDuration,
     selectedServices
   } = useApp();
+  const timezone = dayjs.tz.guess();
+  const clientOffset = dayjs().tz(timezone).utcOffset();
 
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
@@ -160,7 +168,7 @@ export const DateTimePickerTab = ({
                         </p>
                         {selectedTime ? (
                           <p className="font-medium text-gray-900 dark:text-white">
-                            {minutesToTimeString(selectedTime)}
+                            {minutesToTimeString(convertTimeSlotsToUserLocalTime(selectedTime, clientOffset, utcOffset))}
                           </p>
                         ) : (
                           <p className="text-gray-500 dark:text-gray-400 italic">

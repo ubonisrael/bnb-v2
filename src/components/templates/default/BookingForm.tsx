@@ -232,8 +232,8 @@ const BookingForm = ({
             <DialogDescription>Review business policy</DialogDescription>
           </DialogHeader>
           <div className="space-y-6 text-slate-600 text-sm">
-            {policyTypes.map((policyType) => (
-              <div>
+            {policyTypes.map((policyType, i) => (
+              <div key={`${i}-${policyType}`} className="space-y-2">
                 <h3 className="capitalize">{policyType}</h3>
                 <ul className="list-disc list-inside space-y-1">
                   {policies

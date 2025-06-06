@@ -111,9 +111,9 @@ const Calendar: React.FC<CalendarProps> = ({ maxNotice, minNotice, selectedDate,
             key={index}
             onClick={() => selectDate(day)}
             className={`
-              h-14 text-center py-2 relative
+              h-14 text-center py-2 relative text-gray-900 dark:text-white flex items-center justify-center
               ${day && !isPast(day) 
-                ? 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer' 
+                ? 'bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-100 cursor-pointer' 
                 : ''}
               ${day && isPast(day) 
                 ? 'bg-gray-100 dark:bg-gray-900 text-gray-400 dark:text-gray-600 cursor-not-allowed' 
@@ -122,15 +122,14 @@ const Calendar: React.FC<CalendarProps> = ({ maxNotice, minNotice, selectedDate,
                 ? 'bg-gray-100 dark:bg-gray-900' 
                 : ''}
               ${selectedDate === formatDate(day) 
-                ? 'ring-2 ring-primary-500 dark:ring-primary-400 bg-slate-100' 
+                ? 'border border-blue-900 bg-blue-700 text-white font-bold hover:text-black' 
                 : ''}
               ${isToday(day) 
-                ? 'text-primary-700 dark:text-primary-400 font-semibold' 
+                ? 'text-primary-700 dark:text-primary-400 bg-green-200 font-semibold' 
                 : ''}
             `}
           >
-            {day && <span className="text-gray-900 dark:text-white">{day}</span>}
-            {isToday(day) && <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full bg-primary-500"></div>}
+            {day && <span className="">{day}</span>}
           </div>
         ))}
       </div>
