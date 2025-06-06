@@ -153,7 +153,7 @@ export default function RescheduleBookingClient({
                               {policies
                                 .filter((policy) => policy.type === policyType)
                                 .map(({ policy }, i) => (
-                                  <li key={`${policyType}-${i}`}>{policy}</li>
+                                  <li key={`${policyType}-${i}-${policy}`}>{policy}</li>
                                 ))}
                             </ul>
                           </div>
