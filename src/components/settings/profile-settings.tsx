@@ -60,6 +60,12 @@ export function ProfileSettings() {
     settings?.profile.logo || null
   );
 
+  useEffect(() => {
+    if (settings) {
+      setLogoUrl(settings.profile.logo)
+    }
+  }, [settings])
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -213,12 +219,12 @@ export function ProfileSettings() {
             <FormLabel>Business Logo</FormLabel>
             <div className="mt-2">
               {logoUrl ? (
-                <div className="relative h-40 w-40">
+                <div className="relative h-40 w-40 mx-auto">
                   <Image
                     src={logoUrl}
                     alt="Business Logo"
                     fill
-                    className="rounded-md object-contain"
+                    className="rounded-full"
                   />
                   <Button
                     type="button"
@@ -260,7 +266,7 @@ export function ProfileSettings() {
                 </div>
               )}
             </div>
-            <FormDescription>
+            <FormDescription className="text-center">
               Your logo will appear on your booking page and receipts
             </FormDescription>
           </FormItem>

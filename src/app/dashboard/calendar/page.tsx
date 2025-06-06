@@ -1,6 +1,8 @@
 "use client";
 
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import { useState } from "react";
 import {
   CalendarIcon,
@@ -8,7 +10,6 @@ import {
   ChevronRight,
   Filter,
   MoreHorizontal,
-  Plus,
   X,
 } from "lucide-react";
 import {
@@ -19,10 +20,8 @@ import {
   eachDayOfInterval,
   isSameDay,
 } from "date-fns";
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -33,26 +32,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useUserSettings } from "@/contexts/user-settings-context";
-import { Service } from "@/components/onboarding/type";
+import { Service, ServiceCategory } from "@/components/onboarding/type";
 import api from "@/services/api-service";
 import { useQuery } from "@tanstack/react-query";
 import { BookingDataResponse } from "@/types/response";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
-import { Category } from "@/app/(templates)/default/[businessUrl]/types";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // Time slots for the calendar
 // Example usage:
@@ -77,7 +71,7 @@ const timeSlots = generateTimeSlots(420, 1380, 30); // 7:00 to 23:00, 30 minute 
 
 // Add filter types
 type FilterType = {
-  category: Category[];
+  category: ServiceCategory[];
   service: Service[];
 };
 
@@ -90,6 +84,7 @@ export default function CalendarPage() {
     queryKey: [date.toISOString()],
     queryFn: () => api.get(`sp/bookings?date=${format(date, "yyyy-MM-dd")}`),
   });
+  console.log("Bookings data:", data);
 
   const [filters, setFilters] = useState<FilterType>({
     category: [],
@@ -320,7 +315,8 @@ export default function CalendarPage() {
                     {/* Appointments */}
                     <div className="absolute left-16 top-0 w-[calc(100%-4rem)]">
                       {data.bookings.map((appointment) => {
-                        const date = dayjs(appointment.event_date);
+                        const date = dayjs(appointment.event_date).tz(
+                          data.timezone || "UTC");
                         const startTime = date.format("HH:mm");
                         const endTime = date
                           .add(appointment.event_duration, "minutes")

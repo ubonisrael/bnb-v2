@@ -149,6 +149,7 @@ export interface BookingsResponse extends Service {
 
 export interface BookingDataResponse {
   status: boolean;
+  timezone: string;
   bookings: BookingsResponse[];
 }
 
