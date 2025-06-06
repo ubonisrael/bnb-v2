@@ -1,6 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 const CallToAction = () => {
   return (
@@ -13,9 +14,9 @@ const CallToAction = () => {
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button className="bg-white text-brand-600 hover:bg-brand-50 text-md px-8 py-6 font-medium rounded-lg shadow-sm hover:shadow-md transition-all">
-              <a href="#" className="flex items-center">
+              <Link href="auth/register" className="flex items-center">
                 Get Started For Free <ArrowRight className="ml-2 h-5 w-5" />
-              </a>
+              </Link>
             </Button>
             <Button variant="outline" className="text-md px-8 py-6 border-white/30 text-black hover:bg-brand-600 hover:border-white/50 rounded-lg">
               <a href="#">Contact Sales</a>

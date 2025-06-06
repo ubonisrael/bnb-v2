@@ -209,67 +209,61 @@ export function ProfileSettings() {
         </div>
 
         <div className="space-y-4">
-          <FormField
-            control={form.control}
-            name="logo"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Business Logo</FormLabel>
-                <div className="mt-2">
-                  {logoUrl ? (
-                    <div className="relative h-40 w-40">
-                      <Image
-                        src={logoUrl}
-                        alt="Business Logo"
-                        fill
-                        className="rounded-md object-contain"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        className="absolute -right-2 -top-2 h-7 w-7 rounded-full border-gray-200 bg-white"
-                        onClick={removeLogo}
-                        disabled={isUploading}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center rounded-md border border-dashed border-[#E0E0E5] px-6 py-10">
-                      <div className="text-center">
-                        <Upload className="mx-auto h-12 w-12 text-[#6E6E73]" />
-                        <div className="mt-2 flex text-sm leading-6 text-[#6E6E73]">
-                          <label
-                            htmlFor="logo-upload"
-                            className="relative cursor-pointer rounded-md font-semibold text-[#7B68EE]"
-                          >
-                            <span>Upload a file</span>
-                            <input
-                              id="logo-upload"
-                              name="logo-upload"
-                              type="file"
-                              accept="image/*"
-                              className="sr-only"
-                              onChange={handleLogoUpload}
-                              disabled={isUploading}
-                            />
-                          </label>
-                          <p className="pl-1">or drag and drop</p>
-                        </div>
-                        <p className="text-xs text-[#6E6E73]">
-                          PNG, JPG, GIF up to 10MB
-                        </p>
-                      </div>
-                    </div>
-                  )}
+          <FormItem>
+            <FormLabel>Business Logo</FormLabel>
+            <div className="mt-2">
+              {logoUrl ? (
+                <div className="relative h-40 w-40">
+                  <Image
+                    src={logoUrl}
+                    alt="Business Logo"
+                    fill
+                    className="rounded-md object-contain"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="absolute -right-2 -top-2 h-7 w-7 rounded-full border-gray-200 bg-white"
+                    onClick={removeLogo}
+                    disabled={isUploading}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
-                <FormDescription>
-                  Your logo will appear on your booking page and receipts
-                </FormDescription>
-              </FormItem>
-            )}
-          />
+              ) : (
+                <div className="flex items-center justify-center rounded-md border border-dashed border-[#E0E0E5] px-6 py-10">
+                  <div className="text-center">
+                    <Upload className="mx-auto h-12 w-12 text-[#6E6E73]" />
+                    <div className="mt-2 flex text-sm leading-6 text-[#6E6E73]">
+                      <label
+                        htmlFor="logo-upload"
+                        className="relative cursor-pointer rounded-md font-semibold text-[#7B68EE]"
+                      >
+                        <span>Upload a file</span>
+                        <input
+                          id="logo-upload"
+                          name="logo-upload"
+                          type="file"
+                          accept="image/*"
+                          className="sr-only"
+                          onChange={handleLogoUpload}
+                          disabled={isUploading}
+                        />
+                      </label>
+                      <p className="pl-1">or drag and drop</p>
+                    </div>
+                    <p className="text-xs text-[#6E6E73]">
+                      PNG, JPG, GIF up to 10MB
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+            <FormDescription>
+              Your logo will appear on your booking page and receipts
+            </FormDescription>
+          </FormItem>
 
           <FormField
             control={form.control}

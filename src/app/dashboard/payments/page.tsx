@@ -11,11 +11,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils"; // optional util for classnames
 import api from "@/services/api-service";
-import { loadStripe } from "@stripe/stripe-js";
 import toast from "react-hot-toast";
 import { useUserSettings } from "@/contexts/user-settings-context";
 import SubscriptionDetails from "@/components/payments/subscription-card";
-import { useSearchParams } from "next/navigation";
 
 type Invoice = {
   id: string;
@@ -142,7 +140,7 @@ export default function PaymentDashboardPage() {
       </Card>
 
       {/* Transaction History Section */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle>Transaction History</CardTitle>
         </CardHeader>
@@ -193,7 +191,7 @@ export default function PaymentDashboardPage() {
             </p>
           )}
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 }
