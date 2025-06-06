@@ -113,8 +113,8 @@ export default function AnalyticsPage() {
     },
   });
 
-  const avgRevenuePerBooking = (overview?.bookings.totalBookings / overview?.daysSinceCreation) || 0
-  const avgBookingPerDay = (overview?.revenue.totalRevenue / overview?.bookings.totalBookings) || 0
+  const avgBookingPerDay = (overview?.bookings.totalBookings / overview?.daysSinceCreation) || 0
+  const avgRevenuePerBooking = (overview?.revenue.totalRevenue / overview?.bookings.totalBookings) || 0
   
   // Get the date range string
   const getDateRangeString = () => {
@@ -459,7 +459,7 @@ export default function AnalyticsPage() {
                         <Legend />
                         <Line
                           type="monotone"
-                          dataKey="newClients"
+                          dataKey="clients"
                           stroke="blue"
                           strokeWidth={2}
                           activeDot={{ r: 8 }}
@@ -569,7 +569,7 @@ export default function AnalyticsPage() {
                   Avg. Bookings per Day
                 </div>
                 <div className="text-2xl font-bold">
-                  {avgRevenuePerBooking.toFixed(2)}
+                  {avgBookingPerDay.toFixed(2)}
                 </div>
               </div>
 
@@ -579,7 +579,7 @@ export default function AnalyticsPage() {
                   Avg. Revenue per Booking
                 </div>
                 <div className="text-2xl font-bold">
-                  ${avgBookingPerDay.toFixed(2)}
+                  £{avgRevenuePerBooking.toFixed(2)}
                 </div>
               </div>
 

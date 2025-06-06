@@ -84,7 +84,6 @@ export default function CalendarPage() {
     queryKey: [date.toISOString()],
     queryFn: () => api.get(`sp/bookings?date=${format(date, "yyyy-MM-dd")}`),
   });
-  console.log("Bookings data:", data);
 
   const [filters, setFilters] = useState<FilterType>({
     category: [],
