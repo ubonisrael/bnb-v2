@@ -536,7 +536,7 @@ export function BookingDaysSettings() {
                 <FormItem>
                   <Card className="border-[#E0E0E5]">
                     <CardContent className="pt-6">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
                         <div className="flex items-center space-x-4">
                           <FormControl>
                             <Switch
@@ -552,7 +552,7 @@ export function BookingDaysSettings() {
                           </Label>
                         </div>
                         {field.value && (
-                          <div className="flex items-center space-x-4">
+                          <div className="flex flex-col md:flex-row md:items-center md:space-x-4 gap-2 md:gap-0">
                             <FormField
                               control={form.control}
                               name={

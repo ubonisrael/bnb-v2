@@ -22,12 +22,12 @@ export default function SettingsPage() {
         </div>
 
         <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
-            <TabsTrigger value="social">Social Media</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            <TabsTrigger value="booking-days">Booking Days</TabsTrigger>
+          <TabsList className="h-full flex flex-col space-y-2 sm:grid sm:grid-cols-3 md:grid-cols-5 sm:space-y-0 sm:gap-2">
+            <TabsTrigger value="profile" className="w-full">Profile</TabsTrigger>
+            <TabsTrigger value="security" className="w-full">Security</TabsTrigger>
+            <TabsTrigger value="social" className="w-full">Social Media</TabsTrigger>
+            <TabsTrigger value="notifications" className="w-full">Notifications</TabsTrigger>
+            <TabsTrigger value="booking-days" className="w-full">Booking Days</TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile">
