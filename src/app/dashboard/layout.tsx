@@ -40,13 +40,13 @@ function CSRFInitializer() {
   return null;
 }
 
-
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const [sidebarWidth, setSidebarWidth] = useState("16rem");
+  const [collapsed, setCollapsed] = useState(false);
 
   // Listen for sidebar collapse state changes
   useEffect(() => {
@@ -72,10 +72,9 @@ export default function DashboardLayout({
     <UserSettingsProvider>
       <CSRFInitializer />
       <div className="flex min-h-screen">
-        <Sidebar />
+        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
         <div
-          className="flex flex-1 flex-col transition-all duration-300"
-          style={{ marginLeft: sidebarWidth }}
+          className={`flex flex-1 flex-col transition-all duration-300 md:${collapsed ? "ml-16" : "ml-64"}`}
         >
           <Header />
           <InfoBar />

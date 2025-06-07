@@ -13,6 +13,8 @@ import {
   LayoutDashboard,
   FileText,
   BarChart3,
+  Menu,
+  X,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -64,10 +66,16 @@ const sidebarItems = [
   },
 ];
 
-export function Sidebar() {
+export function Sidebar({
+  collapsed,
+  setCollapsed,
+}: {
+  collapsed: boolean;
+  setCollapsed: (state: boolean) => void;
+}) {
   const { settings } = useUserSettings();
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   // Check for saved state on mount
   useEffect(() => {
@@ -77,109 +85,142 @@ export function Sidebar() {
     }
   }, []);
 
+  // Close sidebar on mobile when route changes
+  useEffect(() => {
+    setIsMobileOpen(false);
+  }, [pathname]);
+
   const toggleSidebar = () => {
-    const newState = !collapsed;
-    setCollapsed(newState);
-    localStorage.setItem("sidebar-collapsed", String(newState));
-    // Dispatch storage event for the layout to detect
-    window.dispatchEvent(
-      new StorageEvent("storage", {
-        key: "sidebar-collapsed",
-        newValue: String(newState),
-      })
-    );
+    if (window.innerWidth >= 768) {
+      // Desktop behavior
+      const newState = !collapsed;
+      setCollapsed(newState);
+      localStorage.setItem("sidebar-collapsed", String(newState));
+      window.dispatchEvent(
+        new StorageEvent("storage", {
+          key: "sidebar-collapsed",
+          newValue: String(newState),
+        })
+      );
+    } else {
+      // Mobile behavior
+      setIsMobileOpen(!isMobileOpen);
+    }
   };
 
   return (
-    <div
-      className={cn(
-        "fixed left-0 top-0 z-40 flex h-screen flex-col border-r bg-[#1a1f36] text-white transition-all duration-300",
-        collapsed ? "w-16" : "w-64"
+    <>
+      {/* Mobile Backdrop */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50 md:hidden"
+          onClick={() => setIsMobileOpen(false)}
+        />
       )}
-    >
-      <div className="flex h-16 items-center justify-between border-b border-[#2a3352] px-4">
-        {collapsed ? (
-          <span className="mx-auto flex h-8 w-8  text-xs items-center justify-center text-white">
-            BNB
-          </span>
-        ) : (
-          <span className="flex h-8 px-2 items-center justify-center text-white">
-            BankNBook
-          </span>
+
+      <div
+        className={cn(
+          "fixed left-0 top-0 z-40 flex h-screen flex-col bg-[#1a1f36] text-white transition-all duration-300",
+          // Desktop styles
+          "md:left-0",
+          collapsed ? "md:w-16" : "md:w-64",
+          // Mobile styles
+          "w-64 -left-64",
+          isMobileOpen && "left-0"
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn(
-            "h-8 w-8 text-white hover:bg-[#2a3352]",
-            collapsed && "ml-auto"
-          )}
-          onClick={toggleSidebar}
-        >
-          {collapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <ChevronLeft className="h-4 w-4" />
-          )}
-        </Button>
-      </div>
-      <div className="flex-1 overflow-auto py-4">
-        <nav className="grid gap-6 px-2">
-          <TooltipProvider delayDuration={0}>
-            {sidebarItems.map((item) => (
-              <Tooltip key={item.href}>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    asChild
-                    className={cn(
-                      "flex h-12 items-center justify-start rounded-md px-3 text-[#a4b0d3] hover:bg-[#2a3352] hover:text-white",
-                      collapsed && "justify-center px-0",
-                      pathname === item.href && "bg-[#2a3352] text-white"
-                    )}
-                  >
-                    <Link
-                      href={item.href}
-                      className="flex w-full items-center gap-3"
-                    >
-                      <item.icon className="h-5 w-5 flex-shrink-0" />
-                      {!collapsed && (
-                        <span className="text-sm font-medium">
-                          {item.title}
-                        </span>
+      >
+        <div className="flex h-16 items-center justify-between border-b border-[#2a3352] px-4">
+          {/* Add mobile menu button for smaller screens */}
+            <span className={`flex h-8 px-2 items-center justify-center text-white ${collapsed ? "md:hidden" : ""}`}>
+              BankNBook
+            </span>
+          <div className="block md:hidden p-2">
+            {isMobileOpen ? (
+              <Button
+                onClick={() => setIsMobileOpen((prev) => !prev)}
+                variant={"ghost"}
+              >
+                <X className="h-6 w-6 text-white" />
+              </Button>
+            ) : (
+              <Button
+                onClick={() => setIsMobileOpen((prev) => !prev)}
+                variant={"ghost"}
+                className="absolute top-2 left-full"
+              >
+                <Menu className="h-6 w-6 text-black" />
+              </Button>
+            )}
+          </div>
+
+          <button
+            className="hidden md:block p-2 text-white"
+            onClick={() => setCollapsed(!collapsed)}
+            aria-label="Toggle Sidebar"
+          >
+            {collapsed ? (
+              <ChevronRight className="h-6 w-6" />
+            ) : (
+              <ChevronLeft className="h-6 w-6" />
+            )}
+          </button>
+        </div>
+        <div className="flex-1 overflow-auto py-4">
+          <nav className="grid gap-6 px-2">
+            <TooltipProvider delayDuration={0}>
+              {sidebarItems.map((item) => (
+                <Tooltip key={item.href}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      asChild
+                      className={cn(
+                        "flex h-12 items-center justify-start rounded-md px-3 text-[#a4b0d3] hover:bg-[#2a3352] hover:text-white",
+                        collapsed && "justify-center px-0",
+                        pathname === item.href && "bg-[#2a3352] text-white"
                       )}
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                {collapsed && (
-                  <TooltipContent side="right">{item.title}</TooltipContent>
-                )}
-              </Tooltip>
-            ))}
-          </TooltipProvider>
-        </nav>
+                    >
+                      <Link
+                        href={item.href}
+                        className={`flex w-full items-center gap-3`}
+                      >
+                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                          <span className={`text-sm font-medium md:${collapsed ? "hidden" : ""}`}>
+                            {item.title}
+                          </span>
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  {collapsed && (
+                    <TooltipContent side="right">{item.title}</TooltipContent>
+                  )}
+                </Tooltip>
+              ))}
+            </TooltipProvider>
+          </nav>
+        </div>
+        <div className="mt-auto p-4">
+          {!collapsed ? (
+            <div className="flex items-center gap-3 rounded-lg bg-[#2a3352] p-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white">
+                {/* {business?.data.name.charAt(0)} */}
+              </div>
+              <div>
+                <p className="text-sm font-medium">
+                  {settings?.profile.name || "Business"}
+                </p>
+                <p className="text-xs text-[#a4b0d3]">Business Account</p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white">
+                {settings?.profile.name[0] || "BS"}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-      <div className="mt-auto p-4">
-        {!collapsed ? (
-          <div className="flex items-center gap-3 rounded-lg bg-[#2a3352] p-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white">
-              {/* {business?.data.name.charAt(0)} */}
-            </div>
-            <div>
-              <p className="text-sm font-medium">
-                {settings?.profile.name || "Business"}
-              </p>
-              <p className="text-xs text-[#a4b0d3]">Business Account</p>
-            </div>
-          </div>
-        ) : (
-          <div className="flex justify-center">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white">
-              {settings?.profile.name[0] || "BS"}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+    </>
   );
 }
