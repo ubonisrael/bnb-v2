@@ -63,6 +63,9 @@ export function BookingWizard(props: BusinessDataResponse) {
   >({
     mutationFn: (data: BookingFormValues) => {
       toast.loading("Scheduling appointment...", { id: "booking" });
+      if (props.bUrl === "sample") {
+        return Promise.reject(new Error("Sample business does not support booking"));
+      }
       return api.post<BookingResponse>(`sp/${props.bUrl}/booking`, data);
     },
     onSuccess: async (data: BookingResponse) => {
