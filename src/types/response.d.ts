@@ -149,6 +149,10 @@ export interface BookingsResponse extends Service {
 
 export interface BookingDataResponse {
   status: boolean;
+  message: string;
+  dayEnabled: string;
+  closingTime: number;
+  openingTime: number;
   timezone: string;
   bookings: BookingsResponse[];
 }

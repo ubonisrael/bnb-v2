@@ -3,7 +3,7 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   CalendarIcon,
   ChevronLeft,
@@ -67,7 +67,7 @@ const generateTimeSlots = (
   return slots;
 };
 
-const timeSlots = generateTimeSlots(420, 1380, 30); // 7:00 to 23:00, 30 minute intervals
+const heightOfCalendarRow = 64; // Height of each row in the calendar (in pixels)
 
 // Add filter types
 type FilterType = {
@@ -116,9 +116,43 @@ export default function CalendarPage() {
     };
   })();
 
+const filteredBookings = useMemo(() => {
+  if (!data?.bookings) return [];
+  
+  if (filters.category.length === 0 && filters.service.length === 0) {
+    return data.bookings;
+  }
+
+  return data.bookings.filter(booking => {
+    // Check if any of the booking's services match the selected service filters
+    const matchesService = filters.service.length === 0 || 
+      booking.service_ids.some(serviceId => 
+        filters.service.some(filter => Number(filter.id) === Number(serviceId))
+      );
+
+    // Check if any of the booking's services belong to selected categories
+    const matchesCategory = filters.category.length === 0 ||
+      booking.service_ids.some(serviceId => {
+        const service = settings?.services.find(s => Number(s.id) === Number(serviceId));
+        return filters.category.some(cat => cat.id === service?.CategoryId);
+      });
+
+    return matchesService && matchesCategory;
+  });
+}, [data?.bookings, filters.category, filters.service, settings?.services]);
+
+  const timeSlots = useMemo(() => {
+    if (!data?.dayEnabled) return [];
+    return generateTimeSlots(
+      data.openingTime ?? 420,
+      data.closingTime ?? 1380,
+      30
+    );
+  }, [data?.dayEnabled, data?.openingTime, data?.closingTime]);
+
   // Function to get time slot index
-  const getTimeSlotIndex = (time: string) => {
-    return timeSlots.findIndex((slot) => slot === time);
+  const getTimeSlotIndex = (time: string, slots: string[]) => {
+    return slots.findIndex((slot) => slot === time);
   };
 
   return (
@@ -297,7 +331,7 @@ export default function CalendarPage() {
                     {/* Time slots */}
                     <div className="grid grid-cols-1">
                       {timeSlots.map((time, index) => (
-                        <div key={time} className="flex h-12">
+                        <div key={time} className='flex' style={{ height: `${heightOfCalendarRow}px` }}>
                           <div className="w-16 border-r border-[#E0E0E5] bg-[#F5F5F7] py-2 pr-2 text-right text-xs text-[#6E6E73]">
                             {time}
                           </div>
@@ -313,14 +347,14 @@ export default function CalendarPage() {
 
                     {/* Appointments */}
                     <div className="absolute left-16 top-0 w-[calc(100%-4rem)]">
-                      {data.bookings.map((appointment) => {
+                      {filteredBookings.map((appointment) => {
                         const date = dayjs(appointment.event_date).tz(
                           data.timezone || "UTC");
                         const startTime = date.format("HH:mm");
                         const endTime = date
                           .add(appointment.event_duration, "minutes")
                           .format("HH:mm");
-                        const startTimeIndex = getTimeSlotIndex(startTime);
+                        const startTimeIndex = getTimeSlotIndex(startTime, timeSlots);
                         const duration = appointment.event_duration / 60;
 
                         if (startTimeIndex === -1) return null;
@@ -333,15 +367,15 @@ export default function CalendarPage() {
                               getAppointmentColor()
                             )}
                             style={{
-                              top: `${startTimeIndex * 48}px`,
-                              height: `${duration * 48 + 48}px`,
+                              top: `${startTimeIndex * heightOfCalendarRow}px`,
+                              height: `${heightOfCalendarRow * (duration + 1)}px`,
                               left: "0",
                               width: "100%",
                               // transform: `translateY(${startTimeIndex * 48}px)`,
                             }}
                           >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
+                            <div className="relative flex flex-col md:flex-row md:items-center md:justify-between">
+                              <div className="flex flex-col md:flex-row md:items-center md:gap-2">
                                 <div className="font-medium text-[#121212]">
                                   {appointment.Customer?.name}
                                 </div>
@@ -350,7 +384,7 @@ export default function CalendarPage() {
                                 </div>
                               </div>
                               <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
+                                <DropdownMenuTrigger className="absolute top-0 right-0" asChild>
                                   <Button
                                     variant="ghost"
                                     size="icon"
@@ -368,7 +402,7 @@ export default function CalendarPage() {
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </div>
-                            <div className="mt-2 text-sm text-[#121212]">
+                            <div className="mt-1 md:mt-2 text-sm text-[#121212]">
                               {appointment.service_ids
                                 .map((s) => {
                                   const service = settings?.services.find(
