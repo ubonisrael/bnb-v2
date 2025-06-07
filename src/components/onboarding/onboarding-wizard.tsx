@@ -55,8 +55,8 @@ export function OnboardingWizard() {
         maximum_notice: 0,
         minimum_notice: 0,
         time_zone: "",
-        allow_deposits: false,
-        deposit_amount: undefined,
+        allow_deposits: true,
+        deposit_amount: 5,
         cancellation_allowed: false,
         cancellation_notice_hours: undefined,
         cancellation_fee_percent: undefined,
@@ -151,8 +151,8 @@ export function OnboardingWizard() {
             additionalPolicies: ""
           },
           bookingSettings: {
-            allow_deposits: false,
-            deposit_amount: undefined,
+            allow_deposits: true,
+            deposit_amount: 5,
             cancellation_allowed: false,
             cancellation_notice_hours: undefined,
             cancellation_fee_percent: undefined,

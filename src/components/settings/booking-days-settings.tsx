@@ -280,19 +280,50 @@ export function BookingDaysSettings() {
           render={({ field }) => (
             <FormItem className="flex items-center justify-between space-y-0 border p-3 rounded-lg">
               <div className="space-y-0.5">
-                <FormLabel>Allow Deposits</FormLabel>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Allow Deposits</FormLabel>{" "}
+                  <FormControl>
+                    <Switch
+                      name="allow_deposits"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </div>
                 <FormDescription>
                   Enable this option to require only a portion of the total
                   service fee upfront.
+                  <br />
+                  Customers will be charged a{" "}
+                  <strong>£1 non-refundable booking fee</strong>.
+                  <br />
+                  By default, a <strong>£5 deposit</strong> is allowed. If you
+                  enable deposits above £5 or require full payment upfront, a
+                  processing fee of <strong>2.9% + £0.80</strong> will apply to
+                  the entire transaction (including the £1 booking fee).
+                  <br />
+                  <span className="text-red-500">
+                    This processing fee will be deducted before settlement,
+                    reducing the amount your business receives.
+                  </span>
+                  <br />
+                  <br />
+                  <strong>Example 1:</strong> You charge £20 and allow a £5
+                  deposit.
+                  <br />➤ The customer pays £6 (£5 deposit + £1 booking fee).
+                  <br />➤ No processing fee applies. You receive the full £5
+                  deposit at settlement.
+                  <br />
+                  <br />
+                  <strong>Example 2:</strong> You charge £40 and require full
+                  payment.
+                  <br />➤ The customer pays £41 (£40 + £1 booking fee).
+                  <br />➤ A processing fee of £1.98 (2.9% of £41 + £0.80) is
+                  applied.
+                  <br />➤ You receive £41 - £1.98 = <strong>£39.02</strong> at
+                  settlement.
                 </FormDescription>
               </div>
-              <FormControl>
-                <Switch
-                  name="allow_deposits"
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
             </FormItem>
           )}
         />
