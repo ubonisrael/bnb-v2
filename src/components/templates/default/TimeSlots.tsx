@@ -73,7 +73,7 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
     <div className="mt-6">
       <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
       {selectedDate
-        ? `Available Times on ${selectedDate}`
+        ? `Available Times on ${dayjs(selectedDate).format("MMMM D, YYYY")}`
         : "Select a date to see available times"}
       </h3>
       {error && (

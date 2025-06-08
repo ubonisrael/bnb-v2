@@ -31,7 +31,7 @@ import {
 } from "../ui/dialog";
 import Calendar from "../templates/default/Calendar";
 import TimeSlots from "../templates/default/TimeSlots";
-import { minutesToTimeString } from "@/utils/time";
+import { convertTimeSlotsToUserLocalTime, minutesToTimeString } from "@/utils/time";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -65,6 +65,8 @@ export default function RescheduleBookingClient({
   const [selectedDate, setSelectedDate] = useState(booking.event_date);
   const [selectedTime, setSelectedTime] = useState<number | null>(null);
   const [requested, setRequested] = useState(false);
+  const timezone = dayjs.tz.guess();
+  const clientOffset = dayjs().tz(timezone).utcOffset();
 
   const policyTypes = Array.from(new Set(policies.map((p) => p.type)));
   const eventDate = dayjs(booking.event_date).tz(dayjs.tz.guess());
@@ -153,7 +155,9 @@ export default function RescheduleBookingClient({
                               {policies
                                 .filter((policy) => policy.type === policyType)
                                 .map(({ policy }, i) => (
-                                  <li key={`${policyType}-${i}-${policy}`}>{policy}</li>
+                                  <li key={`${policyType}-${i}-${policy}`}>
+                                    {policy}
+                                  </li>
                                 ))}
                             </ul>
                           </div>
@@ -184,7 +188,12 @@ export default function RescheduleBookingClient({
                           </p>
                         </div>
                       </div>
-                      <RescheduleForm id={id} selectedDate={selectedDate} selectedTime={selectedTime} setRequested={setRequested} />
+                      <RescheduleForm
+                        id={id}
+                        selectedDate={selectedDate}
+                        selectedTime={selectedTime}
+                        setRequested={setRequested}
+                      />
                     </CardContent>
                   </Card>
 
@@ -242,7 +251,13 @@ export default function RescheduleBookingClient({
                             </p>
                             {selectedTime ? (
                               <p className="font-medium text-gray-900 dark:text-white">
-                                {minutesToTimeString(selectedTime)}
+                                {minutesToTimeString(
+                                  convertTimeSlotsToUserLocalTime(
+                                    selectedTime,
+                                    clientOffset,
+                                    utcOffset
+                                  )
+                                )}
                               </p>
                             ) : (
                               <p className="text-gray-500 dark:text-gray-400 italic">
@@ -367,7 +382,11 @@ function RescheduleForm({
       }}
     >
       <DialogTrigger asChild>
-        <Button className="w-full mt-4" variant="default" disabled={!selectedTime}>
+        <Button
+          className="w-full mt-4"
+          variant="default"
+          disabled={!selectedTime}
+        >
           Reschedule
         </Button>
       </DialogTrigger>
@@ -379,7 +398,10 @@ function RescheduleForm({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col space-y-4"
+          >
             <FormField
               control={form.control}
               name="email"
@@ -393,7 +415,9 @@ function RescheduleForm({
                 </FormItem>
               )}
             />
-            <Button className="self-end" type="submit">Request Reschedule</Button>
+            <Button className="self-end" type="submit">
+              Request Reschedule
+            </Button>
           </form>
         </Form>
       </DialogContent>
