@@ -32,7 +32,7 @@ const CopyTextComponent = ({ text }: { text: string }) => {
   const handleCopy = () => {
     navigator.clipboard
       .writeText(
-        `${process.env.NEXT_PUBLIC_WEB_URL || "localhost:3000"}/default/${text}`
+        `${process.env.NEXT_PUBLIC_WEB_URL || "localhost:3000"}/${text}`
       )
       .then(() => {
         setCopied(true);
