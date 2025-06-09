@@ -31,8 +31,6 @@ type Invoice = {
 export default function PaymentDashboardPage() {
   const { settings } = useUserSettings();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-  // const queryParams = useSearchParams()
-  console.log("settings", settings);
 
   return (
     <div className="space-y-6">
