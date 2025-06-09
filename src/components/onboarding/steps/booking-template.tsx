@@ -9,6 +9,8 @@ import {
   getDownloadURL,
   uploadBytesResumable,
 } from "firebase/storage";
+import useEmblaCarousel from "embla-carousel-react";
+import { useEffect } from "react";
 
 import {
   Form,
@@ -27,7 +29,7 @@ import toast from "react-hot-toast";
 import Image from "next/image";
 import { Button } from "@/components/templates/default/ui/button";
 import { BookingTemplateData } from "../type";
-import { da } from "date-fns/locale";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export const bookingTemplateSchema = z.object({
   templateType: z
@@ -72,6 +74,8 @@ export function BookingTemplateStep({
     },
   });
   const formRef = useRef<HTMLFormElement | null>(null);
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   const onError = (errors: any) => {
     if (!formRef.current) return;
@@ -105,6 +109,17 @@ export function BookingTemplateStep({
       return isValid && imagePresent;
     },
   }));
+
+  useEffect(() => {
+    const onSelect = () => {
+      setSelectedIndex(emblaApi?.selectedScrollSnap() || 0);
+    };
+
+    emblaApi?.on("select", onSelect);
+    return () => {
+      emblaApi?.off("select", onSelect);
+    };
+  }, [emblaApi]);
 
   const handleBannerImageUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -158,6 +173,45 @@ export function BookingTemplateStep({
       images: [...data.images.filter((img) => img.id !== id)],
     });
   };
+
+  const CarouselButton = ({
+    direction,
+    onClick,
+  }: {
+    direction: "left" | "right";
+    onClick: () => void;
+  }) => (
+    <Button
+      type="button"
+      variant="outline"
+      size="icon"
+      className="absolute top-1/2 -translate-y-1/2 h-8 w-8 rounded-full border-gray-200 bg-white/80 z-10"
+      style={{ [direction]: "1rem" }}
+      onClick={onClick}
+    >
+      {direction === "left" ? (
+        <ChevronLeft className="h-4 w-4" />
+      ) : (
+        <ChevronRight className="h-4 w-4" />
+      )}
+    </Button>
+  );
+
+  const DotButton = ({
+    selected,
+    onClick,
+  }: {
+    selected: boolean;
+    onClick: () => void;
+  }) => (
+    <button
+      className={`relative h-2 w-2 rounded-full mx-1 ${
+        selected ? "bg-[#7B68EE]" : "bg-[#E0E0E5]"
+      }`}
+      type="button"
+      onClick={onClick}
+    />
+  );
 
   return (
     <Form {...form}>
@@ -267,27 +321,58 @@ export function BookingTemplateStep({
                 </div>
               </div>
             )}
-            {images.map((img) => (
-              <div key={img.id} className="relative h-80 w-full mt-2">
-                <Image
-                  src={img.src || "/placeholder.svg"}
-                  alt={img.alt}
-                  fill
-                  placeholder="blur"
-                  blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mM8++JFPQAIRQMetjSWgwAAAABJRU5ErkJggg=="
-                  className="rounded-md object-contain"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="absolute -right-2 -top-2 h-7 w-7 rounded-full border-gray-200 bg-white"
-                  onClick={() => removeBanner(img.id)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+            {images.length > 0 && (
+              <div className="relative h-80 w-full mt-2">
+                <div className="h-full w-full">
+                  <div className="overflow-hidden h-full" ref={emblaRef}>
+                    <div className="flex h-full">
+                      {images.map((img) => (
+                        <div key={img.id} className="relative flex-[0_0_100%] min-w-0">
+                          <Image
+                            src={img.src || "/placeholder.svg"}
+                            alt={img.alt}
+                            fill
+                            placeholder="blur"
+                            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mM8++JFPQAIRQMetjSWgwAAAABJRU5ErkJggg=="
+                            className="rounded-md object-contain"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="absolute right-2 top-2 h-7 w-7 rounded-full border-gray-200 bg-white"
+                            onClick={() => removeBanner(img.id)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {images.length > 1 && (
+                    <>
+                      <CarouselButton
+                        direction="left"
+                        onClick={() => emblaApi?.scrollPrev()}
+                      />
+                      <CarouselButton
+                        direction="right"
+                        onClick={() => emblaApi?.scrollNext()}
+                      />
+                      <div className="absolute bottom-4 left-0 right-0 flex justify-center">
+                        {images.map((_, index) => (
+                          <DotButton
+                            key={index}
+                            selected={index === selectedIndex}
+                            onClick={() => emblaApi?.scrollTo(index)}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
-            ))}
+            )}
           </div>
           <FormDescription className="text-center">
             Your images will appear on the hero section of your booking page

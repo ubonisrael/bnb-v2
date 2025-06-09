@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import useEmblaCarousel from "embla-carousel-react";
 import Image from "next/image";
 import { BookingTemplateData } from "@/components/onboarding/type";
 import { bookingTemplateSchema } from "@/components/onboarding/steps/booking-template";
@@ -17,7 +18,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Check, Loader2, Upload, X } from "lucide-react";
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  Upload,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import {
@@ -50,6 +58,8 @@ export default function TemplatesPage() {
   });
 
   const formRef = useRef<HTMLFormElement | null>(null);
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   const onError = (errors: any) => {
     if (!formRef.current) return;
@@ -62,6 +72,17 @@ export default function TemplatesPage() {
       (errorElement as HTMLElement).focus();
     }
   };
+
+  useEffect(() => {
+    const onSelect = () => {
+      setSelectedIndex(emblaApi?.selectedScrollSnap() || 0);
+    };
+
+    emblaApi?.on("select", onSelect);
+    return () => {
+      emblaApi?.off("select", onSelect);
+    };
+  }, [emblaApi]);
 
   const handleBannerImageUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -165,6 +186,45 @@ export default function TemplatesPage() {
       console.error("Failed to save notification preferences:", error);
     }
   }
+
+  const CarouselButton = ({
+    direction,
+    onClick,
+  }: {
+    direction: "left" | "right";
+    onClick: () => void;
+  }) => (
+    <Button
+      type="button"
+      variant="outline"
+      size="icon"
+      className="absolute top-1/2 -translate-y-1/2 h-8 w-8 rounded-full border-gray-200 bg-white/80 z-10"
+      style={{ [direction]: "1rem" }}
+      onClick={onClick}
+    >
+      {direction === "left" ? (
+        <ChevronLeft className="h-4 w-4" />
+      ) : (
+        <ChevronRight className="h-4 w-4" />
+      )}
+    </Button>
+  );
+
+  const DotButton = ({
+    selected,
+    onClick,
+  }: {
+    selected: boolean;
+    onClick: () => void;
+  }) => (
+    <button
+      className={`relative h-2 w-2 rounded-full mx-1 ${
+        selected ? "bg-[#7B68EE]" : "bg-[#E0E0E5]"
+      }`}
+      type="button"
+      onClick={onClick}
+    />
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -289,30 +349,61 @@ export default function TemplatesPage() {
                     </div>
                   </div>
                 )}
-                {images.map((img, i) => (
-                  <div
-                    key={`${img}-${i}`}
-                    className="relative h-80 w-full mt-2"
-                  >
-                    <Image
-                      src={img || "/placeholder.svg"}
-                      alt={`Banner image ${i}`}
-                      fill
-                      placeholder="blur"
-                      blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mM8++JFPQAIRQMetjSWgwAAAABJRU5ErkJggg=="
-                      className="rounded-md object-contain"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      className="absolute -right-2 -top-2 h-7 w-7 rounded-full border-gray-200 bg-white"
-                      onClick={() => removeBanner(img)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                {images.length > 0 && (
+                  <div className="relative h-80 w-full mt-2">
+                    <div className="h-full w-full">
+                      <div className="overflow-hidden h-full" ref={emblaRef}>
+                        <div className="flex h-full">
+                          {images.map((img, i) => (
+                            <div
+                              key={img}
+                              className="relative flex-[0_0_100%] min-w-0"
+                            >
+                              <Image
+                                src={img || "/placeholder.svg"}
+                                alt={`Banner Image ${i}`}
+                                fill
+                                placeholder="blur"
+                                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mM8++JFPQAIRQMetjSWgwAAAABJRU5ErkJggg=="
+                                className="rounded-md object-contain"
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                className="absolute right-2 top-2 h-7 w-7 rounded-full border-gray-200 bg-white"
+                                onClick={() => removeBanner(img)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      {images.length > 1 && (
+                        <>
+                          <CarouselButton
+                            direction="left"
+                            onClick={() => emblaApi?.scrollPrev()}
+                          />
+                          <CarouselButton
+                            direction="right"
+                            onClick={() => emblaApi?.scrollNext()}
+                          />
+                          <div className="absolute bottom-4 left-0 right-0 flex justify-center">
+                            {images.map((_, index) => (
+                              <DotButton
+                                key={index}
+                                selected={index === selectedIndex}
+                                onClick={() => emblaApi?.scrollTo(index)}
+                              />
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
-                ))}
+                )}
               </div>
               <FormDescription>
                 Your logo will appear on your booking page and receipts
@@ -364,7 +455,11 @@ export default function TemplatesPage() {
             <div className="flex justify-end">
               <Button
                 type="submit"
-                disabled={updateTemplateMutation.isPending || settingsLoading || isUploading}
+                disabled={
+                  updateTemplateMutation.isPending ||
+                  settingsLoading ||
+                  isUploading
+                }
               >
                 {updateTemplateMutation.isPending ? (
                   <>
