@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   CalendarDays,
   Clock,
   DollarSign,
   Users,
-  Plus,
   ArrowUpRight,
   TrendingUp,
   TrendingDown,

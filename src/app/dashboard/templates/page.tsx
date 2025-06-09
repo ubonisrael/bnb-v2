@@ -304,7 +304,7 @@ export default function TemplatesPage() {
                             <button
                               type="button"
                               onClick={() =>
-                                window.open("/default/sample", "_blank")
+                                window.open("/sample", "_blank")
                               }
                               className="text-xs px-3 py-1 rounded border border-[#7B68EE] text-[#7B68EE] hover:bg-[#7B68EE]/5"
                             >
