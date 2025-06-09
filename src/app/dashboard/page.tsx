@@ -46,7 +46,7 @@ const CopyTextComponent = ({ text }: { text: string }) => {
         Booking Link:{" "}
         <span className="rounded px-4 py-1">{`${
           process.env.NEXT_PUBLIC_WEB_URL || "localhost:3000"
-        }/default/${text}`}</span>
+        }/${text}`}</span>
       </p>
       <button
         onClick={handleCopy}
