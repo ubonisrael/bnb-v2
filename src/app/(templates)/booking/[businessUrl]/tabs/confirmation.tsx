@@ -332,7 +332,7 @@ export const ConfirmationTab = ({
               )}
 
             <div className="mt-8 flex justify-center">
-              <Button onClick={() => router.push(`/${url}`)}>
+              <Button onClick={() => router.push(`/booking/${url}`)}>
                 {status === "success" ? "Return to Home" : "Try Again"}
               </Button>
             </div>

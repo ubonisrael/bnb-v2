@@ -31,7 +31,7 @@ const CopyTextComponent = ({ text }: { text: string }) => {
   const handleCopy = () => {
     navigator.clipboard
       .writeText(
-        `${process.env.NEXT_PUBLIC_WEB_URL || "localhost:3000"}/${text}`
+        `${process.env.NEXT_PUBLIC_WEB_URL || "localhost:3000"}/booking/${text}`
       )
       .then(() => {
         setCopied(true);
@@ -45,7 +45,7 @@ const CopyTextComponent = ({ text }: { text: string }) => {
         Booking Link:{" "}
         <span className="rounded px-4 py-1">{`${
           process.env.NEXT_PUBLIC_WEB_URL || "localhost:3000"
-        }/${text}`}</span>
+        }/booking/${text}`}</span>
       </p>
       <button
         onClick={handleCopy}
