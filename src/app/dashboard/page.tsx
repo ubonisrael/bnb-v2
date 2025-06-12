@@ -110,7 +110,7 @@ export default function DashboardPage() {
           Total Revenue
             </CardDescription>
             <CardTitle className="text-3xl font-bold text-[#121212]">
-          ${analytics?.revenue?.totalRevenue}
+          £{analytics?.revenue?.totalRevenue}
             </CardTitle>
           </CardHeader>
           <CardContent>
