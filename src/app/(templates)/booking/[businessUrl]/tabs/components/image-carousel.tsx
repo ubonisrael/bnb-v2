@@ -77,7 +77,7 @@ export default function ImageCarousel({ images }: ImageCarouselProps) {
                     fill
                     placeholder="blur"
                     blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mM8++JFPQAIRQMetjSWgwAAAABJRU5ErkJggg=="
-                    className="rounded-md object-contain"
+                    className="rounded-md object-cover"
                   />
                 </div>
               ))}
