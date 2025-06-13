@@ -2,130 +2,109 @@ import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { CarouselImage } from "../../types";
+import { CarouselImage } from "@/types/response";
+import Image from "next/image";
+import useEmblaCarousel from "embla-carousel-react";
 
 interface ImageCarouselProps {
   images: CarouselImage[];
 }
 
 export default function ImageCarousel({ images }: ImageCarouselProps) {
-  const [currentSlide, setCurrentSlide] = useState(0);
-//   const [autoplayInterval, setAutoplayInterval] = useState<NodeJS.Timeout | null>(null);
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const showSlide = (index: number) => {
-    setCurrentSlide(index);
-  };
+  useEffect(() => {
+    const onSelect = () => {
+      setSelectedIndex(emblaApi?.selectedScrollSnap() || 0);
+    };
 
-  const nextSlide = () => {
-    if (currentSlide < images.length - 1) {
-      setCurrentSlide(currentSlide + 1);
-    }
-  };
+    emblaApi?.on("select", onSelect);
+    return () => {
+      emblaApi?.off("select", onSelect);
+    };
+  }, [emblaApi]);
 
-  const prevSlide = () => {
-    if (currentSlide > 0) {
-      setCurrentSlide(currentSlide - 1);
-    }
-  };
+  const CarouselButton = ({
+    direction,
+    onClick,
+  }: {
+    direction: "left" | "right";
+    onClick: () => void;
+  }) => (
+    <Button
+      type="button"
+      variant="outline"
+      size="icon"
+      className="absolute top-1/2 -translate-y-1/2 h-8 w-8 rounded-full border-gray-200 bg-white/80 z-10"
+      style={{ [direction]: "1rem" }}
+      onClick={onClick}
+    >
+      {direction === "left" ? (
+        <ChevronLeft className="h-4 w-4" />
+      ) : (
+        <ChevronRight className="h-4 w-4" />
+      )}
+    </Button>
+  );
 
-//   const startAutoplay = () => {
-//     if (images.length > 1) {
-//       const interval = setInterval(() => {
-//         setCurrentSlide((prev) => {
-//           if (prev === images.length - 1) {
-//             return 0;
-//           }
-//           return prev + 1;
-//         });
-//       }, 4000);
-//       setAutoplayInterval(interval);
-//     }
-//   };
-
-//   const stopAutoplay = () => {
-//     if (autoplayInterval) {
-//       clearInterval(autoplayInterval);
-//       setAutoplayInterval(null);
-//     }
-//   };
-
-  const handleNavigation = (direction: 'next' | 'prev') => {
-    // stopAutoplay();
-    if (direction === 'next') {
-      nextSlide();
-    } else {
-      prevSlide();
-    }
-    // Restart autoplay after 6 seconds
-    // setTimeout(startAutoplay, 6000);
-  };
-
-  const handleIndicatorClick = (index: number) => {
-    // stopAutoplay();
-    showSlide(index);
-    // setTimeout(startAutoplay, 6000);
-  };
-
-//   useEffect(() => {
-//     startAutoplay();
-//     return () => stopAutoplay();
-//   }, [images.length]);
-
+  const DotButton = ({
+    selected,
+    onClick,
+  }: {
+    selected: boolean;
+    onClick: () => void;
+  }) => (
+    <button
+      className={`relative h-2 w-2 rounded-full mx-1 ${
+        selected ? "bg-[#7B68EE]" : "bg-[#E0E0E5]"
+      }`}
+      type="button"
+      onClick={onClick}
+    />
+  );
   return (
     <Card className="relative bg-white rounded-2xl shadow-lg overflow-hidden">
       <div className="relative h-64 sm:h-80 md:h-96 lg:h-[448px] xl:h-[540px]">
-        {images.map((image, index) => (
-          <div
-            key={index}
-            className={`absolute inset-0 transition-opacity duration-500 ${
-              index === currentSlide ? 'opacity-100' : 'opacity-0'
-            }`}
-          >
-            <img
-              src={image.src}
-              alt={image.alt}
-              className="w-full h-full object-cover"
-            />
+        <div className="h-full w-full">
+          <div className="overflow-hidden h-full" ref={emblaRef}>
+            <div className="flex h-full">
+              {images.map((img, i) => (
+                <div key={i} className="relative flex-[0_0_100%] min-w-0">
+                  <Image
+                    src={img.src || "/placeholder.svg"}
+                    alt={`Banner Image ${i}`}
+                    fill
+                    placeholder="blur"
+                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mM8++JFPQAIRQMetjSWgwAAAABJRU5ErkJggg=="
+                    className="rounded-md object-contain"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
-        ))}
-
-        {/* Navigation Buttons */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 !bg-white bg-opacity-80 hover:bg-opacity-100 hover:!bg-green-500 rounded-full p-3 shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          onClick={() => handleNavigation('prev')}
-          disabled={currentSlide === 0 || images.length <= 1}
-        >
-          <ChevronLeft className="h-4 w-4 text-slate-700" />
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 !bg-white bg-opacity-80 hover:bg-opacity-100 hover:!bg-green-500 rounded-full p-3 shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          onClick={() => handleNavigation('next')}
-          disabled={currentSlide === images.length - 1 || images.length <= 1}
-        >
-          <ChevronRight className="h-4 w-4 text-slate-700" />
-        </Button>
-
-        {/* Slide Indicators */}
-        {images.length > 1 && (
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-            {images.map((_, index) => (
-              <button
-                key={index}
-                className={`w-3 h-3 rounded-full transition-all duration-200 ${
-                  index === currentSlide
-                    ? 'bg-white'
-                    : 'bg-white bg-opacity-60 hover:bg-opacity-100'
-                }`}
-                onClick={() => handleIndicatorClick(index)}
+          {images.length > 1 && (
+            <>
+              <CarouselButton
+                direction="left"
+                onClick={() => emblaApi?.scrollPrev()}
               />
-            ))}
-          </div>
-        )}
+              <CarouselButton
+                direction="right"
+                onClick={() => emblaApi?.scrollNext()}
+              />
+              <div className="absolute bottom-4 left-0 right-0 flex justify-center">
+                {images.map((_, index) => (
+                  <DotButton
+                    key={index}
+                    selected={index === selectedIndex}
+                    onClick={() => emblaApi?.scrollTo(index)}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </Card>
   );
