@@ -355,7 +355,7 @@ const filteredBookings = useMemo(() => {
                           .add(appointment.event_duration, "minutes")
                           .format("HH:mm");
                         const startTimeIndex = getTimeSlotIndex(startTime, timeSlots);
-                        const duration = appointment.event_duration / 60;
+                        const duration = appointment.event_duration / 15;
 
                         if (startTimeIndex === -1) return null;
 
