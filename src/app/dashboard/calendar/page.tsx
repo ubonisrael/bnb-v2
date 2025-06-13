@@ -67,7 +67,7 @@ const generateTimeSlots = (
   return slots;
 };
 
-const heightOfCalendarRow = 64; // Height of each row in the calendar (in pixels)
+const heightOfCalendarRow = 32; // Height of each row in the calendar (in pixels)
 
 // Add filter types
 type FilterType = {
