@@ -130,7 +130,7 @@ export function AppointmentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] overflow-y-auto max-h-screen">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-[#121212]">New Appointment</DialogTitle>
           <DialogDescription className="text-[#6E6E73]">

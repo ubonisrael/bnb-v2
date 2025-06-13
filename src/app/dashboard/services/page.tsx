@@ -430,7 +430,7 @@ export default function ServicesPage() {
                 Add Category
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] overflow-y-auto max-h-screen">
               <DialogHeader>
                 <DialogTitle>Add New Category</DialogTitle>
                 <DialogDescription>
@@ -482,7 +482,7 @@ export default function ServicesPage() {
                 Add Service
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-[600px] overflow-y-auto max-h-screen">
               <DialogHeader>
                 <DialogTitle>
                   {editingService ? "Edit Service" : "Add New Service"}
@@ -767,7 +767,7 @@ export default function ServicesPage() {
                     open={showDeleteCategoryModal}
                     onOpenChange={(val) => setShowDeleteCategoryModal(val)}
                   >
-                    <DialogContent className="sm:max-w-[480px]">
+                    <DialogContent className="sm:max-w-[480px] overflow-y-auto max-h-screen">
                       <DialogHeader>
                         <DialogTitle>
                           Are you sure you want to delete this category?
@@ -1164,7 +1164,7 @@ export default function ServicesPage() {
                               open={showDeleteServiceModal}
                               onOpenChange={setShowDeleteServiceModal}
                             >
-                              <DialogContent className="sm:max-w-[480px]">
+                              <DialogContent className="sm:max-w-[480px] overflow-y-auto max-h-screen">
                                 <DialogHeader>
                                   <DialogTitle>
                                     Are you sure you want to delete this

@@ -156,7 +156,7 @@ export function TeamMemberDialog({ open, onOpenChange, member, onSave }: TeamMem
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] overflow-y-auto max-h-screen">
         <DialogHeader>
           <DialogTitle>{member ? "Edit Team Member" : "Add Team Member"}</DialogTitle>
           <DialogDescription>

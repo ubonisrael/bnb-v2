@@ -390,7 +390,7 @@ function RescheduleForm({
           Reschedule
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] overflow-y-auto max-h-screen">
         <DialogHeader>
           <DialogTitle>Fill in your details</DialogTitle>
           <DialogDescription>

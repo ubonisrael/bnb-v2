@@ -328,7 +328,7 @@ export function ServicesSetupStep({
                 Add Service
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[550px]">
+            <DialogContent className="sm:max-w-[550px] overflow-y-auto max-h-screen">
               <DialogHeader>
                 <DialogTitle>
                   {editingService ? "Edit Service" : "Add New Service"}
