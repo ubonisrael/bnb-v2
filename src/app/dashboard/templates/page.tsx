@@ -88,7 +88,7 @@ export default function TemplatesPage() {
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || (images && images.length >= 10)) return;
     setIsUploading(true);
     try {
       // toast.loading('Uploading logo...', { id: 'logo-upload' });
@@ -303,9 +303,7 @@ export default function TemplatesPage() {
                           <div className="mt-3 flex space-x-2">
                             <button
                               type="button"
-                              onClick={() =>
-                                window.open("/sample", "_blank")
-                              }
+                              onClick={() => window.open("/sample", "_blank")}
                               className="text-xs px-3 py-1 rounded border border-[#7B68EE] text-[#7B68EE] hover:bg-[#7B68EE]/5"
                             >
                               View Sample
@@ -320,9 +318,11 @@ export default function TemplatesPage() {
               )}
             />
             <FormItem>
-              <FormLabel>Banner Image</FormLabel>
+              <FormLabel>
+                Upload banner images [{images.length}/10] (min: 1, max: 10)
+              </FormLabel>
               <div className="mt-2">
-                {images.length < 4 && (
+                {images.length < 10 && (
                   <div className="flex items-center justify-center rounded-md border border-dashed border-[#E0E0E5] px-6 py-10">
                     <div className="text-center">
                       <Upload className="mx-auto h-12 w-12 text-[#6E6E73]" />
