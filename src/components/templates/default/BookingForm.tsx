@@ -97,7 +97,7 @@ const BookingForm = ({
         <Button className="w-full py-3 px-4">Schedule Appointment</Button>
       </DialogTrigger>
       {TandCagreed ? (
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] overflow-y-auto max-h-screen">
           <DialogHeader>
             <DialogTitle>Enter your details</DialogTitle>
           </DialogHeader>
@@ -319,7 +319,7 @@ const BookingForm = ({
           </Form>
         </DialogContent>
       ) : (
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] overflow-y-auto max-h-screen">
           <DialogHeader>
             <DialogTitle>Payment & Cancellation Policy</DialogTitle>
             <DialogDescription>Review business policy</DialogDescription>
