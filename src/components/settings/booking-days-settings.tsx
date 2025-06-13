@@ -50,6 +50,7 @@ export function BookingDaysSettings() {
     resolver: zodResolver(bookingSettingsSchema),
     defaultValues: {
       welcome_message: settings?.bookingSettings?.welcome_message || "",
+      time_slot_duration: settings?.bookingSettings?.time_slot_duration || 30,
       time_zone: settings?.bookingSettings?.time_zone || "",
       allow_deposits: settings?.bookingSettings?.allow_deposits || false,
       deposit_amount: settings?.bookingSettings?.deposit_amount || undefined,
@@ -220,6 +221,48 @@ export function BookingDaysSettings() {
               </FormControl>
               <FormDescription>
                 Select the time zone for your booking settings
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="time_slot_duration"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Time Slot Duration</FormLabel>
+              <FormControl>
+                <Select
+                  onValueChange={(value) => {
+                    field.onChange(Number(value));
+                  }}
+                  defaultValue={`${field.value ?? 30}`}
+                  name="time_slot_duration"
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a time " />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[30, 45, 60, 75, 90, 120].map((duration) => (
+                      <SelectItem key={duration} value={duration.toString()}>
+                        {`${duration} minutes`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormDescription>
+                Define how long each appointment slot will be. This determines
+                the intervals between available booking times.
+                <br />
+                For example, with a 30-minute duration:
+                <br />• Morning slots: 8:00, 8:30, 9:00
+                <br />• Afternoon slots: 2:00, 2:30, 3:00
+                <br />
+                Choose a duration that suits your service delivery time and
+                scheduling preferences.
               </FormDescription>
               <FormMessage />
             </FormItem>

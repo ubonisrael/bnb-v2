@@ -35,6 +35,13 @@ const createBookingSettingsSchema = (allowedTimeZones: string[]) =>
         message:
           "Welcome message must be at least 24 characters long to provide sufficient information",
       }),
+      time_slot_duration: z
+        .number({
+          required_error: "Please specify a time slot duration",
+          invalid_type_error: "Time slot duration must be a valid number",
+        })
+        .min(30, "Time slot duration must be at least 30 minutes")
+        .max(120, "Time slot duration cannot exceed 120 minutes"),
       allow_deposits: z.boolean(),
       deposit_amount: z
         .number({
@@ -342,6 +349,46 @@ export function BookingSettingsSetupStep({
               </FormControl>
               <FormDescription>
                 Select the time zone for your booking settings
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="time_slot_duration"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Time Slot Duration</FormLabel>
+              <FormControl>
+                <Select
+                  onValueChange={(value) => {
+                    field.onChange(Number(value));
+                  }}
+                  defaultValue={`${field.value ?? 30}`}
+                  name="time_slot_duration"
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a time " />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[30, 45, 60, 75, 90, 120].map((duration) => (
+                      <SelectItem key={duration} value={duration.toString()}>
+                        {`${duration} minutes`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormDescription>
+                Define how long each appointment slot will be. This determines
+                the intervals between available booking times.
+                <br />
+                For example, with a 30-minute duration:
+                <br />• Morning slots: 8:00, 8:30, 9:00
+                <br />• Afternoon slots: 2:00, 2:30, 3:00
+                <br />Choose a duration that suits your service delivery time and scheduling preferences.
               </FormDescription>
               <FormMessage />
             </FormItem>
