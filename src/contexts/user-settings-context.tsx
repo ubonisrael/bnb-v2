@@ -56,6 +56,7 @@ export interface UserSettings {
     url: string;
     allow_deposits: boolean;
     deposit_amount: number | undefined;
+    time_slot_duration: number;
     cancellation_allowed: boolean;
     cancellation_notice_hours: number | undefined;
     cancellation_fee_percent: number | undefined;

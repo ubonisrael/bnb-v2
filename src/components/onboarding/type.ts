@@ -56,6 +56,7 @@ export interface BookingSettingsData {
   maximum_notice: number;
   minimum_notice: number;
   welcome_message: string;
+  time_slot_duration: number;
   // deposit policy
   allow_deposits: boolean;
   deposit_amount?: number | undefined;

@@ -71,6 +71,7 @@ export function useOnboardingMutation() {
         saturday_enabled: data.bookingSettings.saturday_enabled,
         saturday_opening: data.bookingSettings.saturday_opening,
         saturday_closing: data.bookingSettings.saturday_closing,
+        time_slot_duration: data.bookingSettings.time_slot_duration,
         service_categories: data.servicesSetup.categories.map((category) => ({
           name: category.name,
           services: data.servicesSetup.services

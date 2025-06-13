@@ -125,7 +125,7 @@ export function BookingTemplateStep({
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
-    if (!file || (data.images && data.images.length >= 4)) return;
+    if (!file || (data.images && data.images.length >= 10)) return;
     try {
       // toast.loading('Uploading logo...', { id: 'logo-upload' });
       const storageRef = fRef(storage, `bnb/${Date.now()}/banner-image`);
@@ -275,9 +275,7 @@ export function BookingTemplateStep({
                       <div className="mt-3 flex space-x-2">
                         <button
                           type="button"
-                          onClick={() =>
-                            window.open("/sample", "_blank")
-                          }
+                          onClick={() => window.open("/sample", "_blank")}
                           className="text-xs px-3 py-1 rounded border border-[#7B68EE] text-[#7B68EE] hover:bg-[#7B68EE]/5"
                         >
                           View Sample
@@ -292,9 +290,11 @@ export function BookingTemplateStep({
           )}
         />
         <FormItem>
-          <FormLabel>Upload banner images (min: 1, max: 4)</FormLabel>
+          <FormLabel>
+            Upload banner images [{images.length}/10] (min: 1, max: 10)
+          </FormLabel>
           <div className="mt-2">
-            {images.length < 4 && (
+            {images.length < 10 && (
               <div className="flex items-center justify-center rounded-md border border-dashed border-[#E0E0E5] px-6 py-10">
                 <div className="text-center">
                   <Upload className="mx-auto h-12 w-12 text-[#6E6E73]" />
@@ -327,7 +327,10 @@ export function BookingTemplateStep({
                   <div className="overflow-hidden h-full" ref={emblaRef}>
                     <div className="flex h-full">
                       {images.map((img) => (
-                        <div key={img.id} className="relative flex-[0_0_100%] min-w-0">
+                        <div
+                          key={img.id}
+                          className="relative flex-[0_0_100%] min-w-0"
+                        >
                           <Image
                             src={img.src || "/placeholder.svg"}
                             alt={img.alt}
