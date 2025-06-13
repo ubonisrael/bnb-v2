@@ -116,7 +116,6 @@ export default function CalendarPage() {
     };
   })();
 
-  console.log("data", data);
 const filteredBookings = useMemo(() => {
   if (!data?.bookings) return [];
   
@@ -141,14 +140,13 @@ const filteredBookings = useMemo(() => {
     return matchesService && matchesCategory;
   });
 }, [data?.bookings, filters.category, filters.service, settings?.services]);
-console.log("filteredBookings", filteredBookings);
 
   const timeSlots = useMemo(() => {
     if (!data?.dayEnabled) return [];
     return generateTimeSlots(
       data.openingTime ?? 420,
       data.closingTime ?? 1380,
-      30
+      data.timeSlotDuration ?? 30
     );
   }, [data?.dayEnabled, data?.openingTime, data?.closingTime]);
 
@@ -353,15 +351,11 @@ console.log("filteredBookings", filteredBookings);
                         const date = dayjs(appointment.event_date).tz(
                           data.timezone || "UTC");
                         const startTime = date.format("HH:mm");
-                        console.log("startTime", startTime);
                         const endTime = date
                           .add(appointment.event_duration, "minutes")
                           .format("HH:mm");
-                        console.log("endTime", endTime);
-                        console.log('timeSlots', timeSlots);
                         const startTimeIndex = getTimeSlotIndex(startTime, timeSlots);
                         const duration = appointment.event_duration / 60;
-                        console.log("startTimeIndex", startTimeIndex, "duration", duration);
 
                         if (startTimeIndex === -1) return null;
 

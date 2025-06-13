@@ -150,6 +150,7 @@ export interface BookingsResponse extends Service {
 export interface BookingDataResponse {
   status: boolean;
   message: string;
+  timeSlotDuration: number;
   dayEnabled: string;
   closingTime: number;
   openingTime: number;
