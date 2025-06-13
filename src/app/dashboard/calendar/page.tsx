@@ -353,9 +353,12 @@ console.log("filteredBookings", filteredBookings);
                         const date = dayjs(appointment.event_date).tz(
                           data.timezone || "UTC");
                         const startTime = date.format("HH:mm");
+                        console.log("startTime", startTime);
                         const endTime = date
                           .add(appointment.event_duration, "minutes")
                           .format("HH:mm");
+                        console.log("endTime", endTime);
+                        console.log('timeSlots', timeSlots);
                         const startTimeIndex = getTimeSlotIndex(startTime, timeSlots);
                         const duration = appointment.event_duration / 60;
                         console.log("startTimeIndex", startTimeIndex, "duration", duration);
