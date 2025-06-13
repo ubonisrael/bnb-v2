@@ -146,7 +146,7 @@ const filteredBookings = useMemo(() => {
     return generateTimeSlots(
       data.openingTime ?? 420,
       data.closingTime ?? 1380,
-      data.timeSlotDuration ?? 30
+      15 // 15-minute intervals
     );
   }, [data?.dayEnabled, data?.openingTime, data?.closingTime]);
 
