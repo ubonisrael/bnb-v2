@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/collapsible";
 import Map from "@/components/templates/default/Map";
 import { BusinessDataResponse } from "@/types/response";
+import Image from "next/image";
 
 interface BusinessDetailsProps {
   businessData: BusinessDataResponse;
@@ -68,8 +69,14 @@ export default function BusinessDetails({
       {/* Business Header */}
       <Card className="bg-white rounded-2xl shadow-lg">
         <CardContent className="p-8 text-center">
-          <div className="w-20 h-20 bg-gradient-to-br from-primary to-accent rounded-full mx-auto mb-4 flex items-center justify-center">
-            <Bath className="text-white text-2xl" />
+          <div className="relative w-24 h-24 mx-auto mb-4">
+            <Image
+              src={businessData.logo || "/default-logo.png"}
+              alt={`${businessData.name} Logo`}
+              fill
+              // sizes="(max-width: 768px) 100vw, (min-width: 769px) 50vw"
+              className="!rounded-full"
+            />
           </div>
           <h2 className="text-xl font-bold text-slate-800 mb-1">
             {businessData.name}
@@ -79,7 +86,7 @@ export default function BusinessDetails({
       </Card>
 
       {/* Map Section */}
-      <Card className="bg-white rounded-2xl shadow-lg">
+      {/* <Card className="bg-white rounded-2xl shadow-lg">
         <CardContent className="p-6">
           <h3 className="text-lg font-semibold text-slate-800 mb-4">
             Location
@@ -100,7 +107,7 @@ export default function BusinessDetails({
             </div>
           )}
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Business Details Accordion */}
       <div className="space-y-4">

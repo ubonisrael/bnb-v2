@@ -123,8 +123,8 @@ export function BookingWizard(props: BusinessDataResponse) {
   }, []);
 
   return (
-    <div className="mx-auto max-w-7xl w-full">
-      <div className="px-6 py-6">
+    <div className="w-full bg-slate-100">
+      <div className="sm:px-6 pb-4 sm:py-6 lg:py-8 mx-auto max-w-7xl">
         {currentStep.id === "landing" && (
           <BusinessLanding gotoBooking={goToTab} {...props} />
         )}

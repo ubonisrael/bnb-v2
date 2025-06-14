@@ -64,7 +64,6 @@ export default function ImageCarousel({ images }: ImageCarouselProps) {
     />
   );
   return (
-    <Card className="relative bg-white rounded-2xl shadow-lg overflow-hidden">
       <div className="relative h-72 sm:h-96 md:h-[448px] lg:h-[540px] xl:h-[640px]">
         <div className="h-full w-full">
           <div className="overflow-hidden h-full" ref={emblaRef}>
@@ -77,7 +76,7 @@ export default function ImageCarousel({ images }: ImageCarouselProps) {
                     fill
                     placeholder="blur"
                     blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mM8++JFPQAIRQMetjSWgwAAAABJRU5ErkJggg=="
-                    className="rounded-md object-cover"
+                    className="sm:rounded-md object-cover"
                   />
                 </div>
               ))}
@@ -106,6 +105,5 @@ export default function ImageCarousel({ images }: ImageCarouselProps) {
           )}
         </div>
       </div>
-    </Card>
   );
 }

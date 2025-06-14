@@ -21,9 +21,9 @@ export function ServicesTab({
     resetBooking();
   }, [])
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <Button onClick={gotoPrevTab} className="flex items-center justify-center">
+      <div className="w-full min-h-screen sm:px-6 lg:px-8 py-10">
+        <div className="px-4">
+          <Button onClick={gotoPrevTab} className="flex items-center justify-center mb-4">
           <Home />
         </Button>
         <div className="lg:text-center mb-10">
@@ -37,6 +37,8 @@ export function ServicesTab({
             Select one or more services to create your appointment.
           </p>
         </div>
+        </div>
+        
 
         <div className="flex flex-col lg:flex-row">
           {/* Left Column: Services (3/5 width) */}
@@ -50,6 +52,5 @@ export function ServicesTab({
           </div>
         </div>
       </div>
-    </div>
   );
 }
