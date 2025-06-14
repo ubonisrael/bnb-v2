@@ -36,6 +36,12 @@
     --appointment-pink: 350 100% 88%;
     --appointment-teal: 165 67% 80%;
     --appointment-orange: 35 100% 85%;
+    --appointment-purple: 280 75% 90%; /* Light lavender */
+    --appointment-green: 142 60% 90%; /* Mint green */
+    --appointment-red: 0 85% 90%; /* Light coral */
+    --appointment-yellow: 48 85% 90%; /* Soft yellow */
+    --appointment-indigo: 231 75% 90%; /* Pale indigo */
+    --appointment-cyan: 190 75% 90%; /* Sky blue */
 
     /* Status colors */
     --success: 142 70% 49%;

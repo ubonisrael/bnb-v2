@@ -48,6 +48,7 @@ export function BookingWizard(props: BusinessDataResponse) {
   } = useApp();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const currentStep = steps[currentStepIndex];
 
@@ -70,10 +71,9 @@ export function BookingWizard(props: BusinessDataResponse) {
     },
     onSuccess: async (data: BookingResponse) => {
       toast.dismiss("booking");
-      resetBooking()
+      resetBooking();
+      setIsRedirecting(true); // Show loading overlay
       window.location.href = data.url;
-      // setShowBookingModal(false);
-      // setCurrentStepIndex(3);
     },
     onError: (error: ErrorResponse) => {
       toast.dismiss("booking");
@@ -162,6 +162,16 @@ export function BookingWizard(props: BusinessDataResponse) {
           />
         )}
       </div>
+      
+      {/* Loading Overlay */}
+      {isRedirecting && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-white font-medium">Redirecting to checkout...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
