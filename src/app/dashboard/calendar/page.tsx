@@ -202,6 +202,7 @@ export function MarkDNSDialog({
                 const res = (await api.post(`sp/booking/mark-dns`, {
                   id: appointment.id,
                   message: dnsMessage.trim() || "", // Only send if message exists
+                  email: appointment.Customer.email
                 })) as any;
 
                 // Update the cache with the new DNS status
@@ -269,25 +270,39 @@ export default function CalendarPage() {
 
   // Function to get appointment color
   const getAppointmentColor = (() => {
-    let clrList: string[] = [];
+    const colors = [
+      "bg-[hsl(var(--appointment-blue))]",
+      "bg-[hsl(var(--appointment-pink))]",
+      "bg-[hsl(var(--appointment-teal))]",
+      "bg-[hsl(var(--appointment-orange))]",
+      "bg-[hsl(var(--appointment-purple))]",
+      "bg-[hsl(var(--appointment-green))]",
+      "bg-[hsl(var(--appointment-red))]",
+      "bg-[hsl(var(--appointment-yellow))]",
+      "bg-[hsl(var(--appointment-indigo))]",
+      "bg-[hsl(var(--appointment-cyan))]",
+    ];
+    let usedColors: string[] = [];
+    let lastUsedColor: string | null = null;
+
     return () => {
-      const colors = [
-        "bg-[hsl(var(--appointment-blue))]",
-        "bg-[hsl(var(--appointment-pink))]",
-        "bg-[hsl(var(--appointment-teal))]",
-        "bg-[hsl(var(--appointment-orange))]",
-      ];
-
-      const filteredClrs = colors.filter((clr) => clrList.indexOf(clr) < 0);
-      const newClr =
-        filteredClrs[Math.floor(Math.random() * filteredClrs.length)];
-
-      if (clrList.length < 4) {
-        clrList.push(newClr);
-      } else {
-        clrList = [newClr];
+      if (usedColors.length === colors.length) {
+        // Get all colors except the last used one
+        const availableColors = colors.filter(color => color !== lastUsedColor);
+        // Select a random color from available colors
+        const selectedColor = availableColors[Math.floor(Math.random() * availableColors.length)];
+        // Reset usedColors with only the new selected color
+        usedColors = [selectedColor];
+        lastUsedColor = selectedColor;
+        return selectedColor;
       }
-      return newClr;
+      
+      const availableColors = colors.filter(color => !usedColors.includes(color));
+      const selectedColor = availableColors[Math.floor(Math.random() * availableColors.length)];
+      usedColors.push(selectedColor);
+      lastUsedColor = selectedColor;
+      
+      return selectedColor;
     };
   })();
 

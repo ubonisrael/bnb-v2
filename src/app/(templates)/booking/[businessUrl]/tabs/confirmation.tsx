@@ -306,7 +306,7 @@ export const ConfirmationTab = ({
                               </div>
                             </div>
                             <span className="text-gray-900 dark:text-white font-medium">
-                              ${service.price}
+                              £{service.price}
                             </span>
                           </li>
                         ))}
@@ -318,7 +318,7 @@ export const ConfirmationTab = ({
                             Total
                           </span>
                           <span className="text-xl font-bold text-gray-900 dark:text-white">
-                            $
+                            £
                             {selectedServices.reduce(
                               (acc, service) => acc + service.price,
                               0
