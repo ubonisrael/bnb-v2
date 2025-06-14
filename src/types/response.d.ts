@@ -145,6 +145,9 @@ export interface BookingsResponse extends Service {
   event_date: string;
   event_time: string;
   event_duration: number;
+  dns: boolean;
+  id: number;
+  amount_paid: number;
 }
 
 export interface BookingDataResponse {

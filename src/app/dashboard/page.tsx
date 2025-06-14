@@ -1,5 +1,8 @@
 "use client";
 
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import { useState } from "react";
 import {
   CalendarDays,
@@ -24,6 +27,9 @@ import { AnalyticsResponse } from "@/types/response";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api-service";
 import { useUserSettings } from "@/contexts/user-settings-context";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const CopyTextComponent = ({ text }: { text: string }) => {
   const [copied, setCopied] = useState(false);
@@ -84,177 +90,177 @@ export default function DashboardPage() {
         {isLoading ? (
           // Loading skeletons
           <>
-        {[...Array(4)].map((_, i) => (
-          <Card key={i} className="border-0 shadow-card">
-            <CardHeader className="pb-2">
-          <div className="h-4 w-24 animate-pulse rounded bg-gray-200" />
-          <div className="mt-2 h-8 w-20 animate-pulse rounded bg-gray-200" />
-            </CardHeader>
-            <CardContent>
-          <div className="mt-1 flex items-center">
-            <div className="h-4 w-16 animate-pulse rounded bg-gray-200" />
-            <div className="ml-1 h-4 w-24 animate-pulse rounded bg-gray-200" />
-          </div>
-            </CardContent>
-            <CardFooter className="border-t border-[#E0E0E5] pt-4">
-          <div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
-            </CardFooter>
-          </Card>
-        ))}
+            {[...Array(4)].map((_, i) => (
+              <Card key={i} className="border-0 shadow-card">
+                <CardHeader className="pb-2">
+                  <div className="h-4 w-24 animate-pulse rounded bg-gray-200" />
+                  <div className="mt-2 h-8 w-20 animate-pulse rounded bg-gray-200" />
+                </CardHeader>
+                <CardContent>
+                  <div className="mt-1 flex items-center">
+                    <div className="h-4 w-16 animate-pulse rounded bg-gray-200" />
+                    <div className="ml-1 h-4 w-24 animate-pulse rounded bg-gray-200" />
+                  </div>
+                </CardContent>
+                <CardFooter className="border-t border-[#E0E0E5] pt-4">
+                  <div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
+                </CardFooter>
+              </Card>
+            ))}
           </>
         ) : (
           <>
-        <Card className="border-0 shadow-card">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-[#6E6E73]">
-          Total Revenue
-            </CardDescription>
-            <CardTitle className="text-3xl font-bold text-[#121212]">
-          £{analytics?.revenue?.totalRevenue}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="mt-1 flex items-center">
-          <div
-            className={`text-sm font-medium ${
-              analytics?.revenue.revenueChange >= 0
-            ? "text-[#4CD964]"
-            : "text-[#FF6B6B]"
-            }`}
-          >
-            {analytics?.revenue.revenueChange >= 0 ? (
-              <TrendingUp className="mr-1 inline-block h-4 w-4" />
-            ) : (
-              <TrendingDown className="mr-1 inline-block h-4 w-4" />
-            )}
-            {Math.abs(analytics?.revenue.revenueChange)}%
-          </div>
-          <div className="text-sm text-muted-foreground ml-1">
-            from last month
-          </div>
-            </div>
-          </CardContent>
-          <CardFooter className="border-t border-[#E0E0E5] pt-4">
-            <div className="flex items-center text-sm text-[#6E6E73]">
-          <DollarSign className="mr-1 h-4 w-4" />
-          Financial overview
-            </div>
-          </CardFooter>
-        </Card>
+            <Card className="border-0 shadow-card">
+              <CardHeader className="pb-2">
+                <CardDescription className="text-[#6E6E73]">
+                  Total Revenue
+                </CardDescription>
+                <CardTitle className="text-3xl font-bold text-[#121212]">
+                  £{analytics?.revenue?.totalRevenue}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="mt-1 flex items-center">
+                  <div
+                    className={`text-sm font-medium ${
+                      analytics?.revenue.revenueChange >= 0
+                        ? "text-[#4CD964]"
+                        : "text-[#FF6B6B]"
+                    }`}
+                  >
+                    {analytics?.revenue.revenueChange >= 0 ? (
+                      <TrendingUp className="mr-1 inline-block h-4 w-4" />
+                    ) : (
+                      <TrendingDown className="mr-1 inline-block h-4 w-4" />
+                    )}
+                    {Math.abs(analytics?.revenue.revenueChange)}%
+                  </div>
+                  <div className="text-sm text-muted-foreground ml-1">
+                    from last month
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="border-t border-[#E0E0E5] pt-4">
+                <div className="flex items-center text-sm text-[#6E6E73]">
+                  <DollarSign className="mr-1 h-4 w-4" />
+                  Financial overview
+                </div>
+              </CardFooter>
+            </Card>
 
-        <Card className="border-0 shadow-card">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-[#6E6E73]">
-          Total Appointments
-            </CardDescription>
-            <CardTitle className="text-3xl font-bold text-[#121212]">
-          {analytics?.bookings?.totalBookings}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="mt-1 flex items-center">
-          <div
-            className={`text-sm font-medium ${
-              analytics?.bookings?.bookingChange >= 0
-            ? "text-[#4CD964]"
-            : "text-[#FF6B6B]"
-            }`}
-          >
-            {analytics?.bookings?.bookingChange >= 0 ? (
-              <TrendingUp className="mr-1 inline-block h-4 w-4" />
-            ) : (
-              <TrendingDown className="mr-1 inline-block h-4 w-4" />
-            )}
-            {Math.abs(analytics?.bookings?.bookingChange)}%
-          </div>
-          <div className="text-sm text-muted-foreground ml-1">
-            from last month
-          </div>
-            </div>
-          </CardContent>
-          <CardFooter className="border-t border-[#E0E0E5] pt-4">
-            <div className="flex items-center text-sm text-[#6E6E73]">
-          <CalendarDays className="mr-1 h-4 w-4" />
-          Appointment details
-            </div>
-          </CardFooter>
-        </Card>
+            <Card className="border-0 shadow-card">
+              <CardHeader className="pb-2">
+                <CardDescription className="text-[#6E6E73]">
+                  Total Appointments
+                </CardDescription>
+                <CardTitle className="text-3xl font-bold text-[#121212]">
+                  {analytics?.bookings?.totalBookings}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="mt-1 flex items-center">
+                  <div
+                    className={`text-sm font-medium ${
+                      analytics?.bookings?.bookingChange >= 0
+                        ? "text-[#4CD964]"
+                        : "text-[#FF6B6B]"
+                    }`}
+                  >
+                    {analytics?.bookings?.bookingChange >= 0 ? (
+                      <TrendingUp className="mr-1 inline-block h-4 w-4" />
+                    ) : (
+                      <TrendingDown className="mr-1 inline-block h-4 w-4" />
+                    )}
+                    {Math.abs(analytics?.bookings?.bookingChange)}%
+                  </div>
+                  <div className="text-sm text-muted-foreground ml-1">
+                    from last month
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="border-t border-[#E0E0E5] pt-4">
+                <div className="flex items-center text-sm text-[#6E6E73]">
+                  <CalendarDays className="mr-1 h-4 w-4" />
+                  Appointment details
+                </div>
+              </CardFooter>
+            </Card>
 
-        <Card className="border-0 shadow-card">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-[#6E6E73]">
-          Total Clients
-            </CardDescription>
-            <CardTitle className="text-3xl font-bold text-[#121212]">
-          {analytics?.clients?.totalClients}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="mt-1 flex items-center">
-          <div
-            className={`text-sm font-medium ${
-              analytics?.clients?.clientChange >= 0
-            ? "text-[#4CD964]"
-            : "text-[#FF6B6B]"
-            }`}
-          >
-            {analytics?.clients?.clientChange >= 0 ? (
-              <TrendingUp className="mr-1 inline-block h-4 w-4" />
-            ) : (
-              <TrendingDown className="mr-1 inline-block h-4 w-4" />
-            )}
-            {Math.abs(analytics?.clients?.clientChange)}%
-          </div>
-          <div className="text-sm text-muted-foreground ml-1">
-            from last month
-          </div>
-            </div>
-          </CardContent>
-          <CardFooter className="border-t border-[#E0E0E5] pt-4">
-            <div className="flex items-center text-sm text-[#6E6E73]">
-              <Users className="mr-1 h-4 w-4" />
-              Client details
-            </div>
-          </CardFooter>
-        </Card>
+            <Card className="border-0 shadow-card">
+              <CardHeader className="pb-2">
+                <CardDescription className="text-[#6E6E73]">
+                  Total Clients
+                </CardDescription>
+                <CardTitle className="text-3xl font-bold text-[#121212]">
+                  {analytics?.clients?.totalClients}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="mt-1 flex items-center">
+                  <div
+                    className={`text-sm font-medium ${
+                      analytics?.clients?.clientChange >= 0
+                        ? "text-[#4CD964]"
+                        : "text-[#FF6B6B]"
+                    }`}
+                  >
+                    {analytics?.clients?.clientChange >= 0 ? (
+                      <TrendingUp className="mr-1 inline-block h-4 w-4" />
+                    ) : (
+                      <TrendingDown className="mr-1 inline-block h-4 w-4" />
+                    )}
+                    {Math.abs(analytics?.clients?.clientChange)}%
+                  </div>
+                  <div className="text-sm text-muted-foreground ml-1">
+                    from last month
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="border-t border-[#E0E0E5] pt-4">
+                <div className="flex items-center text-sm text-[#6E6E73]">
+                  <Users className="mr-1 h-4 w-4" />
+                  Client details
+                </div>
+              </CardFooter>
+            </Card>
 
-        <Card className="border-0 shadow-card">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-[#6E6E73]">
-          Average Service Time
-            </CardDescription>
-            <CardTitle className="text-3xl font-bold text-[#121212]">
-          {analytics?.service?.averageServiceTime} min
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="mt-1 flex items-center">
-          <div
-            className={`text-sm font-medium ${
-              analytics?.service?.serviceChange >= 0
-            ? "text-[#4CD964]"
-            : "text-[#FF6B6B]"
-            }`}
-          >
-            {analytics?.service?.serviceChange >= 0 ? (
-              <TrendingUp className="mr-1 inline-block h-4 w-4" />
-            ) : (
-              <TrendingDown className="mr-1 inline-block h-4 w-4" />
-            )}
-            {Math.abs(analytics?.service?.serviceChange)}%
-          </div>
-          <div className="text-sm text-muted-foreground ml-1">
-            from last month
-          </div>
-            </div>
-          </CardContent>
-          <CardFooter className="border-t border-[#E0E0E5] pt-4">
-            <div className="flex items-center text-sm text-[#6E6E73]">
-          <Clock className="mr-1 h-4 w-4" />
-          Time analytics
-            </div>
-          </CardFooter>
-        </Card>
+            <Card className="border-0 shadow-card">
+              <CardHeader className="pb-2">
+                <CardDescription className="text-[#6E6E73]">
+                  Average Service Time
+                </CardDescription>
+                <CardTitle className="text-3xl font-bold text-[#121212]">
+                  {analytics?.service?.averageServiceTime} min
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="mt-1 flex items-center">
+                  <div
+                    className={`text-sm font-medium ${
+                      analytics?.service?.serviceChange >= 0
+                        ? "text-[#4CD964]"
+                        : "text-[#FF6B6B]"
+                    }`}
+                  >
+                    {analytics?.service?.serviceChange >= 0 ? (
+                      <TrendingUp className="mr-1 inline-block h-4 w-4" />
+                    ) : (
+                      <TrendingDown className="mr-1 inline-block h-4 w-4" />
+                    )}
+                    {Math.abs(analytics?.service?.serviceChange)}%
+                  </div>
+                  <div className="text-sm text-muted-foreground ml-1">
+                    from last month
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="border-t border-[#E0E0E5] pt-4">
+                <div className="flex items-center text-sm text-[#6E6E73]">
+                  <Clock className="mr-1 h-4 w-4" />
+                  Time analytics
+                </div>
+              </CardFooter>
+            </Card>
           </>
         )}
       </div>
@@ -306,9 +312,7 @@ export default function DashboardPage() {
                 ))
               ) : analytics && analytics.todaysBookings.length ? (
                 analytics.todaysBookings.map((b: any) => {
-                  const date = new Date(b.event_date);
-                  const hr = date.getUTCHours();
-                  const min = date.getUTCMinutes();
+                  const date = dayjs(b.event_date).tz(analytics.timezone || "UTC");
                   return (
                     <div
                       key={b.id}
@@ -328,11 +332,9 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-medium text-[#121212]">{`${hr
-                          .toString()
-                          .padStart(2, "0")}:${min
-                          .toString()
-                          .padStart(2, "0")}`}</div>
+                        <div className="font-medium text-[#121212]">{`${date.format(
+                          "HH:mm"
+                        )}`}</div>
                         <div className="text-sm text-[#6E6E73]">
                           {b.event_duration} min
                         </div>
