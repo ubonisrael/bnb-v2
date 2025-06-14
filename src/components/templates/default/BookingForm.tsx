@@ -273,18 +273,18 @@ const BookingForm = ({
                 name="agree_to_terms"
                 render={({ field }) => (
                   <FormItem className="flex items-center space-x-2 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        name="agree_to_terms"
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel
-                        htmlFor="terms"
-                        className="text-sm font-normal"
-                      >
+                    <FormLabel
+                      htmlFor="agree_to_terms"
+                      className="flex items-center justify-center gap-4 text-sm font-normal"
+                    >
+                      <FormControl>
+                        <Checkbox
+                          name="agree_to_terms"
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <span>
                         I agree to the{" "}
                         <a
                           href="#"
@@ -295,14 +295,14 @@ const BookingForm = ({
                           Terms and Conditions
                         </a>
                         .
-                      </FormLabel>
-                      <FormMessage />
-                    </div>
+                      </span>
+                    </FormLabel>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <DialogFooter>
+              <DialogFooter className="flex flex-col-reverse md:flex-row md:items-center md:justify-between gap-2 md:gap-0 mt-4">
                 <Button
                   type="button"
                   variant="outline"
@@ -344,7 +344,7 @@ const BookingForm = ({
               </div>
             )}
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex flex-col-reverse md:flex-row md:items-center md:justify-between gap-2 md:gap-0 mt-4">
             <Button
               type="button"
               variant="outline"

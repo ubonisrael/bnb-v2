@@ -1,10 +1,10 @@
 import { Clock, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/contexts/AppContext";
-import { Service } from "../../types";
+import { ServiceFrontend } from "@/types/response";
 
 interface ServiceCardProps {
-  service: Service;
+  service: ServiceFrontend;
   index: number;
   gotoBooking?: (index: number) => void;
 }
@@ -29,7 +29,7 @@ const ServiceCard = ({ service, index, gotoBooking }: ServiceCardProps) => {
     handleServiceToggle();
   };
   return (
-    <div className="bg-white dark:bg-gray-800 shadow-sm border border-slate-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow duration-200">
+    <div className="bg-white dark:bg-gray-800 shadow-sm border border-slate-200 sm:rounded-lg overflow-hidden hover:shadow-md transition-shadow duration-200">
       <div className="p-5">
         <div className="flex justify-between items-start mb-3">
           <div className="flex-1">
@@ -49,7 +49,7 @@ const ServiceCard = ({ service, index, gotoBooking }: ServiceCardProps) => {
               {service.availableDays.length === 7
                 ? "Every day"
                 : service.availableDays
-                    .map((day) => day.substring(0, 3))
+                    .map((day: string) => day.substring(0, 3))
                     .join(", ")}
             </span>
           </div>

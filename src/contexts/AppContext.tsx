@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { Service } from "@/components/onboarding/type";
+import { ServiceFrontend } from "@/types/response";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -14,8 +15,8 @@ dayjs.extend(timezone);
 export type AppStep = "home" | "services" | "datetime" | "confirmation";
 
 type AppContextType = {
-  selectedServices: Service[];
-  addService: (service: Service) => void;
+  selectedServices: ServiceFrontend[];
+  addService: (service: ServiceFrontend) => void;
   removeService: (serviceId: string) => void;
   selectedDate: string | null;
   setSelectedDate: (date: string | null) => void;
@@ -30,7 +31,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
 
-  const [selectedServices, setSelectedServices] = useLocalStorage<Service[]>(
+  const [selectedServices, setSelectedServices] = useLocalStorage<ServiceFrontend[]>(
     "selectedServices",
     []
   );
@@ -43,7 +44,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     null
   );
 
-  const addService = (service: Service) => {
+  const addService = (service: ServiceFrontend) => {
     if (!selectedServices.some((s) => s.id === service.id)) {
       setSelectedServices((prev = []) => [...prev, service]);
     }

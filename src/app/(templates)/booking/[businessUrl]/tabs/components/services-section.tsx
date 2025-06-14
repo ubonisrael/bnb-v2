@@ -48,8 +48,8 @@ export default function ServicesSection({ serviceCategories, index, gotoTab }: S
   }).filter(Boolean) as ServiceCategory[];
 
   return (
-    <Card className="bg-white rounded-2xl shadow-lg">
-      <CardContent className="p-8">
+    <Card className="bg-white sm:rounded-2xl shadow-lg">
+      <CardContent className="p-4 sm:p-6 lg:p-8">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
           <h2 className="text-2xl font-bold text-slate-800">Services</h2>
           <div className="relative">
@@ -71,8 +71,8 @@ export default function ServicesSection({ serviceCategories, index, gotoTab }: S
               open={openAccordions.has(i)}
               onOpenChange={() => toggleAccordion(i)}
             >
-              <div className="border border-slate-200 rounded-xl overflow-hidden">
-                <CollapsibleTrigger className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-slate-50 transition-colors duration-200">
+              <div className="border border-slate-200 sm:rounded-xl overflow-hidden">
+                <CollapsibleTrigger className="w-full px-3 sm:px-6 py-2 sm:py-4 text-left flex items-center justify-between hover:bg-slate-50 transition-colors duration-200">
                   <div className="flex items-center">
                     <ChevronRight 
                       className={`mr-3 text-slate-400 transition-transform duration-200 h-4 w-4 ${
@@ -81,11 +81,11 @@ export default function ServicesSection({ serviceCategories, index, gotoTab }: S
                     />
                     <span className="font-semibold text-slate-800">{category.name}</span>
                   </div>
-                  <span className="bg-primary text-white px-3 py-1 rounded-full text-sm font-medium">
+                  <span className="bg-primary text-white px-3 py-2 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium">
                     {category.services.length}
                   </span>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="px-6 pb-4">
+                <CollapsibleContent className="sm:px-6 sm:py-4 bg-slate-100">
                   <div className="grid gap-4">
                     {category.services.map((service) => (
                       <ServiceCard key={service.id} service={service} index={index} gotoBooking={gotoTab}/>

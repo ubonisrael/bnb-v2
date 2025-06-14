@@ -1,6 +1,6 @@
 import { Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Review } from "../../types";
+import { Review } from "@/types/response";
 
 interface ReviewsSectionProps {
   reviews: Review[];
@@ -29,11 +29,11 @@ export default function ReviewsSection({ reviews }: ReviewsSectionProps) {
     : "0.0";
 
   return (
-    <Card className="bg-white rounded-2xl shadow-lg">
-      <CardContent className="p-8">
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-slate-800">Customer Reviews</h2>
+    <Card className="bg-white sm:rounded-2xl shadow-lg">
+      <CardContent className="p-4 sm:p-6 lg:p-8">
+        <div className="mb-4 sm:mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+            <h2 className="text-2xl font-bold text-slate-800">Reviews</h2>
             <div className="flex items-center space-x-2">
               <StarRating rating={reviews.length ? Math.round(parseFloat(averageRating)) : 0} />
               <span className="text-lg font-semibold text-slate-800">

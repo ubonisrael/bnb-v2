@@ -34,7 +34,7 @@ const Cart: React.FC<CartProps> = ({
   } = useApp();
 
   return (
-    <div className="md:sticky md:top-4 w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 h-auto">
+    <div className="md:sticky md:top-4 w-full bg-white dark:bg-gray-800 sm:rounded-lg shadow-lg p-6 h-auto">
       <div className="flex items-center mb-6">
         <AvatarImage url={logo} name={name} />
         <h3 className="ml-3 text-xl font-bold text-gray-900 dark:text-white">
@@ -101,7 +101,7 @@ const Cart: React.FC<CartProps> = ({
                 </div>
                 <div className="flex items-center">
                   <span className="text-gray-900 dark:text-white font-medium mr-3">
-                    ${service.price}
+                    £{service.price}
                   </span>
                   {showButtons && (
                     <button
@@ -130,7 +130,7 @@ const Cart: React.FC<CartProps> = ({
         <div className="flex justify-between">
           <span className="text-gray-700 dark:text-gray-300">Total Price:</span>
           <span className="text-xl text-gray-900 dark:text-white font-bold">
-            ${getTotalPrice()}
+            £{getTotalPrice()}
           </span>
         </div>
       </div>
