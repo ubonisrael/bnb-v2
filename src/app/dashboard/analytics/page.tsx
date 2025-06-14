@@ -22,7 +22,7 @@ import {
   TrendingDown,
   Users,
   CalendarIcon as CalendarIconComponent,
-  DollarSign,
+  PoundSterling,
 } from "lucide-react";
 import {
   format,
@@ -574,7 +574,7 @@ export default function AnalyticsPage() {
               </div>
 
               <div className="flex flex-col items-center justify-center rounded-lg border p-4">
-                <DollarSign className="mb-2 h-8 w-8 text-[#7B68EE]" />
+                <PoundSterling className="mb-2 h-8 w-8 text-[#7B68EE]" />
                 <div className="text-sm font-medium text-muted-foreground">
                   Avg. Revenue per Booking
                 </div>

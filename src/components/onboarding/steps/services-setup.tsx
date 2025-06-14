@@ -4,7 +4,7 @@ import { Ref, useImperativeHandle, useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Plus, Clock, DollarSign, Calendar, Edit, Trash } from "lucide-react";
+import { Plus, Clock, Calendar, Edit, Trash, PoundSterling } from "lucide-react";
 
 import {
   Form,
@@ -398,7 +398,7 @@ export function ServicesSetupStep({
                         <FormItem>
                           <FormLabel>Price</FormLabel>
                           <div className="relative">
-                            <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <PoundSterling className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                             <FormControl>
                               <Input
                                 type="number"
@@ -580,7 +580,7 @@ export function ServicesSetupStep({
                             )}
                             <div className="mt-2 flex flex-wrap items-center gap-3">
                               <div className="flex items-center text-xs text-[#6E6E73]">
-                                <DollarSign className="mr-1 h-3 w-3" />$
+                                <PoundSterling className="mr-1 h-3 w-3" />
                                 {service.price.toFixed(2)}
                               </div>
                               <div className="flex items-center text-xs text-[#6E6E73]">

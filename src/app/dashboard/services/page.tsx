@@ -7,11 +7,11 @@ import {
   Filter,
   MoreHorizontal,
   Clock,
-  DollarSign,
   Edit,
   Trash2,
   FolderPlus,
   Calendar,
+  PoundSterling,
 } from "lucide-react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -564,7 +564,7 @@ export default function ServicesPage() {
                         <FormItem>
                           <FormLabel>Price</FormLabel>
                           <div className="relative">
-                            <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <PoundSterling className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                             <FormControl>
                               <Input
                                 type="number"

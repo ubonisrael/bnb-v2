@@ -7,11 +7,11 @@ import { useState } from "react";
 import {
   CalendarDays,
   Clock,
-  DollarSign,
   Users,
   ArrowUpRight,
   TrendingUp,
   TrendingDown,
+  PoundSterling,
 } from "lucide-react";
 import {
   Card,
@@ -142,7 +142,7 @@ export default function DashboardPage() {
               </CardContent>
               <CardFooter className="border-t border-[#E0E0E5] pt-4">
                 <div className="flex items-center text-sm text-[#6E6E73]">
-                  <DollarSign className="mr-1 h-4 w-4" />
+                  <PoundSterling className="mr-1 h-4 w-4" />
                   Financial overview
                 </div>
               </CardFooter>
