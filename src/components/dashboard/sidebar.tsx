@@ -26,6 +26,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useUserSettings } from "@/contexts/user-settings-context";
+import Image from "next/image";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 const sidebarItems = [
   {
@@ -131,9 +133,13 @@ export function Sidebar({
       >
         <div className="flex h-16 items-center justify-between border-b border-[#2a3352] px-4">
           {/* Add mobile menu button for smaller screens */}
-            <span className={`flex h-8 px-2 items-center justify-center text-white ${collapsed ? "md:hidden" : ""}`}>
-              BankNBook
-            </span>
+          <span
+            className={`flex h-8 px-2 items-center justify-center text-white ${
+              collapsed ? "md:hidden" : ""
+            }`}
+          >
+            BankNBook
+          </span>
           <div className="block md:hidden p-2">
             {isMobileOpen ? (
               <Button
@@ -185,9 +191,13 @@ export function Sidebar({
                         className={`flex w-full items-center gap-3`}
                       >
                         <item.icon className="h-5 w-5 flex-shrink-0" />
-                          <span className={`text-sm font-medium md:${collapsed ? "hidden" : ""}`}>
-                            {item.title}
-                          </span>
+                        <span
+                          className={`text-sm font-medium md:${
+                            collapsed ? "hidden" : ""
+                          }`}
+                        >
+                          {item.title}
+                        </span>
                       </Link>
                     </Button>
                   </TooltipTrigger>
@@ -202,9 +212,18 @@ export function Sidebar({
         <div className="mt-auto p-4">
           {!collapsed ? (
             <div className="flex items-center gap-3 rounded-lg bg-[#2a3352] p-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white">
-                {/* {business?.data.name.charAt(0)} */}
-              </div>
+              {settings?.profile.logo ? (
+                <div className="relative h-9 w-9">
+                  <Image
+                    src={settings.profile.logo}
+                    alt="Business Logo"
+                    fill
+                    className="h-9 w-9 rounded-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white"></div>
+              )}
               <div>
                 <p className="text-sm font-medium">
                   {settings?.profile.name || "Business"}
@@ -214,9 +233,17 @@ export function Sidebar({
             </div>
           ) : (
             <div className="flex justify-center">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white">
-                {settings?.profile.name[0] || "BS"}
-              </div>
+              {settings && (
+                <Avatar className="h-9 w-9">
+                  <AvatarImage
+                    src={settings.profile.logo || "/placeholder.svg"}
+                    alt="User"
+                  />
+                  <AvatarFallback className="text-black">
+                    {settings?.profile.name[0]}{settings?.profile.name[1]}
+                  </AvatarFallback>
+                </Avatar>
+              )}
             </div>
           )}
         </div>
