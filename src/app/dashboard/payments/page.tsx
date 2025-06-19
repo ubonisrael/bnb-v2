@@ -90,7 +90,7 @@ export default function PaymentDashboardPage() {
                     toast.error("Failed to get Stripe account link");
                     return;
                   }
-                  window.open(res.loginLinkUrl, "_blank");
+                  window.location.href = res.loginLinkUrl;
                 }}
               >
                 View your Stripe Account dashboard
