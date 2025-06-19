@@ -3,7 +3,7 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   CalendarIcon,
   ChevronLeft,
@@ -351,6 +351,24 @@ export default function CalendarPage() {
     return slots.findIndex((slot) => slot === time);
   };
 
+  // Add this effect to scroll to first appointment
+  useEffect(() => {
+    if (data?.bookings && data.bookings.length > 0 && view === "day" && !isLoading) {
+      const firstAppointment = data.bookings[0];
+      const date = dayjs(firstAppointment.event_date).tz(data.timezone || "UTC");
+      const startTime = date.format("HH:mm");
+      const timeSlotIndex = getTimeSlotIndex(startTime, timeSlots);
+      
+      if (timeSlotIndex !== -1) {
+        const yOffset = timeSlotIndex * heightOfCalendarRow;
+        window.scrollTo({
+          top: yOffset,
+          behavior: 'smooth'
+        });
+      }
+    }
+  }, [data?.bookings, data?.timezone, timeSlots, view, isLoading]);
+
   return (
     <>
       {appointment && data && (
@@ -660,7 +678,7 @@ export default function CalendarPage() {
                   ) : (
                     <div className="flex h-40 p-4 sm:p-6 md:p-8 xl:p-10 text-[#6E6E73]">
                       <p className="text-center">
-                        No appointments scheduled for today.
+                        No appointments scheduled for {isSameDay(date, new Date()) ? 'today' : 'this date'}.
                       </p>
                     </div>
                   )}
