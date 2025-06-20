@@ -7,7 +7,7 @@ import { BookingTemplateData } from "@/components/onboarding/type";
 import { bookingTemplateSchema } from "@/components/onboarding/steps/booking-template";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useUserSettings } from "@/contexts/user-settings-context";
+import { useUserSettings } from "@/contexts/UserSettingsContext";
 import {
   Form,
   FormControl,

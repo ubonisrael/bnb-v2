@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { loadStripe } from "@stripe/stripe-js";
 import api from "@/services/api-service";
 import toast from "react-hot-toast";
-import { useUserSettings } from "@/contexts/user-settings-context";
+import { useUserSettings } from "@/contexts/UserSettingsContext";
 
 export default function SubscriptionDetails() {
   const { settings } = useUserSettings();

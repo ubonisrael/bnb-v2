@@ -7,7 +7,7 @@ import { SecuritySettings } from "@/components/settings/security-settings"
 import { SocialMediaSettings } from "@/components/settings/social-media-settings"
 import { ProfileSettings } from "@/components/settings/profile-settings"
 import { NotificationPreferences } from "@/components/settings/notification-preferences"
-import { UserSettingsProvider } from "@/contexts/user-settings-context"
+import { UserSettingsProvider } from "@/contexts/UserSettingsContext"
 import { BookingDaysSettings } from "@/components/settings/booking-days-settings"
 
 export default function SettingsPage() {

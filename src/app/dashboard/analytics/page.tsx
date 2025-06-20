@@ -63,7 +63,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { AnalyticsResponse, AnalyticsServiceDataResponse, PeriodicStatsResponse } from "@/types/response";
 import api from "@/services/api-service";
-import { useUserSettings } from "@/contexts/user-settings-context";
+import { useUserSettings } from "@/contexts/UserSettingsContext";
 
 const COLORS = [
   "#7B68EE",
