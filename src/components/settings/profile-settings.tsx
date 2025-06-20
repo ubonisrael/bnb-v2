@@ -20,7 +20,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useUserSettings } from "@/contexts/user-settings-context";
+import { useUserSettings } from "@/contexts/UserSettingsContext";
 import api from "@/services/api-service";
 import { storage } from "@/services/firebase";
 import { BusinessProfileResponse } from "@/types/response";

@@ -4,7 +4,7 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
-import { UserSettingsProvider } from "@/contexts/user-settings-context";
+import { UserSettingsProvider } from "@/contexts/UserSettingsContext";
 import api, { getCsrfTokenFromCookie } from "@/services/api-service";
 import { InfoBar } from "@/components/dashboard/info-bar";
 

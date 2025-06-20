@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLogoutMutation } from "@/hooks/use-logout-mutation";
-import { useUserSettings } from "@/contexts/user-settings-context";
+import { useUserSettings } from "@/contexts/UserSettingsContext";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 export function Header() {

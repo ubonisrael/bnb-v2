@@ -1,4 +1,4 @@
-import { useUserSettings } from "@/contexts/user-settings-context";
+import { useUserSettings } from "@/contexts/UserSettingsContext";
 
 export function InfoBar() {
   const { settings } = useUserSettings();

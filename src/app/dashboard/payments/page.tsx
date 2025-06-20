@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils"; // optional util for classnames
 import api from "@/services/api-service";
 import toast from "react-hot-toast";
-import { useUserSettings } from "@/contexts/user-settings-context";
+import { useUserSettings } from "@/contexts/UserSettingsContext";
 import SubscriptionDetails from "@/components/payments/subscription-card";
 
 type Invoice = {

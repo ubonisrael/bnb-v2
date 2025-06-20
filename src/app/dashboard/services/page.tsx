@@ -67,7 +67,7 @@ import {
 import toast from "react-hot-toast";
 import { useMutation } from "@tanstack/react-query";
 import api from "@/services/api-service";
-import { useUserSettings } from "@/contexts/user-settings-context";
+import { useUserSettings } from "@/contexts/UserSettingsContext";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const days = [

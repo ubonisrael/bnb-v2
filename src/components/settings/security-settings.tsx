@@ -4,14 +4,13 @@ import { useState } from "react"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { Loader2, Shield, KeyRound, Smartphone } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { useMutation } from "@tanstack/react-query"
 import toast from "react-hot-toast"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Switch } from "@/components/ui/switch"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import {
   Dialog,
@@ -23,7 +22,7 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { useUserSettings } from "@/contexts/user-settings-context"
+import { useUserSettings } from "@/contexts/UserSettingsContext"
 import { Label } from "@/components/ui/label"
 import api from "@/services/api-service"
 

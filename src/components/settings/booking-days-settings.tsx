@@ -11,7 +11,7 @@ import { useMutation } from "@tanstack/react-query";
 import { minutesToTimeString, timezones } from "@/utils/time";
 import toast from "react-hot-toast";
 import { Loader2 } from "lucide-react";
-import { useUserSettings } from "@/contexts/user-settings-context";
+import { useUserSettings } from "@/contexts/UserSettingsContext";
 import { BookingSettingsData } from "../onboarding/type";
 import {
   Form,

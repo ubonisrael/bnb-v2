@@ -26,7 +26,7 @@ import { AppointmentDialog } from "@/components/appointments/appointment-dialog"
 import { AnalyticsResponse } from "@/types/response";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api-service";
-import { useUserSettings } from "@/contexts/user-settings-context";
+import { useUserSettings } from "@/contexts/UserSettingsContext";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
