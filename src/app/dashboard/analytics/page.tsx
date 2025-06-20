@@ -525,9 +525,9 @@ export default function AnalyticsPage() {
         ) : (
           <Card className="border-0 shadow-card">
             <CardHeader>
-              <CardTitle>Booking by Day</CardTitle>
+              <CardTitle>Appointment by Day</CardTitle>
               <CardDescription>
-                Number of bookings by day of the week
+                Number of appointments by day of the week
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -543,7 +543,7 @@ export default function AnalyticsPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={bookingsByDayOfWeek?.data}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
+                    <XAxis dataKey="day" />
                     <YAxis />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Legend />

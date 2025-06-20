@@ -129,7 +129,6 @@ export default function CalendarPage() {
     },
     staleTime: 5 * 60 * 1000,
   });
-  console.log("weekData", weekData);
 
   const [filters, setFilters] = useState<FilterProps>({
     category: [],
