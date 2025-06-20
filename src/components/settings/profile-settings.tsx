@@ -32,12 +32,14 @@ import {
   SelectValue,
 } from "../ui/select";
 import { countries } from "../onboarding/steps/business-info";
+import { Checkbox } from "../ui/checkbox";
 
 const profileSchema = z.object({
   name: z.string().min(2, "Business name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
   phone: z.string().min(10, "Please enter a valid phone number"),
   address: z.string().min(5, "Please enter a valid address"),
+  display_address: z.boolean().default(true),
   city: z.string().min(2, "City must be at least 2 characters"),
   state: z.string().min(2, "State must be at least 2 characters"),
   postal_code: z.string().min(4, "Postal code must be at least 4 characters"),
@@ -70,6 +72,7 @@ export function ProfileSettings() {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       address: settings?.profile.address,
+      display_address: settings?.profile.display_address ?? true,
       city: settings?.profile.city,
       state: settings?.profile.state,
       postal_code: settings?.profile.postal_code,
@@ -326,6 +329,28 @@ export function ProfileSettings() {
                   <Input {...field} />
                 </FormControl>
                 <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="display_address"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Display address on booking page</FormLabel>
+                  <FormDescription>
+                    Allow customers to see your business address on your booking
+                    page
+                  </FormDescription>
+                </div>
               </FormItem>
             )}
           />

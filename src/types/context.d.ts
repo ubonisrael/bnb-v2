@@ -4,6 +4,7 @@ interface UserSettings {
     email: string;
     phone: string;
     address: string;
+    display_address: boolean; // New field for displaying address
     city: string;
     state: string;
     postal_code: string;
