@@ -480,7 +480,14 @@ const businessData: BusinessDataResponse = {
       policy: "Your deposit will be applied toward the total service cost.",
     },
   ],
-  additionalPolicies: "24-hour notice required for cancellations",
+  customPolicies: [
+    {
+      id: "cancellation",
+      title: "Cancellation Policy",
+      policies: ["24-hour notice required for cancellations"],
+    },
+  ],
+  absorbServiceCharge: false,
 };
 
 async function getServiceProviderDetails(url: string) {
@@ -488,9 +495,10 @@ async function getServiceProviderDetails(url: string) {
     if (url === "sample") {
       return { data: businessData, error: null };
     }
-    const response = await api.get<{ status: boolean; data: BusinessDataResponse }>(
-      `sp/${url}/data`
-    );
+    const response = await api.get<{
+      status: boolean;
+      data: BusinessDataResponse;
+    }>(`sp/${url}/data`);
     return { data: response.data, error: null };
   } catch (error) {
     return { data: null, error };

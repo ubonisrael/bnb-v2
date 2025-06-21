@@ -22,7 +22,7 @@ dayjs.extend(timezone);
 interface BookingFormValues {
   name: string;
   email: string;
-  gender: string;
+  gender?: string;
   age_category: string;
   event_date: string;
   event_time: number;
@@ -150,8 +150,9 @@ export function BookingWizard(props: BusinessDataResponse) {
         {/* Booking Form Modal */}
         {showBookingModal && selectedDate && selectedTime && (
           <BookingForm
+          absorbServiceCharge={props.absorbServiceCharge}
             policies={props.bookingPolicy}
-            additionalPolicy={props.additionalPolicies}
+            customPolicies={props.customPolicies}
             currencySymbol={props.currencySymbol}
             amount={getTotalPrice()}
             allowDeposits={props.allowDeposits}

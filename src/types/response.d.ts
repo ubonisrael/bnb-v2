@@ -339,6 +339,7 @@ export interface Review {
 }
 
 interface BusinessDataResponse {
+  absorbServiceCharge: boolean;
   currencySymbol: string;
   bUrl: string;
   logo: string;
@@ -356,7 +357,7 @@ interface BusinessDataResponse {
   longitude?: number;
   reviews: Review[];
   bookingPolicy: PolicyData[];
-  additionalPolicies?: string;
+  customPolicies: CustomPolicy[];
   allowDeposits: boolean;
   depositAmount: number;
   images: CarouselImage[];

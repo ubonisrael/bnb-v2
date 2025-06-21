@@ -189,7 +189,16 @@ export default function BusinessDetails({
                     </ul>
                   </div>
                 ))}
-                <p className="text-sm">{businessData.additionalPolicies}</p>
+                {businessData.customPolicies.map((policy, i) => (
+                  <div className="" key={`custom-policy-${i}`}>
+                    <h3>{policy.title}</h3>
+                    <ul>
+                      {policy.policies.map((p, j) => (
+                        <li key={`custom-policy-${i}-policy-${j}`}>{p}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
               </div>
             </CollapsibleContent>
           </Card>
