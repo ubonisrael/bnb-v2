@@ -76,6 +76,9 @@ interface UserSettings {
     saturday_enabled: boolean;
     saturday_opening: number;
     saturday_closing: number;
+    special_off_days: OffDay[];
+    break_times: BreakTime[];
+    absorb_service_charge: boolean;
   };
   template: {
     templateType: string;

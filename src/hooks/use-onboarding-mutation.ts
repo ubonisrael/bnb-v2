@@ -2,7 +2,6 @@ import api from "@/services/api-service";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { OnboardingFormData } from "@/components/onboarding/type";
 
 export function useOnboardingMutation() {
   const router = useRouter();
@@ -72,6 +71,9 @@ export function useOnboardingMutation() {
         saturday_opening: data.bookingSettings.saturday_opening,
         saturday_closing: data.bookingSettings.saturday_closing,
         time_slot_duration: data.bookingSettings.time_slot_duration,
+        absorb_service_charge: data.bookingSettings.absorb_service_charge,
+        break_times: data.bookingSettings.break_times,
+        special_off_days: data.bookingSettings.special_off_days,
         service_categories: data.servicesSetup.categories.map((category) => ({
           name: category.name,
           services: data.servicesSetup.services

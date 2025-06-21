@@ -7,7 +7,6 @@ import { BookingDataResponse, BookingsResponse } from "@/types/response";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../ui/alert-dialog";
-import { Service } from "../onboarding/type";
 import toast from "react-hot-toast";
 import api from "@/services/api-service";
 

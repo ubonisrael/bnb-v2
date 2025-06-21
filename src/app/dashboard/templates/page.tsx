@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import Image from "next/image";
-import { BookingTemplateData } from "@/components/onboarding/type";
 import { bookingTemplateSchema } from "@/components/onboarding/steps/booking-template";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";

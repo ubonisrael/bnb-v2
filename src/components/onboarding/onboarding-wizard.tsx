@@ -8,7 +8,6 @@ import { ServicesSetupStep } from "./steps/services-setup";
 import { BookingTemplateStep } from "./steps/booking-template";
 import { NotificationSettingsStep } from "./steps/notification-settings";
 import { BookingSettingsSetupStep } from "./steps/booking-settings";
-import { OnboardingFormData } from "./type";
 import { useOnboardingMutation } from "@/hooks/use-onboarding-mutation";
 import useLocalStorage from "use-local-storage";
 import toast from "react-hot-toast";
@@ -48,9 +47,12 @@ export function OnboardingWizard() {
         templateType: "",
         images: [],
         aboutUs: "",
-        additionalPolicies: ""
+        additionalPolicies: "",
       },
       bookingSettings: {
+        absorb_service_charge: false,
+        break_times: [],
+        special_off_days: [],
         welcome_message: "",
         maximum_notice: 0,
         minimum_notice: 0,
@@ -149,9 +151,12 @@ export function OnboardingWizard() {
             templateType: "",
             images: [],
             aboutUs: "",
-            additionalPolicies: ""
+            additionalPolicies: "",
           },
           bookingSettings: {
+            absorb_service_charge: false,
+            break_times: [],
+            special_off_days: [],
             allow_deposits: true,
             deposit_amount: 5,
             cancellation_allowed: false,

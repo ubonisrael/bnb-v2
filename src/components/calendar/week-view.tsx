@@ -21,7 +21,6 @@ import {
 import { Button } from "../ui/button";
 import { MoreHorizontal } from "lucide-react";
 import { Badge } from "../ui/badge";
-import { Service } from "../onboarding/type";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

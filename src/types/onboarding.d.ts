@@ -1,4 +1,4 @@
-export interface BusinessInfoData {
+interface BusinessInfoData {
   logoUrl: string;
   name: string;
   phone: string;
@@ -9,12 +9,12 @@ export interface BusinessInfoData {
   country: string;
 }
 
-export interface ServiceCategory {
+interface ServiceCategory {
   id: number;
   name: string;
 }
 
-export interface Service {
+interface Service {
   id: string;
   name: string;
   categoryId: number;
@@ -33,12 +33,12 @@ export interface Service {
   sunday_enabled?: boolean;
 }
 
-export interface ServicesSetupData {
+interface ServicesSetupData {
   categories: ServiceCategory[];
   services: Service[];
 }
 
-export interface EmailSettingsData {
+interface EmailSettingsData {
   sendBookingConfirmations: boolean;
   sendReminders: boolean;
   reminderHours: number;
@@ -48,11 +48,14 @@ export interface EmailSettingsData {
   sendNoShowNotifications: boolean;
 }
 
-export interface NotificationSettingsData {
+interface NotificationSettingsData {
   emailSettings: EmailSettingsData;
 }
 
-export interface BookingSettingsData {
+interface BookingSettingsData {
+  absorb_service_charge: boolean;
+  break_times: BreakTime[];
+  special_off_days: OffDay[];
   maximum_notice: number;
   minimum_notice: number;
   welcome_message: string;
@@ -93,7 +96,7 @@ export interface BookingSettingsData {
   time_zone: string;
 }
 
-export interface BookingTemplateData {
+interface BookingTemplateData {
   templateType: string;
   images: {
     id: string;
@@ -104,7 +107,7 @@ export interface BookingTemplateData {
   additionalPolicies?: string;
 }
 
-export interface OnboardingFormData {
+interface OnboardingFormData {
   businessInfo: BusinessInfoData;
   servicesSetup: ServicesSetupData;
   notificationSettings: NotificationSettingsData;

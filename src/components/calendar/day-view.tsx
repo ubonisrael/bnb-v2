@@ -16,7 +16,6 @@ import {
 } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { MoreHorizontal } from "lucide-react";
-import { Service } from "../onboarding/type";
 import { getAppointmentColor, getTimeSlotIndex, heightOfCalendarRow } from "@/app/dashboard/calendar/page";
 
 dayjs.extend(utc);

@@ -28,7 +28,6 @@ import { storage } from "@/services/firebase";
 import toast from "react-hot-toast";
 import Image from "next/image";
 import { Button } from "@/components/templates/default/ui/button";
-import { BookingTemplateData } from "../type";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export const bookingTemplateSchema = z.object({

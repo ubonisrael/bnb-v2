@@ -1,4 +1,4 @@
-import { Service } from "@/components/onboarding/type";
+import { Service } from "@/types/onboarding";
 import { boolean } from "zod";
 
 export interface VoidResponse {
