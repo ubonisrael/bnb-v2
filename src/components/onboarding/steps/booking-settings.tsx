@@ -24,117 +24,99 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BookingSettingsData, OnboardingFormData } from "../type";
 import { minutesToTimeString, timezones } from "@/utils/time";
 import { Textarea } from "@/components/ui/textarea";
+import { OffDaysManager } from "@/components/settings/off-days-manager";
+import { BreakTimesManager } from "@/components/settings/break-times-manager";
 
-const createBookingSettingsSchema = (allowedTimeZones: string[]) =>
-  z
-    .object({
-      welcome_message: z.string().min(24, {
-        message:
-          "Welcome message must be at least 24 characters long to provide sufficient information",
+export const baseBookingSettingsSchema = (allowedTimeZones: string[]) =>
+  z.object({
+    welcome_message: z.string().min(24, {
+      message:
+        "Welcome message must be at least 24 characters long to provide sufficient information",
+    }),
+    absorb_service_charge: z.boolean().default(false),
+    time_slot_duration: z
+      .number({
+        required_error: "Please specify a time slot duration",
+        invalid_type_error: "Time slot duration must be a valid number",
+      })
+      .min(30)
+      .max(120),
+    allow_deposits: z.boolean(),
+    deposit_amount: z
+      .number({
+        required_error:
+          "Please specify a deposit amount when deposits are allowed",
+        invalid_type_error: "Deposit amount must be a valid number",
+      })
+      .min(5)
+      .optional(),
+    cancellation_allowed: z.boolean(),
+    cancellation_notice_hours: z
+      .number()
+      .refine((value) => [0, 4, 8, 12, 24, 48, 72].includes(value))
+      .optional(),
+    cancellation_fee_percent: z.number().min(0).max(100).optional(),
+    no_show_fee_percent: z.number().min(0).max(100),
+    reschedule_allowed: z.boolean(),
+    reschedule_notice_hours: z
+      .number()
+      .refine((value) => [0, 4, 8, 12, 24, 48, 72].includes(value))
+      .optional(),
+    reschedule_fee_percent: z.number().min(0).max(100).optional(),
+    maximum_notice: z.number().min(0),
+    minimum_notice: z.number().min(0),
+    time_zone: z
+      .string()
+      .min(2)
+      .refine((val) => allowedTimeZones.includes(val), {
+        message: "Please select a time zone from the provided list",
       }),
-      time_slot_duration: z
-        .number({
-          required_error: "Please specify a time slot duration",
-          invalid_type_error: "Time slot duration must be a valid number",
-        })
-        .min(30, "Time slot duration must be at least 30 minutes")
-        .max(120, "Time slot duration cannot exceed 120 minutes"),
-      allow_deposits: z.boolean(),
-      deposit_amount: z
-        .number({
-          required_error:
-            "Please specify a deposit amount when deposits are allowed",
-          invalid_type_error: "Deposit amount must be a valid number",
-        })
-        .min(5, "Deposit amount must be at least 5 to cover processing fees")
-        .optional(),
-      cancellation_allowed: z.boolean(),
-      cancellation_notice_hours: z
-        .number()
-        .refine((value) => [0, 4, 8, 12, 24, 48, 72].includes(value), {
-          message:
-            "Cancellation notice hours must be one of the following: 0, 4, 8, 12, 24, 48, or 72",
-        })
-        .optional(),
-      cancellation_fee_percent: z
-        .number({
-          invalid_type_error: "Cancellation fee must be a valid percentage",
-          required_error: "Please specify cancellation fee percentage",
-        })
-        .min(0, "Cancellation fee cannot be negative")
-        .max(100, "Cancellation fee cannot exceed 100%")
-        .optional(),
-      no_show_fee_percent: z
-        .number({
-          invalid_type_error: "No-show fee must be a valid percentage",
-          required_error: "Please specify no-show fee percentage",
-        })
-        .min(10, "No-show fee must be at least 10%")
-        .max(100, "No-show fee cannot exceed 100%"),
-      reschedule_allowed: z.boolean(),
-      reschedule_notice_hours: z
-        .number()
-        .refine((value) => [0, 4, 8, 12, 24, 48, 72].includes(value), {
-          message:
-            "Reschedule notice hours must be one of the following: 0, 4, 8, 12, 24, 48, or 72",
-        })
-        .optional(),
-      reschedule_fee_percent: z
-        .number({
-          invalid_type_error: "Reschedule fee must be a valid percentage",
-          required_error: "Please specify reschedule fee percentage",
-        })
-        .min(0, "Reschedule fee cannot be negative")
-        .max(100, "Reschedule fee cannot exceed 100%")
-        .optional(),
-      maximum_notice: z
-        .number({
-          invalid_type_error: "Maximum notice must be a valid number",
-          required_error: "Please specify maximum advance booking notice",
-        })
-        .min(0, "Maximum advance booking notice cannot be negative"),
-      minimum_notice: z
-        .number({
-          invalid_type_error: "Minimum notice must be a valid number",
-          required_error: "Please specify minimum advance booking notice",
-        })
-        .min(0, "Minimum advance booking notice cannot be negative"),
-      time_zone: z
-        .string({
-          required_error: "Please select a time zone",
-          invalid_type_error: "Time zone must be a valid string",
-        })
-        .min(2, "Please select a valid time zone")
-        .refine((val) => allowedTimeZones.includes(val), {
-          message: "Please select a time zone from the provided list",
-        }),
+    special_off_days: z.array(
+      z.object({
+        id: z.string(),
+        start_date: z.string().optional(),
+        dates: z.array(z.string()).optional(),
+        end_date: z.string().optional(),
+        reason: z.string().optional(),
+        is_recurring: z.boolean().optional(),
+        mode: z.enum(["single", "multiple", "range"]),
+      })
+    ),
+    break_times: z.array(
+      z.object({
+        id: z.string(),
+        day_of_week: z.string(),
+        start_time: z.number(),
+        end_time: z.number(),
+        name: z.string().optional(),
+      })
+    ),
 
-      sunday_enabled: z.boolean().default(false),
-      sunday_opening: z.number().default(0),
-      sunday_closing: z.number().default(0),
-      monday_enabled: z.boolean().default(false),
-      monday_opening: z.number().default(0),
-      monday_closing: z.number().default(0),
-      tuesday_enabled: z.boolean().default(false),
-      tuesday_opening: z.number().default(0),
-      tuesday_closing: z.number().default(0),
-      wednesday_enabled: z.boolean().default(false),
-      wednesday_opening: z.number().default(0),
-      wednesday_closing: z.number().default(0),
-      thursday_enabled: z.boolean().default(false),
-      thursday_opening: z.number().default(0),
-      thursday_closing: z.number().default(0),
-      friday_enabled: z.boolean().default(false),
-      friday_opening: z.number().default(0),
-      friday_closing: z.number().default(0),
-      saturday_enabled: z.boolean().default(false),
-      saturday_opening: z.number().default(0),
-      saturday_closing: z.number().default(0),
-    })
-    .refine((data) => data.maximum_notice >= data.minimum_notice + 1, {
+    // Days of the week
+    sunday_enabled: z.boolean().default(false),
+    sunday_opening: z.number().default(0),
+    sunday_closing: z.number().default(0),
+    monday_enabled: z.boolean().default(false),
+    monday_opening: z.number().default(0),
+    monday_closing: z.number().default(0),
+    tuesday_enabled: z.boolean().default(false),
+    tuesday_opening: z.number().default(0),
+    tuesday_closing: z.number().default(0),
+    wednesday_enabled: z.boolean().default(false),
+    wednesday_opening: z.number().default(0),
+    wednesday_closing: z.number().default(0),
+    thursday_enabled: z.boolean().default(false),
+    thursday_opening: z.number().default(0),
+    thursday_closing: z.number().default(0),
+    friday_enabled: z.boolean().default(false),
+    friday_opening: z.number().default(0),
+    friday_closing: z.number().default(0),
+    saturday_enabled: z.boolean().default(false),
+    saturday_opening: z.number().default(0),
+    saturday_closing: z.number().default(0),
+  }).refine((data) => data.maximum_notice >= data.minimum_notice + 1, {
       message:
         "Maximum advance booking notice must be atleast 1 day more than minimum notice for proper scheduling",
       path: ["maximum_notice"],
@@ -203,12 +185,12 @@ const createBookingSettingsSchema = (allowedTimeZones: string[]) =>
         const closing = data[`${day}_closing`];
 
         if (enabled) {
-          if (closing >= 1380) {
+          if (closing >= 1439) {
             ctx.addIssue({
               path: [`${day}_closing`],
               message: `${
                 day.charAt(0).toUpperCase() + day.slice(1)
-              } closing time must be before 11:00 PM`,
+              } closing time must be before 11:59 PM`,
               code: z.ZodIssueCode.custom,
             });
           }
@@ -223,10 +205,178 @@ const createBookingSettingsSchema = (allowedTimeZones: string[]) =>
             });
           }
         }
+        // Break time checks for the current day
+        const breaks = (data.break_times || []).filter(
+          (b: BreakTime) => b.day_of_week.toLowerCase() === day
+        );
+
+        // Sort breaks by startTime to check for overlap
+        const sortedBreaks = breaks
+          .slice()
+          .sort((a: BreakTime, b: BreakTime) => a.start_time - b.start_time);
+
+        for (let i = 0; i < sortedBreaks.length; i++) {
+          const curr = sortedBreaks[i];
+
+          // Start >= End?
+          if (curr.start_time >= curr.end_time) {
+            ctx.addIssue({
+              path: [`${day}_break_times_${i}_end_time`],
+              message: `Break end time must be after start time`,
+              code: z.ZodIssueCode.custom,
+            });
+          }
+
+          // Start before opening?
+          if (curr.start_time < opening) {
+            ctx.addIssue({
+              path: [`${day}_break_times_${i}_start_time`],
+              message: `Break start time cannot be before ${capitalize(
+                day
+              )} opening time`,
+              code: z.ZodIssueCode.custom,
+            });
+          }
+
+          // End after closing?
+          if (curr.end_time > closing) {
+            ctx.addIssue({
+              path: [`${day}_break_times_${i}_end_time`],
+              message: `Break end time cannot be after ${capitalize(
+                day
+              )} closing time`,
+              code: z.ZodIssueCode.custom,
+            });
+          }
+
+          // Overlap with next break
+          const next = sortedBreaks[i + 1];
+          if (next && curr.end_time > next.start_time) {
+            ctx.addIssue({
+              path: [`${day}_break_times_${i}`],
+              message: `Break time overlaps with another break on ${capitalize(
+                day
+              )}`,
+              code: z.ZodIssueCode.custom,
+            });
+          }
+        }
+      }
+
+      // SPECIAL OFF DAY VALIDATION
+      const allOffDatesSet = new Set<string>();
+
+      data.special_off_days?.forEach((offDay: OffDay, index: number) => {
+        const mode = offDay.mode;
+        const pathPrefix = [`special_off_days_${index}`];
+
+        if (mode === "single") {
+          if (!offDay.start_date) {
+            ctx.addIssue({
+              path: [`${pathPrefix}_start_date`],
+              message: "start_date is required for 'single' mode",
+              code: z.ZodIssueCode.custom,
+            });
+          }
+          if (offDay.dates || offDay.end_date) {
+            ctx.addIssue({
+              path: [...pathPrefix],
+              message:
+                "'dates' and 'end_date' must not be set for 'single' mode",
+              code: z.ZodIssueCode.custom,
+            });
+          }
+
+          if (offDay.start_date) {
+            if (allOffDatesSet.has(offDay.start_date)) {
+              ctx.addIssue({
+                path: [`${pathPrefix}_start_date`],
+                message: `Date ${offDay.start_date} overlaps with another special off day`,
+                code: z.ZodIssueCode.custom,
+              });
+            }
+            allOffDatesSet.add(offDay.start_date);
+          }
+        } else if (mode === "multiple") {
+          if (!offDay.dates || offDay.dates.length === 0) {
+            ctx.addIssue({
+              path: [`${pathPrefix}_dates`],
+              message: "'dates' must be a non-empty array for 'multiple' mode",
+              code: z.ZodIssueCode.custom,
+            });
+          }
+
+          if (offDay.start_date || offDay.end_date) {
+            ctx.addIssue({
+              path: [...pathPrefix],
+              message:
+                "'start_date' and 'end_date' must not be set for 'multiple' mode",
+              code: z.ZodIssueCode.custom,
+            });
+          }
+
+          for (const date of offDay.dates || []) {
+            if (allOffDatesSet.has(date)) {
+              ctx.addIssue({
+                path: [`${pathPrefix}_dates`],
+                message: `Date ${date} overlaps with another special off day`,
+                code: z.ZodIssueCode.custom,
+              });
+            }
+            allOffDatesSet.add(date);
+          }
+        } else if (mode === "range") {
+          if (!offDay.start_date || !offDay.end_date) {
+            ctx.addIssue({
+              path: [...pathPrefix],
+              message:
+                "Both 'start_date' and 'end_date' are required for 'range' mode",
+              code: z.ZodIssueCode.custom,
+            });
+            return;
+          }
+
+          if (offDay.dates) {
+            ctx.addIssue({
+              path: [`${pathPrefix}_dates`],
+              message: "'dates' must not be set for 'range' mode",
+              code: z.ZodIssueCode.custom,
+            });
+          }
+
+          const start = new Date(offDay.start_date);
+          const end = new Date(offDay.end_date);
+
+          if (start > end) {
+            ctx.addIssue({
+              path: [`${pathPrefix}_end_date`],
+              message: "end_date must be after start_date",
+              code: z.ZodIssueCode.custom,
+            });
+          } else {
+            const current = new Date(start);
+            while (current <= end) {
+              const dateStr = current.toISOString().split("T")[0];
+              if (allOffDatesSet.has(dateStr)) {
+                ctx.addIssue({
+                  path: [...pathPrefix],
+                  message: `Date ${dateStr} overlaps with another special off day`,
+                  code: z.ZodIssueCode.custom,
+                });
+              }
+              allOffDatesSet.add(dateStr);
+              current.setDate(current.getDate() + 1);
+            }
+          }
+        }
+      });
+
+      function capitalize(word: string) {
+        return word.charAt(0).toUpperCase() + word.slice(1);
       }
     });
 
-export const bookingSettingsSchema = createBookingSettingsSchema(timezones);
+export const bookingSettingsSchema = baseBookingSettingsSchema(timezones);
 
 interface BookingSetupStepProps {
   data: OnboardingFormData;
@@ -261,6 +411,7 @@ export function BookingSettingsSetupStep({
 
   const onError = (errors: any) => {
     if (!formRef.current) return;
+    console.log("Validation errors:", errors);
     const firstErrorField = Object.keys(errors)[0];
     const errorElement = formRef.current.querySelector(
       `[name="${firstErrorField}"]`
@@ -382,13 +533,18 @@ export function BookingSettingsSetupStep({
                 </Select>
               </FormControl>
               <FormDescription>
-                Define how long each appointment slot will be. This determines
-                the intervals between available booking times.
+                Define the spacing between available booking times. This sets
+                how frequently time slots appear on the schedule — it does not
+                determine how long an appointment lasts.
                 <br />
-                For example, with a 30-minute duration:
-                <br />• Morning slots: 8:00, 8:30, 9:00
-                <br />• Afternoon slots: 2:00, 2:30, 3:00
-                <br />Choose a duration that suits your service delivery time and scheduling preferences.
+                <br />
+                For example, with a 30-minute interval:
+                <br />• Morning: 8:00, 8:30, 9:00
+                <br />• Afternoon: 2:00, 2:30, 3:00
+                <br />
+                <br />
+                Choose an interval that matches how flexibly you want users to
+                book within your working hours.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -444,13 +600,70 @@ export function BookingSettingsSetupStep({
             </FormItem>
           )}
         />
+        {/* Service Charge Options */}
+        <FormField
+          control={form.control}
+          name="absorb_service_charge"
+          render={({ field }) => (
+            <FormItem className="flex items-center justify-between space-y-0 border p-3 rounded-lg">
+              <div className="w-full space-y-0.5">
+                <div className="flex items-center justify-between">
+                  <FormLabel>Absorb Service Charge</FormLabel>
+                  <FormControl>
+                    <Switch
+                      name="absorb_service_charge"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </div>
+                <FormDescription>
+                  Enable this option if you want to absorb the service charge
+                  instead of passing it to your customers.
+                  <br />
+                  When enabled, the maximum of £1 and 2.9% + £0.80 will be
+                  deducted from your settlement amount as the processing fee.
+                  <br />
+                  When disabled, the fee will be added to the customer's total
+                  payment.
+                  <br />
+                  <br />
+                  <strong>
+                    Example 1 (service fee charge not absorbed):
+                  </strong>{" "}
+                  You allow a £5 deposit.
+                  <br />➤ The customer pays £6 (£5 deposit + £1 service charge
+                  fee).
+                  <br />➤ You receive the full £5 deposit at settlement.
+                  <br />
+                  <br />
+                  <strong>
+                    Example 2 (service fee charge not absorbed):
+                  </strong>{" "}
+                  You allow a £10 deposit.
+                  <br />➤ The customer pays £11.13 (£10 deposit + £1.13 service
+                  charge fee).
+                  <br />➤ You receive the full £10 deposit at settlement.
+                  <br />
+                  <br />
+                  <strong>Example 3 (service fee charge absorbed):</strong> You
+                  allow a £10 deposit.
+                  <br />➤ The customer pays £10.
+                  <br />➤ A service fee of £1.09 is applied.
+                  <br />➤ You receive £10 - £1.09 = <strong>£8.91</strong> at
+                  settlement.
+                </FormDescription>
+              </div>
+            </FormItem>
+          )}
+        />
         {/* Allow Deposits Toggle */}
         <FormField
           control={form.control}
           name="allow_deposits"
           render={({ field }) => (
             <FormItem className="flex items-center justify-between space-y-0 border p-3 rounded-lg">
-              <div className="space-y-0.5">
+              <div className="w-full space-y-0.5">
                 <div className="flex items-center justify-between">
                   <FormLabel>Allow Deposits</FormLabel>{" "}
                   <FormControl>
@@ -464,35 +677,6 @@ export function BookingSettingsSetupStep({
                 <FormDescription>
                   Enable this option to require only a portion of the total
                   service fee upfront.
-                  <br />
-                  Customers will be charged a{" "}
-                  <strong>£1 non-refundable booking fee</strong>.
-                  <br />
-                  By default, a <strong>£5 deposit</strong> is allowed. If you
-                  enable deposits above £5 or require full payment upfront, a
-                  processing fee of <strong>2.9% + £0.80</strong> will apply to
-                  the entire transaction (including the £1 booking fee).
-                  <br />
-                  <span className="text-red-500">
-                    This processing fee will be deducted before settlement,
-                    reducing the amount your business receives.
-                  </span>
-                  <br />
-                  <br />
-                  <strong>Example 1:</strong> You charge £20 and allow a £5
-                  deposit.
-                  <br />➤ The customer pays £6 (£5 deposit + £1 booking fee).
-                  <br />➤ No processing fee applies. You receive the full £5
-                  deposit at settlement.
-                  <br />
-                  <br />
-                  <strong>Example 2:</strong> You charge £40 and require full
-                  payment.
-                  <br />➤ The customer pays £41 (£40 + £1 booking fee).
-                  <br />➤ A processing fee of £1.98 (2.9% of £41 + £0.80) is
-                  applied.
-                  <br />➤ You receive £41- £1.98 = <strong>£39.02</strong> at
-                  settlement.
                 </FormDescription>
               </div>
             </FormItem>
@@ -791,29 +975,61 @@ export function BookingSettingsSetupStep({
                                 `${day.id}_closing` as keyof BookingSettingsData
                               }
                               render={({ field: closingField }) => (
-                                <FormControl>
-                                  <Input
-                                    name={
-                                      `${day.id}_closing` as keyof BookingSettingsData
-                                    }
-                                    type="time"
-                                    value={minutesToTimeString(
-                                      closingField.value as number
-                                    )}
-                                    onChange={(e) => {
-                                      const [h, m] = e.target.value
-                                        .split(":")
-                                        .map(Number);
-                                      closingField.onChange(h * 60 + m);
-                                    }}
-                                    className="w-32"
-                                  />
-                                </FormControl>
+                                <div className="w-32 flex flex-col">
+                                  <FormControl className="self-end">
+                                    <Input
+                                      name={
+                                        `${day.id}_closing` as keyof BookingSettingsData
+                                      }
+                                      type="time"
+                                      value={minutesToTimeString(
+                                        closingField.value as number
+                                      )}
+                                      onChange={(e) => {
+                                        const [h, m] = e.target.value
+                                          .split(":")
+                                          .map(Number);
+                                        closingField.onChange(h * 60 + m);
+                                      }}
+                                      className="w-32"
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </div>
                               )}
                             />
                           </div>
                         )}
                       </div>
+                      {field.value && (
+                        <div className="mt-4">
+                          <BreakTimesManager
+                            form={form}
+                            breakTimes={form.watch("break_times") || []}
+                            dayId={day.id}
+                            onAdd={(breakTime) => {
+                              const current = form.watch("break_times") || [];
+                              const newBreakTimes = [...current];
+                              const index = newBreakTimes.findIndex(
+                                (b) => b.id === breakTime.id
+                              );
+                              if (index >= 0) {
+                                newBreakTimes[index] = breakTime;
+                              } else {
+                                newBreakTimes.push(breakTime);
+                              }
+                              form.setValue("break_times", newBreakTimes);
+                            }}
+                            onRemove={(id) => {
+                              const current = form.watch("break_times") || [];
+                              form.setValue(
+                                "break_times",
+                                current.filter((b) => b.id !== id)
+                              );
+                            }}
+                          />
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </FormItem>
@@ -821,6 +1037,41 @@ export function BookingSettingsSetupStep({
             />
           ))}
         </div>
+        {/* Add Off Days Manager */}
+        <FormField
+          control={form.control}
+          name="special_off_days"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <OffDaysManager
+                  form={form}
+                  offDays={field.value || []}
+                  onAdd={(offDay) => {
+                    const newOffDays = [...(field.value || [])];
+                    const index = newOffDays.findIndex(
+                      (d) => d.id === offDay.id
+                    );
+                    if (index >= 0) {
+                      newOffDays[index] = offDay;
+                    } else {
+                      newOffDays.push(offDay);
+                    }
+                    field.onChange(newOffDays);
+                  }}
+                  onRemove={(id) => {
+                    field.onChange(
+                      (field.value || []).filter((d) => d.id !== id)
+                    );
+                  }}
+                />
+              </FormControl>
+              <FormDescription>
+                Set specific dates when your business will be closed
+              </FormDescription>
+            </FormItem>
+          )}
+        />
       </form>
     </Form>
   );

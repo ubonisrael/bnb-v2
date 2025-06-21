@@ -12,7 +12,6 @@ import { minutesToTimeString, timezones } from "@/utils/time";
 import toast from "react-hot-toast";
 import { Loader2 } from "lucide-react";
 import { useUserSettings } from "@/contexts/UserSettingsContext";
-import { BookingSettingsData } from "../onboarding/type";
 import {
   Form,
   FormControl,
@@ -38,6 +37,8 @@ import {
 } from "../onboarding/steps/booking-settings";
 import { z } from "zod";
 import { useRef } from "react";
+import { OffDaysManager } from "./off-days-manager";
+import { BreakTimesManager } from "./break-times-manager";
 
 export function BookingDaysSettings() {
   const {
@@ -47,8 +48,11 @@ export function BookingDaysSettings() {
   } = useUserSettings();
 
   const form = useForm<z.infer<typeof bookingSettingsSchema>>({
+    mode: "all",
     resolver: zodResolver(bookingSettingsSchema),
     defaultValues: {
+      absorb_service_charge:
+        settings?.bookingSettings?.absorb_service_charge || false,
       welcome_message: settings?.bookingSettings?.welcome_message || "",
       time_slot_duration: settings?.bookingSettings?.time_slot_duration || 30,
       time_zone: settings?.bookingSettings?.time_zone || "",
@@ -89,6 +93,8 @@ export function BookingDaysSettings() {
       sunday_enabled: settings?.bookingSettings?.sunday_enabled || false,
       sunday_opening: settings?.bookingSettings?.sunday_opening || 640,
       sunday_closing: settings?.bookingSettings?.sunday_closing || 1200,
+      special_off_days: settings?.bookingSettings?.special_off_days || [],
+      break_times: settings?.bookingSettings?.break_times || [],
     },
   });
 
@@ -96,6 +102,7 @@ export function BookingDaysSettings() {
 
   const onError = (errors: any) => {
     if (!formRef.current) return;
+    console.log(errors);
     const firstErrorField = Object.keys(errors)[0];
     const errorElement = formRef.current.querySelector(
       `[name="${firstErrorField}"]`
@@ -254,15 +261,18 @@ export function BookingDaysSettings() {
                 </Select>
               </FormControl>
               <FormDescription>
-                Define how long each appointment slot will be. This determines
-                the intervals between available booking times.
+                Define the spacing between available booking times. This sets
+                how frequently time slots appear on the schedule — it does not
+                determine how long an appointment lasts.
                 <br />
-                For example, with a 30-minute duration:
-                <br />• Morning slots: 8:00, 8:30, 9:00
-                <br />• Afternoon slots: 2:00, 2:30, 3:00
                 <br />
-                Choose a duration that suits your service delivery time and
-                scheduling preferences.
+                For example, with a 30-minute interval:
+                <br />• Morning: 8:00, 8:30, 9:00
+                <br />• Afternoon: 2:00, 2:30, 3:00
+                <br />
+                <br />
+                Choose an interval that matches how flexibly you want users to
+                book within your working hours.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -277,6 +287,7 @@ export function BookingDaysSettings() {
               <FormLabel>Minimum Notice</FormLabel>
               <FormControl>
                 <Input
+                  name="minimum_notice"
                   type="number"
                   placeholder="0"
                   value={field.value || ""}
@@ -301,6 +312,7 @@ export function BookingDaysSettings() {
               <FormLabel>Maximum Notice</FormLabel>
               <FormControl>
                 <Input
+                  name="maximum_notice"
                   type="number"
                   placeholder="0"
                   value={field.value || ""}
@@ -316,13 +328,70 @@ export function BookingDaysSettings() {
             </FormItem>
           )}
         />
+        {/* Service Charge Options */}
+        <FormField
+          control={form.control}
+          name="absorb_service_charge"
+          render={({ field }) => (
+            <FormItem className="flex items-center justify-between space-y-0 border p-3 rounded-lg">
+              <div className="w-full space-y-0.5">
+                <div className="flex items-center justify-between">
+                  <FormLabel>Absorb Service Charge</FormLabel>
+                  <FormControl>
+                    <Switch
+                      name="absorb_service_charge"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </div>
+                <FormDescription>
+                  Enable this option if you want to absorb the service charge
+                  instead of passing it to your customers.
+                  <br />
+                  When enabled, the maximum of £1 and 2.9% + £0.80 will be
+                  deducted from your settlement amount as the processing fee.
+                  <br />
+                  When disabled, the fee will be added to the customer's total
+                  payment.
+                  <br />
+                  <br />
+                  <strong>
+                    Example 1 (service fee charge not absorbed):
+                  </strong>{" "}
+                  You allow a £5 deposit.
+                  <br />➤ The customer pays £6 (£5 deposit + £1 service charge
+                  fee).
+                  <br />➤ You receive the full £5 deposit at settlement.
+                  <br />
+                  <br />
+                  <strong>
+                    Example 2 (service fee charge not absorbed):
+                  </strong>{" "}
+                  You allow a £10 deposit.
+                  <br />➤ The customer pays £11.13 (£10 deposit + £1.13 service
+                  charge fee).
+                  <br />➤ You receive the full £10 deposit at settlement.
+                  <br />
+                  <br />
+                  <strong>Example 3 (service fee charge absorbed):</strong> You
+                  allow a £10 deposit.
+                  <br />➤ The customer pays £10.
+                  <br />➤ A service fee of £1.09 is applied.
+                  <br />➤ You receive £10 - £1.09 = <strong>£8.91</strong> at
+                  settlement.
+                </FormDescription>
+              </div>
+            </FormItem>
+          )}
+        />
         {/* Allow Deposits Toggle */}
         <FormField
           control={form.control}
           name="allow_deposits"
           render={({ field }) => (
             <FormItem className="flex items-center justify-between space-y-0 border p-3 rounded-lg">
-              <div className="space-y-0.5">
+              <div className="w-full space-y-0.5">
                 <div className="flex items-center justify-between">
                   <FormLabel>Allow Deposits</FormLabel>{" "}
                   <FormControl>
@@ -336,41 +405,11 @@ export function BookingDaysSettings() {
                 <FormDescription>
                   Enable this option to require only a portion of the total
                   service fee upfront.
-                  <br />
-                  Customers will be charged a{" "}
-                  <strong>£1 non-refundable booking fee</strong>.
-                  <br />
-                  By default, a <strong>£5 deposit</strong> is allowed. If you
-                  enable deposits above £5 or require full payment upfront, a
-                  processing fee of <strong>2.9% + £0.80</strong> will apply to
-                  the entire transaction (including the £1 booking fee).
-                  <br />
-                  <span className="text-red-500">
-                    This processing fee will be deducted before settlement,
-                    reducing the amount your business receives.
-                  </span>
-                  <br />
-                  <br />
-                  <strong>Example 1:</strong> You charge £20 and allow a £5
-                  deposit.
-                  <br />➤ The customer pays £6 (£5 deposit + £1 booking fee).
-                  <br />➤ No processing fee applies. You receive the full £5
-                  deposit at settlement.
-                  <br />
-                  <br />
-                  <strong>Example 2:</strong> You charge £40 and require full
-                  payment.
-                  <br />➤ The customer pays £41 (£40 + £1 booking fee).
-                  <br />➤ A processing fee of £1.98 (2.9% of £41 + £0.80) is
-                  applied.
-                  <br />➤ You receive £41 - £1.98 = <strong>£39.02</strong> at
-                  settlement.
                 </FormDescription>
               </div>
             </FormItem>
           )}
         />
-
         {watchDeposits && (
           <>
             <FormField
@@ -573,23 +612,26 @@ export function BookingDaysSettings() {
           control={form.control}
           name="no_show_fee_percent"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between space-y-0 border p-3 rounded-lg">
-              <div className="space-y-0.5">
-                <FormLabel>No-Show Fee (%)</FormLabel>
-                <FormDescription>
-                  Percentage of booking fee charged when clients don't show up
-                  for their appointment
-                </FormDescription>
+            <FormItem className="flex flex-col gap-1">
+              <div className="flex items-center justify-between space-y-0 border p-3 rounded-lg">
+                <div className="space-y-0.5">
+                  <FormLabel>No-Show Fee (%)</FormLabel>
+                  <FormDescription>
+                    Percentage of booking fee charged when clients don't show up
+                    for their appointment
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 30"
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    value={field.value ? Number(field.value) : ""}
+                  />
+                </FormControl>
               </div>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="e.g. 30"
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                  value={field.value ? Number(field.value) : ""}
-                />
-              </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -662,29 +704,61 @@ export function BookingDaysSettings() {
                                 `${day.id}_closing` as keyof BookingSettingsData
                               }
                               render={({ field: closingField }) => (
-                                <FormControl>
-                                  <Input
-                                    name={
-                                      `${day.id}_closing` as keyof BookingSettingsData
-                                    }
-                                    type="time"
-                                    value={minutesToTimeString(
-                                      closingField.value as number
-                                    )}
-                                    onChange={(e) => {
-                                      const [h, m] = e.target.value
-                                        .split(":")
-                                        .map(Number);
-                                      closingField.onChange(h * 60 + m);
-                                    }}
-                                    className="w-32"
-                                  />
-                                </FormControl>
+                                <div className="w-32 flex flex-col">
+                                  <FormControl className="self-end">
+                                    <Input
+                                      name={
+                                        `${day.id}_closing` as keyof BookingSettingsData
+                                      }
+                                      type="time"
+                                      value={minutesToTimeString(
+                                        closingField.value as number
+                                      )}
+                                      onChange={(e) => {
+                                        const [h, m] = e.target.value
+                                          .split(":")
+                                          .map(Number);
+                                        closingField.onChange(h * 60 + m);
+                                      }}
+                                      className="w-32"
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </div>
                               )}
                             />
                           </div>
                         )}
                       </div>
+                      {field.value && (
+                        <div className="mt-4">
+                          <BreakTimesManager
+                            form={form}
+                            breakTimes={form.watch("break_times") || []}
+                            dayId={day.id}
+                            onAdd={(breakTime) => {
+                              const current = form.watch("break_times") || [];
+                              const newBreakTimes = [...current];
+                              const index = newBreakTimes.findIndex(
+                                (b) => b.id === breakTime.id
+                              );
+                              if (index >= 0) {
+                                newBreakTimes[index] = breakTime;
+                              } else {
+                                newBreakTimes.push(breakTime);
+                              }
+                              form.setValue("break_times", newBreakTimes);
+                            }}
+                            onRemove={(id) => {
+                              const current = form.watch("break_times") || [];
+                              form.setValue(
+                                "break_times",
+                                current.filter((b) => b.id !== id)
+                              );
+                            }}
+                          />
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </FormItem>
@@ -692,6 +766,41 @@ export function BookingDaysSettings() {
             />
           ))}
         </div>
+        {/* Add Off Days Manager */}
+        <FormField
+          control={form.control}
+          name="special_off_days"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <OffDaysManager
+                  form={form}
+                  offDays={field.value || []}
+                  onAdd={(offDay) => {
+                    const newOffDays = [...(field.value || [])];
+                    const index = newOffDays.findIndex(
+                      (d) => d.id === offDay.id
+                    );
+                    if (index >= 0) {
+                      newOffDays[index] = offDay;
+                    } else {
+                      newOffDays.push(offDay);
+                    }
+                    field.onChange(newOffDays);
+                  }}
+                  onRemove={(id) => {
+                    field.onChange(
+                      (field.value || []).filter((d) => d.id !== id)
+                    );
+                  }}
+                />
+              </FormControl>
+              <FormDescription>
+                Set specific dates when your business will be closed
+              </FormDescription>
+            </FormItem>
+          )}
+        />
         <div className="flex justify-end">
           <Button
             type="submit"
