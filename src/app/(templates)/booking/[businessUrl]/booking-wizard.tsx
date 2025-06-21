@@ -23,6 +23,7 @@ interface BookingFormValues {
   name: string;
   email: string;
   gender?: string;
+  phone?: string;
   age_category: string;
   event_date: string;
   event_time: number;
