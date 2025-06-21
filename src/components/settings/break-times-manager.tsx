@@ -30,9 +30,9 @@ export function BreakTimesManager({
           onClick={() => {
             onAdd({
               id: crypto.randomUUID(),
-              dayOfWeek: dayId,
-              startTime: 720, // 12:00 PM
-              endTime: 780, // 1:00 PM
+              day_of_week: dayId,
+              start_time: 720, // 12:00 PM
+              end_time: 780, // 1:00 PM
               name: "Break",
             });
           }}
@@ -43,25 +43,25 @@ export function BreakTimesManager({
       </div>
 
       {breakTimes
-        .filter((breakTime) => breakTime.dayOfWeek === dayId)
+        .filter((breakTime) => breakTime.day_of_week === dayId)
         .map((breakTime, index) => (
           <div key={breakTime.id} className="flex flex-col md:items-center gap-4 bg-slate-50 p-2 rounded-lg md:flex-row">
             <div>
               <Input
                 type="time"
-                name={`${dayId}_break_times_${index}_startTime`}
-                value={minutesToTimeString(breakTime.startTime)}
+                name={`${dayId}_break_times_${index}_start_time`}
+                value={minutesToTimeString(breakTime.start_time)}
                 onChange={(e) => {
                   const [h, m] = e.target.value.split(":").map(Number);
                   onAdd({
                     ...breakTime,
-                    startTime: h * 60 + m,
+                    start_time: h * 60 + m,
                   });
                 }}
               />
-              { form.formState.errors[`${dayId}_break_times_${index}_startTime`] && (
+              { form.formState.errors[`${dayId}_break_times_${index}_start_time`] && (
                 <span className="text-red-500 text-xs">
-                  {form.formState.errors[`${dayId}_break_times_${index}_startTime`]?.message?.toString()}
+                  {form.formState.errors[`${dayId}_break_times_${index}_start_time`]?.message?.toString()}
                 </span>
               )}
             </div>
@@ -69,19 +69,19 @@ export function BreakTimesManager({
             <div>
               <Input
                 type="time"
-                name={`${dayId}_break_times_${index}_endTime`}
-                value={minutesToTimeString(breakTime.endTime)}
+                name={`${dayId}_break_times_${index}_end_time`}
+                value={minutesToTimeString(breakTime.end_time)}
                 onChange={(e) => {
                   const [h, m] = e.target.value.split(":").map(Number);
                   onAdd({
                     ...breakTime,
-                    endTime: h * 60 + m,
+                    end_time: h * 60 + m,
                   });
                 }}
               />
-              { form.formState.errors[`${dayId}_break_times_${index}_endTime`] && (
+              { form.formState.errors[`${dayId}_break_times_${index}_end_time`] && (
                 <span className="text-red-500 text-xs">
-                  {form.formState.errors[`${dayId}_break_times_${index}_endTime`]?.message?.toString()}
+                  {form.formState.errors[`${dayId}_break_times_${index}_end_time`]?.message?.toString()}
                 </span>
               )}
             </div>
