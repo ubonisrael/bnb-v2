@@ -73,6 +73,7 @@ export function useOnboardingMutation() {
         absorb_service_charge: data.bookingSettings.absorb_service_charge,
         break_times: data.bookingSettings.break_times,
         special_off_days: data.bookingSettings.special_off_days,
+        custom_policies: data.bookingSettings.custom_policies,
         service_categories: data.servicesSetup.categories.map((category) => ({
           name: category.name,
           services: data.servicesSetup.services

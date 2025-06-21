@@ -2,7 +2,6 @@ import { Button } from "../ui/button";
 import { Plus, Trash } from "lucide-react";
 import { Input } from "../ui/input";
 import { Switch } from "../ui/switch";
-import { DayPicker } from "react-day-picker";
 import {
   Select,
   SelectContent,

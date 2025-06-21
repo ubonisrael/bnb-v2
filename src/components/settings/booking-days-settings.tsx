@@ -39,6 +39,7 @@ import { z } from "zod";
 import { useRef } from "react";
 import { OffDaysManager } from "./off-days-manager";
 import { BreakTimesManager } from "./break-times-manager";
+import { PolicyManager } from "./policy-manager";
 
 export function BookingDaysSettings() {
   const {
@@ -95,6 +96,7 @@ export function BookingDaysSettings() {
       sunday_closing: settings?.bookingSettings?.sunday_closing || 1200,
       special_off_days: settings?.bookingSettings?.special_off_days || [],
       break_times: settings?.bookingSettings?.break_times || [],
+      custom_policies: settings?.bookingSettings?.custom_policies || [],
     },
   });
 
@@ -797,6 +799,28 @@ export function BookingDaysSettings() {
               </FormControl>
               <FormDescription>
                 Set specific dates when your business will be closed
+              </FormDescription>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="custom_policies"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Custom Policies</FormLabel>
+              <FormControl>
+                <PolicyManager form={form} />
+              </FormControl>
+              <FormDescription>
+                Add custom policies for your business. Each policy must belong
+                to a category (title).
+                <br />
+                General policies for deposits, cancellations, rescheduling and
+                no shows will be generated based on your settings above. Specify
+                any additional rules, or special requirements that clients
+                should know before booking. This helps set clear expectations
+                and ensures smooth service delivery.
               </FormDescription>
             </FormItem>
           )}

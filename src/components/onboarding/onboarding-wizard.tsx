@@ -50,6 +50,7 @@ export function OnboardingWizard() {
       },
       bookingSettings: {
         absorb_service_charge: false,
+        custom_policies: [],
         break_times: [],
         special_off_days: [],
         welcome_message: "",
@@ -154,6 +155,7 @@ export function OnboardingWizard() {
           bookingSettings: {
             absorb_service_charge: false,
             break_times: [],
+            custom_policies: [],
             special_off_days: [],
             allow_deposits: true,
             deposit_amount: 5,

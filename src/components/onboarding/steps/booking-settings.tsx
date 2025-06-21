@@ -28,95 +28,105 @@ import { minutesToTimeString, timezones } from "@/utils/time";
 import { Textarea } from "@/components/ui/textarea";
 import { OffDaysManager } from "@/components/settings/off-days-manager";
 import { BreakTimesManager } from "@/components/settings/break-times-manager";
+import { PolicyManager } from "@/components/settings/policy-manager";
+
+const policySchema = z.object({
+  id: z.string(),
+  title: z.string().min(2, "Title must be at least 2 characters"),
+  policies: z.array(z.string()).min(1, "At least one policy is required"),
+});
 
 export const baseBookingSettingsSchema = (allowedTimeZones: string[]) =>
-  z.object({
-    welcome_message: z.string().min(24, {
-      message:
-        "Welcome message must be at least 24 characters long to provide sufficient information",
-    }),
-    absorb_service_charge: z.boolean().default(false),
-    time_slot_duration: z
-      .number({
-        required_error: "Please specify a time slot duration",
-        invalid_type_error: "Time slot duration must be a valid number",
-      })
-      .min(30)
-      .max(120),
-    allow_deposits: z.boolean(),
-    deposit_amount: z
-      .number({
-        required_error:
-          "Please specify a deposit amount when deposits are allowed",
-        invalid_type_error: "Deposit amount must be a valid number",
-      })
-      .min(5)
-      .optional(),
-    cancellation_allowed: z.boolean(),
-    cancellation_notice_hours: z
-      .number()
-      .refine((value) => [0, 4, 8, 12, 24, 48, 72].includes(value))
-      .optional(),
-    cancellation_fee_percent: z.number().min(0).max(100).optional(),
-    no_show_fee_percent: z.number().min(0).max(100),
-    reschedule_allowed: z.boolean(),
-    reschedule_notice_hours: z
-      .number()
-      .refine((value) => [0, 4, 8, 12, 24, 48, 72].includes(value))
-      .optional(),
-    reschedule_fee_percent: z.number().min(0).max(100).optional(),
-    maximum_notice: z.number().min(0),
-    minimum_notice: z.number().min(0),
-    time_zone: z
-      .string()
-      .min(2)
-      .refine((val) => allowedTimeZones.includes(val), {
-        message: "Please select a time zone from the provided list",
+  z
+    .object({
+      welcome_message: z.string().min(24, {
+        message:
+          "Welcome message must be at least 24 characters long to provide sufficient information",
       }),
-    special_off_days: z.array(
-      z.object({
-        id: z.string(),
-        start_date: z.string().optional(),
-        dates: z.array(z.string()).optional(),
-        end_date: z.string().optional(),
-        reason: z.string().optional(),
-        is_recurring: z.boolean().optional(),
-        mode: z.enum(["single", "multiple", "range"]),
-      })
-    ),
-    break_times: z.array(
-      z.object({
-        id: z.string(),
-        day_of_week: z.string(),
-        start_time: z.number(),
-        end_time: z.number(),
-        name: z.string().optional(),
-      })
-    ),
+      custom_policies: z.array(policySchema),
+      absorb_service_charge: z.boolean().default(false),
+      time_slot_duration: z
+        .number({
+          required_error: "Please specify a time slot duration",
+          invalid_type_error: "Time slot duration must be a valid number",
+        })
+        .min(30)
+        .max(120),
+      allow_deposits: z.boolean(),
+      deposit_amount: z
+        .number({
+          required_error:
+            "Please specify a deposit amount when deposits are allowed",
+          invalid_type_error: "Deposit amount must be a valid number",
+        })
+        .min(5)
+        .optional(),
+      cancellation_allowed: z.boolean(),
+      cancellation_notice_hours: z
+        .number()
+        .refine((value) => [0, 4, 8, 12, 24, 48, 72].includes(value))
+        .optional(),
+      cancellation_fee_percent: z.number().min(0).max(100).optional(),
+      no_show_fee_percent: z.number().min(0).max(100),
+      reschedule_allowed: z.boolean(),
+      reschedule_notice_hours: z
+        .number()
+        .refine((value) => [0, 4, 8, 12, 24, 48, 72].includes(value))
+        .optional(),
+      reschedule_fee_percent: z.number().min(0).max(100).optional(),
+      maximum_notice: z.number().min(0),
+      minimum_notice: z.number().min(0),
+      time_zone: z
+        .string()
+        .min(2)
+        .refine((val) => allowedTimeZones.includes(val), {
+          message: "Please select a time zone from the provided list",
+        }),
+      special_off_days: z.array(
+        z.object({
+          id: z.string(),
+          start_date: z.string().optional(),
+          dates: z.array(z.string()).optional(),
+          end_date: z.string().optional(),
+          reason: z.string().optional(),
+          is_recurring: z.boolean().optional(),
+          mode: z.enum(["single", "multiple", "range"]),
+        })
+      ),
+      break_times: z.array(
+        z.object({
+          id: z.string(),
+          day_of_week: z.string(),
+          start_time: z.number(),
+          end_time: z.number(),
+          name: z.string().optional(),
+        })
+      ),
 
-    // Days of the week
-    sunday_enabled: z.boolean().default(false),
-    sunday_opening: z.number().default(0),
-    sunday_closing: z.number().default(0),
-    monday_enabled: z.boolean().default(false),
-    monday_opening: z.number().default(0),
-    monday_closing: z.number().default(0),
-    tuesday_enabled: z.boolean().default(false),
-    tuesday_opening: z.number().default(0),
-    tuesday_closing: z.number().default(0),
-    wednesday_enabled: z.boolean().default(false),
-    wednesday_opening: z.number().default(0),
-    wednesday_closing: z.number().default(0),
-    thursday_enabled: z.boolean().default(false),
-    thursday_opening: z.number().default(0),
-    thursday_closing: z.number().default(0),
-    friday_enabled: z.boolean().default(false),
-    friday_opening: z.number().default(0),
-    friday_closing: z.number().default(0),
-    saturday_enabled: z.boolean().default(false),
-    saturday_opening: z.number().default(0),
-    saturday_closing: z.number().default(0),
-  }).refine((data) => data.maximum_notice >= data.minimum_notice + 1, {
+      // Days of the week
+      sunday_enabled: z.boolean().default(false),
+      sunday_opening: z.number().default(0),
+      sunday_closing: z.number().default(0),
+      monday_enabled: z.boolean().default(false),
+      monday_opening: z.number().default(0),
+      monday_closing: z.number().default(0),
+      tuesday_enabled: z.boolean().default(false),
+      tuesday_opening: z.number().default(0),
+      tuesday_closing: z.number().default(0),
+      wednesday_enabled: z.boolean().default(false),
+      wednesday_opening: z.number().default(0),
+      wednesday_closing: z.number().default(0),
+      thursday_enabled: z.boolean().default(false),
+      thursday_opening: z.number().default(0),
+      thursday_closing: z.number().default(0),
+      friday_enabled: z.boolean().default(false),
+      friday_opening: z.number().default(0),
+      friday_closing: z.number().default(0),
+      saturday_enabled: z.boolean().default(false),
+      saturday_opening: z.number().default(0),
+      saturday_closing: z.number().default(0),
+    })
+    .refine((data) => data.maximum_notice >= data.minimum_notice + 1, {
       message:
         "Maximum advance booking notice must be atleast 1 day more than minimum notice for proper scheduling",
       path: ["maximum_notice"],
@@ -1068,6 +1078,28 @@ export function BookingSettingsSetupStep({
               </FormControl>
               <FormDescription>
                 Set specific dates when your business will be closed
+              </FormDescription>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="custom_policies"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Custom Policies</FormLabel>
+              <FormControl>
+                <PolicyManager form={form} />
+              </FormControl>
+              <FormDescription>
+                Add custom policies for your business. Each policy must belong
+                to a category (title).
+                <br />
+                General policies for deposits, cancellations, rescheduling and
+                no shows will be generated based on your settings above. Specify
+                any additional rules, or special requirements that clients
+                should know before booking. This helps set clear expectations
+                and ensures smooth service delivery.
               </FormDescription>
             </FormItem>
           )}

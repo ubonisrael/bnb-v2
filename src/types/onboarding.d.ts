@@ -56,6 +56,7 @@ interface BookingSettingsData {
   absorb_service_charge: boolean;
   break_times: BreakTime[];
   special_off_days: OffDay[];
+  custom_policies: CustomPolicy[];
   maximum_notice: number;
   minimum_notice: number;
   welcome_message: string;

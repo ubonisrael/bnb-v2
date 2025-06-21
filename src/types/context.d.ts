@@ -79,6 +79,7 @@ interface UserSettings {
     special_off_days: OffDay[];
     break_times: BreakTime[];
     absorb_service_charge: boolean;
+    custom_policies: CustomPolicy[];
   };
   template: {
     templateType: string;

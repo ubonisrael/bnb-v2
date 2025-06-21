@@ -15,3 +15,9 @@ interface BreakTime {
   end_time: number; // in minutes from midnight
   name?: string; // e.g., "Lunch Break", "Coffee Break"
 }
+
+interface CustomPolicy {
+  id: string;
+  title: string;
+  policies: string[];
+}
