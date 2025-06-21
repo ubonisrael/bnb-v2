@@ -38,12 +38,6 @@ export const bookingTemplateSchema = z.object({
     .string()
     .min(24, { message: "About Us must be at least 24 characters" })
     .max(500, { message: "Banner header must be at most 500 characters" }),
-  additionalPolicies: z
-    .string()
-    .max(1024, {
-      message: "Additional Policies must be at most 1024 characters",
-    })
-    .optional(),
 });
 
 interface BookingTemplateStepProps {
@@ -69,7 +63,6 @@ export function BookingTemplateStep({
     defaultValues: {
       templateType: data.templateType || "",
       aboutUs: data.aboutUs || "",
-      additionalPolicies: data.additionalPolicies || "",
     },
   });
   const formRef = useRef<HTMLFormElement | null>(null);
@@ -396,26 +389,6 @@ export function BookingTemplateStep({
                 Write a friendly introduction to your business. This will appear
                 in the “About” section of your booking page. Mention what you
                 do, who you serve, and what makes your service special.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="additionalPolicies"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Additional Policies (Optional)</FormLabel>
-              <FormControl>
-                <Textarea placeholder="" {...field} />
-              </FormControl>
-              <FormDescription>
-                General policies for deposits, cancellations, rescheduling and
-                no shows will be generated based on your settings in the booking
-                settings section. Specify any additional rules, or special
-                requirements that clients should know before booking. This helps
-                set clear expectations and ensures smooth service delivery.
               </FormDescription>
               <FormMessage />
             </FormItem>

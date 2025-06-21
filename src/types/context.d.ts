@@ -84,7 +84,6 @@ interface UserSettings {
     templateType: string;
     aboutUs: string;
     imageUrls: string[];
-    additionalPolicies: string;
   };
   subscription: {
     planName: string;

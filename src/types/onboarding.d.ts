@@ -104,7 +104,6 @@ interface BookingTemplateData {
     alt: string;
   }[];
   aboutUs: string;
-  additionalPolicies?: string;
 }
 
 interface OnboardingFormData {

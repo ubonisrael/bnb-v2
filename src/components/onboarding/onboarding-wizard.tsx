@@ -47,7 +47,6 @@ export function OnboardingWizard() {
         templateType: "",
         images: [],
         aboutUs: "",
-        additionalPolicies: "",
       },
       bookingSettings: {
         absorb_service_charge: false,
@@ -151,7 +150,6 @@ export function OnboardingWizard() {
             templateType: "",
             images: [],
             aboutUs: "",
-            additionalPolicies: "",
           },
           bookingSettings: {
             absorb_service_charge: false,

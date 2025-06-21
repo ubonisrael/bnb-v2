@@ -21,7 +21,6 @@ export function useOnboardingMutation() {
         template_type: data.bookingTemplate.templateType,
         image_urls: data.bookingTemplate.images.map((i) => i.src),
         about_us: data.bookingTemplate.aboutUs,
-        additional_policies: data.bookingTemplate.additionalPolicies,
         email_confirmation:
           data.notificationSettings.emailSettings.sendBookingConfirmations,
         appointment_reminders:
