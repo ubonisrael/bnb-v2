@@ -64,6 +64,11 @@ export default function BusinessDetails({
     }
   };
 
+  const location =
+    businessData.address && businessData.city && businessData.city
+      ? `${businessData.address}, ${businessData.city}, ${businessData.state}`
+      : null;
+
   return (
     <>
       {/* Business Header */}
@@ -81,7 +86,9 @@ export default function BusinessDetails({
           <h2 className="text-xl font-bold text-slate-800 mb-1">
             {businessData.name}
           </h2>
-          <p className="text-slate-600">{`${businessData.address}, ${businessData.city}, ${businessData.state}`}</p>
+          {location && (
+            <p className="text-slate-600">{`${businessData.address}, ${businessData.city}, ${businessData.state}`}</p>
+          )}
         </CardContent>
       </Card>
 

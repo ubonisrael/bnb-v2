@@ -345,10 +345,10 @@ interface BusinessDataResponse {
   name: string;
   email: string;
   aboutUs: string;
-  state: string;
+  state?: string;
   zip: string;
-  address: string;
-  city: string;
+  address?: string;
+  city?: string;
   serviceCategories: ServiceCategory[];
   businessHours: { day: string; hours: string }[];
   phone: string;
