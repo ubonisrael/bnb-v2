@@ -1,10 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { convertTimeSlotsToUserLocalTime, minutesToTimeString } from "@/utils/time";
+import {
+  convertTimeSlotsToUserLocalTime,
+  minutesToTimeString,
+} from "@/utils/time";
 import { AvailableTimeSlotsResponse } from "@/types/response";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/services/api-service";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -18,7 +21,7 @@ interface TimeSlotsProps {
   selectedDate: string | null;
   selectedTime: number | null;
   onSelectTime: (time: number) => void;
-  selectedServices: {id: string | number; name: string}[];
+  selectedServices: { id: string | number; name: string }[];
   totalDuration: number;
   bUrl: string;
   utcOffset: number;
@@ -31,7 +34,7 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
   totalDuration,
   utcOffset,
   bUrl,
-  selectedServices
+  selectedServices,
 }) => {
   const timezone = dayjs.tz.guess();
   const clientOffset = dayjs().tz(timezone).utcOffset();
@@ -39,7 +42,10 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
     .map((s) => `&service_ids[]=${s.id}`)
     .join("")}&duration=${totalDuration}`;
   // fetch available time slots based on selected date
-  const { data, isLoading, error } = useQuery<AvailableTimeSlotsResponse, AxiosError>({
+  const { data, isLoading, error } = useQuery<
+    AvailableTimeSlotsResponse,
+    AxiosError
+  >({
     queryKey: [selectedDate],
     queryFn: async () => {
       if (bUrl === "sample") {
@@ -51,9 +57,30 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
       }
       return await api.get(urlString);
     },
+    retry: (failureCount, error) => {
+      // Don't retry if we get a 400 status code
+      if (error instanceof AxiosError && error.response?.status === 400) {
+        return false;
+      }
+      // Default retry behavior for other errors
+      return failureCount < 3;
+    },
+    // Reduce cache time to minimize stale data issues
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    // Refetch when component regains focus to ensure fresh data
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
+  const queryClient = useQueryClient();
 
-  if (isLoading && !error) {
+  // Add useEffect to clean up cache when component unmounts
+  useEffect(() => {
+    return () => {
+      queryClient.removeQueries({ queryKey: [selectedDate] });
+    };
+  }, [selectedDate, queryClient]);
+
+  if (isLoading) {
     return (
       <div className="mt-6">
         <div className="h-7 w-64 bg-gray-200 dark:bg-gray-700 rounded mb-4 animate-pulse" />
@@ -72,12 +99,14 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
   return (
     <div className="mt-6">
       <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-      {selectedDate
-        ? `Available Times on ${dayjs(selectedDate).format("MMMM D, YYYY")}`
-        : "Select a date to see available times"}
+        {selectedDate
+          ? `Available Times on ${dayjs(selectedDate).format("MMMM D, YYYY")}`
+          : "Select a date to see available times"}
       </h3>
       {error && (
-        <div className="text-red-500 text-sm mt-2">{(error?.response?.data as { message: string })?.message}</div>
+        <div className="text-red-500 text-sm mt-2">
+          {(error?.response?.data as { message: string })?.message}
+        </div>
       )}
 
       {selectedDate && data?.timeSlots.length === 0 && (
@@ -117,7 +146,9 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
                 }
               `}
             >
-              {minutesToTimeString(convertTimeSlotsToUserLocalTime(time, clientOffset, utcOffset))}
+              {minutesToTimeString(
+                convertTimeSlotsToUserLocalTime(time, clientOffset, utcOffset)
+              )}
             </Button>
           ))}
         </div>
