@@ -39,7 +39,7 @@ const profileSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   phone: z.string().min(10, "Please enter a valid phone number"),
   address: z.string().min(5, "Please enter a valid address"),
-  display_address: z.boolean().default(true),
+  display_address: z.boolean(),
   city: z.string().min(2, "City must be at least 2 characters"),
   state: z.string().min(2, "State must be at least 2 characters"),
   postal_code: z.string().min(4, "Postal code must be at least 4 characters"),
@@ -72,7 +72,7 @@ export function ProfileSettings() {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       address: settings?.profile.address,
-      display_address: settings?.profile.display_address ?? true,
+      display_address: settings?.profile.display_address,
       city: settings?.profile.city,
       state: settings?.profile.state,
       postal_code: settings?.profile.postal_code,
@@ -102,6 +102,7 @@ export function ProfileSettings() {
     if (settings) {
       form.reset({
         address: settings.profile.address,
+        display_address: settings.profile.display_address,
         city: settings.profile.city,
         state: settings.profile.state,
         postal_code: settings.profile.postal_code,
