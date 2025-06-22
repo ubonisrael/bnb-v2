@@ -39,13 +39,13 @@ const amountToBePaid = (
   applicationFeeInCents: number
 ) => {
   if (serviceChargeAbsorbed) {
-    return { amount, serviceCharge: applicationFeeInCents };
+    return { amount, serviceCharge: applicationFeeInCents / 100 };
   }
   if (applicationFeeInCents === 100) {
-    return { amount: amount + 1, serviceCharge: applicationFeeInCents };
+    return { amount: amount + 1, serviceCharge: applicationFeeInCents / 100 };
   }
   const finalAmount = Math.ceil(100 * ((amount + 0.8) / 0.971));
-  const serviceCharge = finalAmount - (amount * 100)
+  const serviceCharge = finalAmount - amount * 100;
   return { amount: finalAmount / 100, serviceCharge: serviceCharge / 100 };
 };
 
@@ -55,7 +55,11 @@ export const bookingSchema = z.object({
   // gender: z.enum(["Male", "Female", "Prefer not to say"], {
   //   required_error: "Please select a gender",
   // }),
-  phone: z.string().min(10, "Please enter a valid phone number").optional(),
+  phone: z
+    .string()
+    .min(10, "Please enter a valid phone number")
+    .nullable()
+    .or(z.string().length(0)),
   age_category: z.enum(["Adult", "Child"], {
     required_error: "Please select an age category",
   }),
@@ -105,7 +109,7 @@ const BookingForm = ({
     },
   });
 
-  const applicationFeeInCents = Math.max(100, amount * 2.9 + 10)
+  const applicationFeeInCents = Math.max(100, amount * 2.9 + 80);
   const { amount: finalAmount, serviceCharge } = amountToBePaid(
     absorbServiceCharge,
     allowDeposits && depositAmount ? depositAmount : amount,
@@ -190,7 +194,7 @@ const BookingForm = ({
                   <FormItem>
                     <FormLabel>Phone (optional)</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} value={field.value || ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -229,7 +233,17 @@ const BookingForm = ({
                 <div className="text-sm font-medium leading-none">
                   Amount to Pay
                 </div>
-
+                <p className="text-sm text-muted-foreground">
+                  {allowDeposits && depositAmount
+                    ? `This is a deposit payment of ${currencySymbol}${depositAmount.toFixed(
+                        2
+                      )}. Full payment is ${currencySymbol}${amount.toFixed(
+                        2
+                      )}.`
+                    : `This is a full payment of ${currencySymbol}${amount.toFixed(
+                        2
+                      )}.`}
+                </p>
                 <div className="h-10 px-3 py-2 border border-input bg-muted rounded-md text-sm flex items-center justify-between">
                   <span>Service Total:</span>
                   <span>
@@ -259,20 +273,8 @@ const BookingForm = ({
                 </div>
                 <p className="text-sm italic text-muted-foreground">
                   The service charge of {currencySymbol}
-                  {serviceCharge.toFixed(2)} is
+                  {serviceCharge.toFixed(2)} is{" "}
                   <span className="font-medium">non-refundable</span>.
-                </p>
-
-                <p className="text-sm text-muted-foreground">
-                  {allowDeposits && depositAmount
-                    ? `This is a deposit payment of ${currencySymbol}${depositAmount.toFixed(
-                        2
-                      )}. Full payment is ${currencySymbol}${amount.toFixed(
-                        2
-                      )}.`
-                    : `This is a full payment of ${currencySymbol}${amount.toFixed(
-                        2
-                      )}.`}
                 </p>
               </div>
 
@@ -303,7 +305,7 @@ const BookingForm = ({
                 control={form.control}
                 name="agree_to_terms"
                 render={({ field }) => (
-                  <FormItem className="flex items-center space-x-2 space-y-0">
+                  <FormItem className="flex flex-col items-center space-x-2 space-y-0">
                     <FormLabel
                       htmlFor="agree_to_terms"
                       className="flex items-center justify-center gap-4 text-sm font-normal"
