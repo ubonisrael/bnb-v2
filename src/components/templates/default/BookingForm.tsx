@@ -109,10 +109,11 @@ const BookingForm = ({
     },
   });
 
-  const applicationFeeInCents = Math.max(100, amount * 2.9 + 80);
+  const initialAmount = allowDeposits && depositAmount ? depositAmount : amount
+  const applicationFeeInCents = Math.max(100, initialAmount * 2.9 + 80);
   const { amount: finalAmount, serviceCharge } = amountToBePaid(
     absorbServiceCharge,
-    allowDeposits && depositAmount ? depositAmount : amount,
+    initialAmount,
     applicationFeeInCents
   );
 
