@@ -27,7 +27,7 @@ interface BookingFormValues {
   name: string;
   email: string;
   gender?: string;
-  phone?: string;
+  phone: string | null;
   age_category: string;
   event_date: string;
   event_time: number;
