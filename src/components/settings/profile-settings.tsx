@@ -33,6 +33,7 @@ import {
 } from "../ui/select";
 import { countries } from "../onboarding/steps/business-info";
 import { Checkbox } from "../ui/checkbox";
+import { UnsavedChangesBanner } from "../UnSavedChangesBanner";
 
 const profileSchema = z.object({
   name: z.string().min(2, "Business name must be at least 2 characters"),
@@ -64,9 +65,9 @@ export function ProfileSettings() {
 
   useEffect(() => {
     if (settings) {
-      setLogoUrl(settings.profile.logo)
+      setLogoUrl(settings.profile.logo);
     }
-  }, [settings])
+  }, [settings]);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -204,101 +205,134 @@ export function ProfileSettings() {
     }
   }
 
+  const { isDirty } = form.formState;
+
   return (
-    <Form {...form}>
-      <form
-        ref={formRef}
-        onSubmit={form.handleSubmit(onSubmit, onError)}
-        className="space-y-6"
-      >
-        <div>
-          <h3 className="text-lg font-medium">Business Profile</h3>
-          <p className="text-sm text-muted-foreground">
-            Update your business information and profile
-          </p>
-        </div>
+    <>
+      {isDirty && <UnsavedChangesBanner form={form}/>}
+      <Form {...form}>
+        <form
+          ref={formRef}
+          onSubmit={form.handleSubmit(onSubmit, onError)}
+          className="space-y-6"
+        >
+          <div>
+            <h3 className="text-lg font-medium">Business Profile</h3>
+            <p className="text-sm text-muted-foreground">
+              Update your business information and profile
+            </p>
+          </div>
 
-        <div className="space-y-4">
-          <FormItem>
-            <FormLabel>Business Logo</FormLabel>
-            <div className="mt-2">
-              {logoUrl ? (
-                <div className="relative h-40 w-40 mx-auto">
-                  <Image
-                    src={logoUrl}
-                    alt="Business Logo"
-                    fill
-                    className="rounded-full"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="absolute -right-2 -top-2 h-7 w-7 rounded-full border-gray-200 bg-white"
-                    onClick={removeLogo}
-                    disabled={isUploading}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center justify-center rounded-md border border-dashed border-[#E0E0E5] px-6 py-10">
-                  <div className="text-center">
-                    <Upload className="mx-auto h-12 w-12 text-[#6E6E73]" />
-                    <div className="mt-2 flex text-sm leading-6 text-[#6E6E73]">
-                      <label
-                        htmlFor="logo-upload"
-                        className="relative cursor-pointer rounded-md font-semibold text-[#7B68EE]"
-                      >
-                        <span>Upload a file</span>
-                        <input
-                          id="logo-upload"
-                          name="logo-upload"
-                          type="file"
-                          accept="image/*"
-                          className="sr-only"
-                          onChange={handleLogoUpload}
-                          disabled={isUploading}
-                        />
-                      </label>
-                      <p className="pl-1">or drag and drop</p>
-                    </div>
-                    <p className="text-xs text-[#6E6E73]">
-                      PNG, JPG, GIF up to 10MB
-                    </p>
+          <div className="space-y-4">
+            <FormItem>
+              <FormLabel>Business Logo</FormLabel>
+              <div className="mt-2">
+                {logoUrl ? (
+                  <div className="relative h-40 w-40 mx-auto">
+                    <Image
+                      src={logoUrl}
+                      alt="Business Logo"
+                      fill
+                      className="rounded-full"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="absolute -right-2 -top-2 h-7 w-7 rounded-full border-gray-200 bg-white"
+                      onClick={removeLogo}
+                      disabled={isUploading}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex items-center justify-center rounded-md border border-dashed border-[#E0E0E5] px-6 py-10">
+                    <div className="text-center">
+                      <Upload className="mx-auto h-12 w-12 text-[#6E6E73]" />
+                      <div className="mt-2 flex text-sm leading-6 text-[#6E6E73]">
+                        <label
+                          htmlFor="logo-upload"
+                          className="relative cursor-pointer rounded-md font-semibold text-[#7B68EE]"
+                        >
+                          <span>Upload a file</span>
+                          <input
+                            id="logo-upload"
+                            name="logo-upload"
+                            type="file"
+                            accept="image/*"
+                            className="sr-only"
+                            onChange={handleLogoUpload}
+                            disabled={isUploading}
+                          />
+                        </label>
+                        <p className="pl-1">or drag and drop</p>
+                      </div>
+                      <p className="text-xs text-[#6E6E73]">
+                        PNG, JPG, GIF up to 10MB
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <FormDescription className="text-center">
+                Your logo will appear on your booking page and receipts
+              </FormDescription>
+            </FormItem>
+
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Business Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
+            />
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="email"
+                disabled
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-            <FormDescription className="text-center">
-              Your logo will appear on your booking page and receipts
-            </FormDescription>
-          </FormItem>
 
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Business Name</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="grid gap-4 md:grid-cols-2">
             <FormField
               control={form.control}
-              name="email"
-              disabled
+              name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Address</FormLabel>
                   <FormControl>
-                    <Input type="email" {...field} />
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -307,147 +341,121 @@ export function ProfileSettings() {
 
             <FormField
               control={form.control}
-              name="phone"
+              name="display_address"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Display address on booking page</FormLabel>
+                    <FormDescription>
+                      Allow customers to see your business address on your
+                      booking page
+                    </FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <FormField
+                control={form.control}
+                name="city"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>City</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="state"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>State/Province</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="postal_code"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Postal Code</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="country"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
+                  <FormLabel>Country</FormLabel>
+                  <Select
+                    name="country"
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a country" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {countries.map((country) => (
+                        <SelectItem key={country.value} value={country.value}>
+                          {country.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
 
-          <FormField
-            control={form.control}
-            name="address"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Address</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="display_address"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Display address on booking page</FormLabel>
-                  <FormDescription>
-                    Allow customers to see your business address on your booking
-                    page
-                  </FormDescription>
-                </div>
-              </FormItem>
-            )}
-          />
-
-          <div className="grid gap-4 md:grid-cols-3">
-            <FormField
-              control={form.control}
-              name="city"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>City</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+          <div className="flex justify-end">
+            <Button
+              type="submit"
+              disabled={
+                updateProfileMutation.isPending ||
+                settingsLoading ||
+                isUploading
+              }
+            >
+              {updateProfileMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Changes"
               )}
-            />
-
-            <FormField
-              control={form.control}
-              name="state"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>State/Province</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="postal_code"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Postal Code</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            </Button>
           </div>
-
-          <FormField
-            control={form.control}
-            name="country"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Country</FormLabel>
-                <Select
-                  name="country"
-                  onValueChange={field.onChange}
-                  value={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a country" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {countries.map((country) => (
-                      <SelectItem key={country.value} value={country.value}>
-                        {country.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="flex justify-end">
-          <Button
-            type="submit"
-            disabled={
-              updateProfileMutation.isPending || settingsLoading || isUploading
-            }
-          >
-            {updateProfileMutation.isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              "Save Changes"
-            )}
-          </Button>
-        </div>
-      </form>
-    </Form>
+        </form>
+      </Form>
+    </>
   );
 }
