@@ -109,6 +109,8 @@ export function NotificationPreferences() {
           followUpDelayHours: response.data.follow_up_delay,
         },
       });
+      // reset form after successful save
+      form.reset(form.getValues());
     },
     onError: (error: Error) => {
       toast.error(

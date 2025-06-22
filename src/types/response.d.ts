@@ -118,6 +118,7 @@ export interface BusinessProfileData {
   logo: string | undefined;
   desc: string;
   address: string;
+  display_address: boolean;
   city: string;
   state: string;
   country: string;

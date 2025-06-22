@@ -147,6 +147,8 @@ export function BookingDaysSettings() {
         id: "booking-settings-save",
       });
       updateSettings("bookingSettings", response.data);
+      // reset form after successful save
+      form.reset(form.getValues());
     },
     onError: (error: Error) => {
       toast.error("Failed to update booking days", {

@@ -189,6 +189,7 @@ export function ProfileSettings() {
     onSuccess: (response) => {
       toast.success("Profile updated successfully", { id: "profile-save" });
       updateSettings("profile", response.data);
+      form.reset(form.getValues());
     },
     onError: (error: Error) => {
       toast.error(error?.message || "Failed to update profile", {

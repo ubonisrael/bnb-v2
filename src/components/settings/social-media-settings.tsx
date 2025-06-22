@@ -120,6 +120,7 @@ export function SocialMediaSettings() {
         id: "social-media-save",
       });
       updateSettings("social", response.data);
+      form.reset(form.getValues());
     },
     onError: (error: Error) => {
       toast.error(error?.message || "Failed to update social media links", {
