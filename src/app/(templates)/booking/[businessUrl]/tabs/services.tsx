@@ -19,26 +19,29 @@ export function ServicesTab({
 
   useEffect(() => {
     resetBooking();
-  }, [])
+  }, []);
   return (
-      <div className="w-full min-h-screen sm:px-6 lg:px-8 py-10">
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="px-4">
-          <Button onClick={gotoPrevTab} className="flex items-center justify-center mb-4">
-          <Home />
-        </Button>
-        <div className="lg:text-center mb-10">
-          <h2 className="text-base text-primary-600 dark:text-primary-400 font-semibold tracking-wide uppercase">
-            Our Services
-          </h2>
-          <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
-            Choose Your Services
-          </p>
-          <p className="mt-4 max-w-2xl text-xl text-gray-500 dark:text-gray-300 lg:mx-auto">
-            Select one or more services to create your appointment.
-          </p>
+          <Button
+            onClick={gotoPrevTab}
+            className="flex items-center justify-center mb-4"
+          >
+            <Home />
+          </Button>
+          <div className="lg:text-center mb-10">
+            <h2 className="text-base text-primary-600 dark:text-primary-400 font-semibold tracking-wide uppercase">
+              Our Services
+            </h2>
+            <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+              Choose Your Services
+            </p>
+            <p className="mt-4 max-w-2xl text-xl text-gray-500 dark:text-gray-300 lg:mx-auto">
+              Select one or more services to create your appointment.
+            </p>
+          </div>
         </div>
-        </div>
-        
 
         <div className="flex flex-col lg:flex-row">
           {/* Left Column: Services (3/5 width) */}
@@ -52,5 +55,6 @@ export function ServicesTab({
           </div>
         </div>
       </div>
+    </div>
   );
 }

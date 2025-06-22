@@ -321,7 +321,7 @@ const BookingForm = ({
                       <span>
                         I agree to the{" "}
                         <a
-                          href="#"
+                          href="/terms_and_conditions"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="underline text-primary"
