@@ -3,6 +3,7 @@ interface BusinessInfoData {
   name: string;
   phone: string;
   address: string;
+  display_address: boolean;
   city: string;
   state: string;
   postalCode: string;

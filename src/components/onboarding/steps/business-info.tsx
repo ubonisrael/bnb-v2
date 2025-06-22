@@ -33,6 +33,7 @@ import toast from "react-hot-toast";
 import { Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const countries = [{ value: "United Kingdom", label: "United Kingdom" }];
 
@@ -44,6 +45,7 @@ const businessInfoSchema = z.object({
   address: z
     .string()
     .min(3, { message: "Address must be at least 3 characters" }),
+  display_address: z.boolean().default(true),
   city: z.string().min(2, { message: "City must be at least 2 characters" }),
   state: z
     .string()
@@ -121,14 +123,13 @@ export function BusinessInfoStep({
         (snapshot) => {
           const progress =
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            toast.loading(
-              `Uploading logo... ${Math.round(progress)}%`,
-              { id: "logo-upload-percentage" }
-            );
-            if (progress === 100) {
-              toast.dismiss("logo-upload-percentage");
-              toast.success("Logo uploaded successfully", { id: "logo-upload" });
-            }
+          toast.loading(`Uploading logo... ${Math.round(progress)}%`, {
+            id: "logo-upload-percentage",
+          });
+          if (progress === 100) {
+            toast.dismiss("logo-upload-percentage");
+            toast.success("Logo uploaded successfully", { id: "logo-upload" });
+          }
         },
         (error) => toast.error(error.message),
         () =>
@@ -269,6 +270,28 @@ export function BusinessInfoStep({
                 <Input placeholder="123 Main St" {...field} />
               </FormControl>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="display_address"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>Display address on booking page</FormLabel>
+                <FormDescription>
+                  Allow customers to see your business address on your booking
+                  page
+                </FormDescription>
+              </div>
             </FormItem>
           )}
         />

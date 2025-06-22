@@ -33,17 +33,20 @@ import { useState } from "react";
 import { PolicyData } from "@/types/response";
 import { Checkbox } from "./ui/checkbox";
 
-const amountToBePaid = (serviceChargeAbsorbed: boolean, amount: number) => {
-  const applicationFeeInCents = Math.max(100, Math.ceil(amount * 2.9 + 80));
+const amountToBePaid = (
+  serviceChargeAbsorbed: boolean,
+  amount: number,
+  applicationFeeInCents: number
+) => {
   if (serviceChargeAbsorbed) {
-    return { amount, serviceCharge: applicationFeeInCents / 100 };
+    return { amount, serviceCharge: applicationFeeInCents };
   }
   if (applicationFeeInCents === 100) {
-    return { amount: amount + 1, serviceCharge: 1 };
+    return { amount: amount + 1, serviceCharge: applicationFeeInCents };
   }
-
-  const serviceCharge = (amount + 0.8) / 0.971;
-  return { amount: amount + serviceCharge, serviceCharge };
+  const finalAmount = Math.ceil(100 * ((amount + 0.8) / 0.971));
+  const serviceCharge = finalAmount - (amount * 100)
+  return { amount: finalAmount / 100, serviceCharge: serviceCharge / 100 };
 };
 
 export const bookingSchema = z.object({
@@ -102,9 +105,11 @@ const BookingForm = ({
     },
   });
 
+  const applicationFeeInCents = Math.max(100, amount * 2.9 + 10)
   const { amount: finalAmount, serviceCharge } = amountToBePaid(
     absorbServiceCharge,
-    allowDeposits && depositAmount ? depositAmount : amount
+    allowDeposits && depositAmount ? depositAmount : amount,
+    applicationFeeInCents
   );
 
   return (
@@ -241,7 +246,7 @@ const BookingForm = ({
                   </span>
                   <span>
                     {currencySymbol}
-                    {serviceCharge}
+                    {serviceCharge.toFixed(2)}
                   </span>
                 </div>
 
@@ -254,7 +259,7 @@ const BookingForm = ({
                 </div>
                 <p className="text-sm italic text-muted-foreground">
                   The service charge of {currencySymbol}
-                  {serviceCharge} is
+                  {serviceCharge.toFixed(2)} is
                   <span className="font-medium">non-refundable</span>.
                 </p>
 

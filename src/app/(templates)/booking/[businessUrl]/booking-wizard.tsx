@@ -6,7 +6,11 @@ import BookingForm, {
   BookingType,
 } from "@/components/templates/default/BookingForm";
 import { useMutation } from "@tanstack/react-query";
-import { BookingResponse, BusinessDataResponse, ErrorResponse } from "@/types/response";
+import {
+  BookingResponse,
+  BusinessDataResponse,
+  ErrorResponse,
+} from "@/types/response";
 import toast from "react-hot-toast";
 import api from "@/services/api-service";
 import dayjs from "dayjs";
@@ -45,7 +49,7 @@ export function BookingWizard(props: BusinessDataResponse) {
     getTotalPrice,
     selectedDate,
     selectedTime,
-    resetBooking
+    resetBooking,
   } = useApp();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [showBookingModal, setShowBookingModal] = useState(false);
@@ -66,7 +70,9 @@ export function BookingWizard(props: BusinessDataResponse) {
     mutationFn: (data: BookingFormValues) => {
       toast.loading("Scheduling appointment...", { id: "booking" });
       if (props.bUrl === "sample") {
-        return Promise.reject(new Error("Sample business does not support booking"));
+        return Promise.reject(
+          new Error("Sample business does not support booking")
+        );
       }
       return api.post<BookingResponse>(`sp/${props.bUrl}/booking`, data);
     },
@@ -106,16 +112,19 @@ export function BookingWizard(props: BusinessDataResponse) {
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    const status = searchParams.get('status');
-    const productId = searchParams.get('productId');
-    const productType = searchParams.get('productType');
+    const status = searchParams.get("status");
+    const productId = searchParams.get("productId");
+    const productType = searchParams.get("productType");
 
-    if (status === 'canceled' && productId && productType) {
+    if (status === "canceled" && productId && productType) {
       const handleCancellation = async () => {
         try {
-          await api.post('/cancel-reservation', { productId: parseInt(productId), productType });
+          await api.post("/cancel-reservation", {
+            productId: parseInt(productId),
+            productType,
+          });
         } catch (error) {
-          console.error('Failed to process cancellation:', error);
+          console.error("Failed to process cancellation:", error);
         }
       };
 
@@ -151,7 +160,7 @@ export function BookingWizard(props: BusinessDataResponse) {
         {/* Booking Form Modal */}
         {showBookingModal && selectedDate && selectedTime && (
           <BookingForm
-          absorbServiceCharge={props.absorbServiceCharge}
+            absorbServiceCharge={props.absorbServiceCharge}
             policies={props.bookingPolicy}
             customPolicies={props.customPolicies}
             currencySymbol={props.currencySymbol}
@@ -164,7 +173,7 @@ export function BookingWizard(props: BusinessDataResponse) {
           />
         )}
       </div>
-      
+
       {/* Loading Overlay */}
       {isRedirecting && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
