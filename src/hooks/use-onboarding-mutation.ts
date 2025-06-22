@@ -13,6 +13,7 @@ export function useOnboardingMutation() {
         name: data.businessInfo.name,
         phone: data.businessInfo.phone,
         address: data.businessInfo.address,
+        display_address: data.businessInfo.display_address,
         city: data.businessInfo.city,
         state: data.businessInfo.state,
         country: data.businessInfo.country,
