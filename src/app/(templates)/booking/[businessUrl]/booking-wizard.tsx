@@ -6,7 +6,11 @@ import BookingForm, {
   BookingType,
 } from "@/components/templates/default/BookingForm";
 import { useMutation } from "@tanstack/react-query";
-import { BookingResponse, BusinessDataResponse, ErrorResponse } from "@/types/response";
+import {
+  BookingResponse,
+  BusinessDataResponse,
+  ErrorResponse,
+} from "@/types/response";
 import toast from "react-hot-toast";
 import api from "@/services/api-service";
 import dayjs from "dayjs";
@@ -22,7 +26,8 @@ dayjs.extend(timezone);
 interface BookingFormValues {
   name: string;
   email: string;
-  gender: string;
+  gender?: string;
+  phone: string | null;
   age_category: string;
   event_date: string;
   event_time: number;
@@ -44,7 +49,7 @@ export function BookingWizard(props: BusinessDataResponse) {
     getTotalPrice,
     selectedDate,
     selectedTime,
-    resetBooking
+    resetBooking,
   } = useApp();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [showBookingModal, setShowBookingModal] = useState(false);
@@ -65,7 +70,9 @@ export function BookingWizard(props: BusinessDataResponse) {
     mutationFn: (data: BookingFormValues) => {
       toast.loading("Scheduling appointment...", { id: "booking" });
       if (props.bUrl === "sample") {
-        return Promise.reject(new Error("Sample business does not support booking"));
+        return Promise.reject(
+          new Error("Sample business does not support booking")
+        );
       }
       return api.post<BookingResponse>(`sp/${props.bUrl}/booking`, data);
     },
@@ -105,16 +112,19 @@ export function BookingWizard(props: BusinessDataResponse) {
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    const status = searchParams.get('status');
-    const productId = searchParams.get('productId');
-    const productType = searchParams.get('productType');
+    const status = searchParams.get("status");
+    const productId = searchParams.get("productId");
+    const productType = searchParams.get("productType");
 
-    if (status === 'canceled' && productId && productType) {
+    if (status === "canceled" && productId && productType) {
       const handleCancellation = async () => {
         try {
-          await api.post('/cancel-reservation', { productId: parseInt(productId), productType });
+          await api.post("/cancel-reservation", {
+            productId: parseInt(productId),
+            productType,
+          });
         } catch (error) {
-          console.error('Failed to process cancellation:', error);
+          console.error("Failed to process cancellation:", error);
         }
       };
 
@@ -123,7 +133,7 @@ export function BookingWizard(props: BusinessDataResponse) {
   }, []);
 
   return (
-    <div className="w-full bg-slate-100">
+    <div className="w-full bg-slate-100 py-16 sm:pb-20 lg:pb-24">
       <div className="sm:px-6 pb-4 sm:py-6 lg:py-8 mx-auto max-w-7xl">
         {currentStep.id === "landing" && (
           <BusinessLanding gotoBooking={goToTab} {...props} />
@@ -150,8 +160,9 @@ export function BookingWizard(props: BusinessDataResponse) {
         {/* Booking Form Modal */}
         {showBookingModal && selectedDate && selectedTime && (
           <BookingForm
+            absorbServiceCharge={props.absorbServiceCharge}
             policies={props.bookingPolicy}
-            additionalPolicy={props.additionalPolicies}
+            customPolicies={props.customPolicies}
             currencySymbol={props.currencySymbol}
             amount={getTotalPrice()}
             allowDeposits={props.allowDeposits}
@@ -162,7 +173,7 @@ export function BookingWizard(props: BusinessDataResponse) {
           />
         )}
       </div>
-      
+
       {/* Loading Overlay */}
       {isRedirecting && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">

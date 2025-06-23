@@ -3,7 +3,6 @@
 import React from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useApp } from "@/contexts/AppContext";
-import { Service } from "@/components/onboarding/type";
 import { Calendar } from "lucide-react";
 
 interface ServiceCardProps {

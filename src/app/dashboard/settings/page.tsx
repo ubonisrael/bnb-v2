@@ -27,7 +27,7 @@ export default function SettingsPage() {
             <TabsTrigger value="security" className="w-full">Security</TabsTrigger>
             <TabsTrigger value="social" className="w-full">Social Media</TabsTrigger>
             <TabsTrigger value="notifications" className="w-full">Notifications</TabsTrigger>
-            <TabsTrigger value="booking-days" className="w-full">Booking Days</TabsTrigger>
+            <TabsTrigger value="booking-settings" className="w-full">Booking Settings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile">
@@ -78,11 +78,11 @@ export default function SettingsPage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="booking-days">
+          <TabsContent value="booking-settings">
             <Card className="border-0 shadow-card">
               <CardHeader>
-                <CardTitle>Booking Days & Hours</CardTitle>
-                <CardDescription>Set up your business working hours and availability</CardDescription>
+                <CardTitle>Booking Settings</CardTitle>
+                <CardDescription>Set up your booking policies, business working hours and availability</CardDescription>
               </CardHeader>
               <CardContent>
                 <BookingDaysSettings />

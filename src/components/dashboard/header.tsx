@@ -111,23 +111,18 @@ export function Header() {
         </DropdownMenu> */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full bg-black text-white"
-            >
-              {settings && (
-                <Avatar className="h-9 w-9">
-                  <AvatarImage
-                    src={settings.profile.logo || "/placeholder.svg"}
-                    alt="User"
-                  />
-                  <AvatarFallback className="text-black">
-                    {settings?.profile.name[0]}{settings?.profile.name[1]}
-                  </AvatarFallback>
-                </Avatar>
-              )}
-            </Button>
+            {settings && (
+              <Avatar className="h-9 w-9 cursor-pointer">
+                <AvatarImage
+                  src={settings.profile.logo || "/placeholder.svg"}
+                  alt="User"
+                />
+                <AvatarFallback className="text-black">
+                  {settings?.profile.name[0]}
+                  {settings?.profile.name[1]}
+                </AvatarFallback>
+              </Avatar>
+            )}
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>

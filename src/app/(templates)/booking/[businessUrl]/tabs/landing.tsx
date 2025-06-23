@@ -19,14 +19,18 @@ export function BusinessLanding(
           <ImageCarousel images={props.images} />
           <BusinessInfo
             name={props.name}
-            location={`${props.address}, ${props.city}, ${props.state}`}
+            location={
+              props.address && props.city && props.city
+                ? `${props.address}, ${props.city}, ${props.state}`
+                : null
+            }
           />
           <ServicesSection
             index={0}
             serviceCategories={props.serviceCategories}
             gotoTab={gotoBooking}
           />
-          <ReviewsSection reviews={props.reviews} />
+          {/* <ReviewsSection reviews={props.reviews} /> */}
         </div>
 
         {/* Second Section: Right on Desktop, Bottom on Mobile */}

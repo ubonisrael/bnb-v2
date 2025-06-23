@@ -33,6 +33,7 @@ import {
 import { NotificationSettingsResponse } from "@/types/response";
 import { Card, CardContent } from "../ui/card";
 import { useRef } from "react";
+import { UnsavedChangesBanner } from "../UnSavedChangesBanner";
 
 export function NotificationPreferences() {
   const {
@@ -108,6 +109,8 @@ export function NotificationPreferences() {
           followUpDelayHours: response.data.follow_up_delay,
         },
       });
+      // reset form after successful save
+      form.reset(form.getValues());
     },
     onError: (error: Error) => {
       toast.error(
@@ -124,243 +127,256 @@ export function NotificationPreferences() {
       console.error("Failed to save notification preferences:", error);
     }
   }
+  const { isDirty } = form.formState;
 
   return (
-    <Form {...form}>
-      <form
-        ref={formRef}
-        onSubmit={form.handleSubmit(onSubmit, onError)}
-        className="space-y-6"
-      >
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-[#121212]">
-            Notification Settings
-          </h2>
-          <p className="text-sm text-[#6E6E73]">
-            Configure your email notifications settings
-          </p>
-        </div>
-        <Card className="border-[#E0E0E5]">
-          <CardContent className="pt-6">
-            <div className="space-y-4">
-              <h3 className="text-md font-medium text-[#121212]">
-                Email Notifications
-              </h3>
+    <>
+      {isDirty && <UnsavedChangesBanner form={form} />}
+      <Form {...form}>
+        <form
+          ref={formRef}
+          onSubmit={form.handleSubmit(onSubmit, onError)}
+          className="space-y-6"
+        >
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold text-[#121212]">
+              Notification Settings
+            </h2>
+            <p className="text-sm text-[#6E6E73]">
+              Configure your email notifications settings
+            </p>
+          </div>
+          <Card className="border-[#E0E0E5]">
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                <h3 className="text-md font-medium text-[#121212]">
+                  Email Notifications
+                </h3>
 
-              <FormField
-                control={form.control}
-                name="emailSettings.sendBookingConfirmations"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                    <div className="space-y-0.5">
-                      <FormLabel>Booking Confirmations</FormLabel>
-                      <FormDescription>
-                        Send confirmation emails when clients book appointments
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        name="emailSettings.sendBookingConfirmations"
-                        defaultChecked={field.value}
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="emailSettings.sendReminders"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                    <div className="space-y-0.5">
-                      <FormLabel>Appointment Reminders</FormLabel>
-                      <FormDescription>
-                        Send reminder emails before appointments
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        name="emailSettings.sendReminders"
-                        defaultChecked={field.value}
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              {form.watch("emailSettings.sendReminders") && (
                 <FormField
                   control={form.control}
-                  name="emailSettings.reminderHours"
+                  name="emailSettings.sendBookingConfirmations"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Reminder Time (Hours Before Appointment)
-                      </FormLabel>
-                      <Select
-                        name="emailSettings.reminderHours"
-                        onValueChange={(value) =>
-                          field.onChange(Number.parseInt(value))
-                        }
-                        defaultValue={field.value.toString()}
-                        value={field.value.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select hours" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="1">1 hour</SelectItem>
-                          <SelectItem value="2">2 hours</SelectItem>
-                          <SelectItem value="4">4 hours</SelectItem>
-                          <SelectItem value="12">12 hours</SelectItem>
-                          <SelectItem value="24">24 hours (1 day)</SelectItem>
-                          <SelectItem value="48">48 hours (2 days)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        How many hours before the appointment to send reminders
-                      </FormDescription>
-                      <FormMessage />
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FormLabel>Booking Confirmations</FormLabel>
+                        <FormDescription>
+                          Send confirmation emails when clients book
+                          appointments
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          name="emailSettings.sendBookingConfirmations"
+                          defaultChecked={field.value}
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
                     </FormItem>
                   )}
                 />
-              )}
 
-              <FormField
-                control={form.control}
-                name="emailSettings.sendCancellationNotices"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                    <div className="space-y-0.5">
-                      <FormLabel>Cancellation Notices</FormLabel>
-                      <FormDescription>
-                        Send emails when appointments are cancelled
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        name="emailSettings.sendCancellationNotices"
-                        defaultChecked={field.value}
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="emailSettings.sendNoShowNotifications"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                    <div className="space-y-0.5">
-                      <FormLabel>No-Show Notifications</FormLabel>
-                      <FormDescription>
-                        Send emails when clients don't show up for appointments
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        name="emailSettings.sendNoShowNotifications"
-                        defaultChecked={field.value}
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="emailSettings.sendFollowUpEmails"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                    <div className="space-y-0.5">
-                      <FormLabel>Follow-Up Emails</FormLabel>
-                      <FormDescription>
-                        Send follow-up emails after appointments
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        name="emailSettings.sendFollowUpEmails"
-                        defaultChecked={field.value}
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              {form.watch("emailSettings.sendFollowUpEmails") && (
                 <FormField
                   control={form.control}
-                  name="emailSettings.followUpDelayHours"
+                  name="emailSettings.sendReminders"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Follow-Up Delay (Hours After Appointment)
-                      </FormLabel>
-                      <Select
-                        name="emailSettings.followUpDelayHours"
-                        onValueChange={(value) =>
-                          field.onChange(Number.parseInt(value))
-                        }
-                        defaultValue={field.value?.toString() || "24"}
-                        value={field.value?.toString() || "24"}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select hours" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="4">4 hours</SelectItem>
-                          <SelectItem value="12">12 hours</SelectItem>
-                          <SelectItem value="24">24 hours (1 day)</SelectItem>
-                          <SelectItem value="48">48 hours (2 days)</SelectItem>
-                          <SelectItem value="72">72 hours (3 days)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        How many hours after the appointment to send follow-up
-                        emails
-                      </FormDescription>
-                      <FormMessage />
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FormLabel>Appointment Reminders</FormLabel>
+                        <FormDescription>
+                          Send reminder emails before appointments
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          name="emailSettings.sendReminders"
+                          defaultChecked={field.value}
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
                     </FormItem>
                   )}
                 />
-              )}
-            </div>
-          </CardContent>
-        </Card>
 
-        <div className="flex justify-end">
-          <Button
-            type="submit"
-            disabled={updateNotificationMutation.isPending || settingsLoading}
-          >
-            {updateNotificationMutation.isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              "Save Preferences"
-            )}
-          </Button>
-        </div>
-      </form>
-    </Form>
+                {form.watch("emailSettings.sendReminders") && (
+                  <FormField
+                    control={form.control}
+                    name="emailSettings.reminderHours"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Reminder Time (Hours Before Appointment)
+                        </FormLabel>
+                        <Select
+                          name="emailSettings.reminderHours"
+                          onValueChange={(value) =>
+                            field.onChange(Number.parseInt(value))
+                          }
+                          defaultValue={field.value.toString()}
+                          value={field.value.toString()}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select hours" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="1">1 hour</SelectItem>
+                            <SelectItem value="2">2 hours</SelectItem>
+                            <SelectItem value="4">4 hours</SelectItem>
+                            <SelectItem value="12">12 hours</SelectItem>
+                            <SelectItem value="24">24 hours (1 day)</SelectItem>
+                            <SelectItem value="48">
+                              48 hours (2 days)
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          How many hours before the appointment to send
+                          reminders
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                <FormField
+                  control={form.control}
+                  name="emailSettings.sendCancellationNotices"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FormLabel>Cancellation Notices</FormLabel>
+                        <FormDescription>
+                          Send emails when appointments are cancelled
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          name="emailSettings.sendCancellationNotices"
+                          defaultChecked={field.value}
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="emailSettings.sendNoShowNotifications"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FormLabel>No-Show Notifications</FormLabel>
+                        <FormDescription>
+                          Send emails when clients don't show up for
+                          appointments
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          name="emailSettings.sendNoShowNotifications"
+                          defaultChecked={field.value}
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="emailSettings.sendFollowUpEmails"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FormLabel>Follow-Up Emails</FormLabel>
+                        <FormDescription>
+                          Send follow-up emails after appointments
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          name="emailSettings.sendFollowUpEmails"
+                          defaultChecked={field.value}
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch("emailSettings.sendFollowUpEmails") && (
+                  <FormField
+                    control={form.control}
+                    name="emailSettings.followUpDelayHours"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Follow-Up Delay (Hours After Appointment)
+                        </FormLabel>
+                        <Select
+                          name="emailSettings.followUpDelayHours"
+                          onValueChange={(value) =>
+                            field.onChange(Number.parseInt(value))
+                          }
+                          defaultValue={field.value?.toString() || "24"}
+                          value={field.value?.toString() || "24"}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select hours" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="4">4 hours</SelectItem>
+                            <SelectItem value="12">12 hours</SelectItem>
+                            <SelectItem value="24">24 hours (1 day)</SelectItem>
+                            <SelectItem value="48">
+                              48 hours (2 days)
+                            </SelectItem>
+                            <SelectItem value="72">
+                              72 hours (3 days)
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          How many hours after the appointment to send follow-up
+                          emails
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end">
+            <Button
+              type="submit"
+              disabled={updateNotificationMutation.isPending || settingsLoading}
+            >
+              {updateNotificationMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Preferences"
+              )}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </>
   );
 }

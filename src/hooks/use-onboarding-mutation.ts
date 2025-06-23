@@ -2,7 +2,6 @@ import api from "@/services/api-service";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { OnboardingFormData } from "@/components/onboarding/type";
 
 export function useOnboardingMutation() {
   const router = useRouter();
@@ -14,6 +13,7 @@ export function useOnboardingMutation() {
         name: data.businessInfo.name,
         phone: data.businessInfo.phone,
         address: data.businessInfo.address,
+        display_address: data.businessInfo.display_address,
         city: data.businessInfo.city,
         state: data.businessInfo.state,
         country: data.businessInfo.country,
@@ -22,7 +22,6 @@ export function useOnboardingMutation() {
         template_type: data.bookingTemplate.templateType,
         image_urls: data.bookingTemplate.images.map((i) => i.src),
         about_us: data.bookingTemplate.aboutUs,
-        additional_policies: data.bookingTemplate.additionalPolicies,
         email_confirmation:
           data.notificationSettings.emailSettings.sendBookingConfirmations,
         appointment_reminders:
@@ -72,6 +71,10 @@ export function useOnboardingMutation() {
         saturday_opening: data.bookingSettings.saturday_opening,
         saturday_closing: data.bookingSettings.saturday_closing,
         time_slot_duration: data.bookingSettings.time_slot_duration,
+        absorb_service_charge: data.bookingSettings.absorb_service_charge,
+        break_times: data.bookingSettings.break_times,
+        special_off_days: data.bookingSettings.special_off_days,
+        custom_policies: data.bookingSettings.custom_policies,
         service_categories: data.servicesSetup.categories.map((category) => ({
           name: category.name,
           services: data.servicesSetup.services

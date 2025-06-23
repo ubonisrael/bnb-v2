@@ -1,61 +1,87 @@
-"use client"
+"use client";
 
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { Instagram, Facebook, Twitter, Linkedin, Youtube, TwitterIcon as TikTok, Globe, Loader2 } from "lucide-react"
-import { useMutation } from "@tanstack/react-query"
-import toast from "react-hot-toast"
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import {
+  Instagram,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Youtube,
+  TwitterIcon as TikTok,
+  Globe,
+  Loader2,
+} from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { useUserSettings } from "@/contexts/UserSettingsContext"
-import api from "@/services/api-service"
-import { BusinessSocialResponse } from "@/types/response"
-import { useEffect } from "react"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { useUserSettings } from "@/contexts/UserSettingsContext";
+import api from "@/services/api-service";
+import { BusinessSocialResponse } from "@/types/response";
+import { useEffect } from "react";
+import { UnsavedChangesBanner } from "../UnSavedChangesBanner";
 
 const socialMediaSchema = z.object({
-  website: z.string().url("Please enter a valid URL").or(z.string().length(0)).optional(),
+  website: z
+    .string()
+    .url("Please enter a valid URL")
+    .or(z.string().length(0))
+    .optional(),
   instagram: z.string().optional().or(z.string().length(0)),
   facebook: z.string().optional().or(z.string().length(0)),
   twitter: z.string().optional().or(z.string().length(0)),
   linkedin: z.string().optional().or(z.string().length(0)),
   youtube: z.string().optional().or(z.string().length(0)),
   tiktok: z.string().optional().or(z.string().length(0)),
-})
+});
 
-type SocialMediaFormValues = z.infer<typeof socialMediaSchema>
+type SocialMediaFormValues = z.infer<typeof socialMediaSchema>;
 
 export function SocialMediaSettings() {
-  const { settings, updateSettings, isLoading: settingsLoading } = useUserSettings()
+  const {
+    settings,
+    updateSettings,
+    isLoading: settingsLoading,
+  } = useUserSettings();
 
   const form = useForm<SocialMediaFormValues>({
     resolver: zodResolver(socialMediaSchema),
     defaultValues: {
       website: settings?.social.website || "",
-          tiktok: settings?.social.tiktok || "",
-          twitter: settings?.social.twitter || "",
-          instagram: settings?.social.instagram || "",
-          linkedin: settings?.social.linkedin || "",
-          youtube: settings?.social.youtube || "",
-          facebook: settings?.social.facebook || "",
+      tiktok: settings?.social.tiktok || "",
+      twitter: settings?.social.twitter || "",
+      instagram: settings?.social.instagram || "",
+      linkedin: settings?.social.linkedin || "",
+      youtube: settings?.social.youtube || "",
+      facebook: settings?.social.facebook || "",
     },
-  })
+  });
 
-    useEffect(() => {
-      if (settings) {
-        form.reset({
-          website: settings.social.website || "",
-          tiktok: settings.social.tiktok || "",
-          twitter: settings.social.twitter || "",
-          instagram: settings.social.instagram || "",
-          linkedin: settings.social.linkedin || "",
-          youtube: settings.social.youtube || "",
-          facebook: settings.social.facebook || ""
-        });
-      }
-    }, [form, settings?.social]);
+  useEffect(() => {
+    if (settings) {
+      form.reset({
+        website: settings.social.website || "",
+        tiktok: settings.social.tiktok || "",
+        twitter: settings.social.twitter || "",
+        instagram: settings.social.instagram || "",
+        linkedin: settings.social.linkedin || "",
+        youtube: settings.social.youtube || "",
+        facebook: settings.social.facebook || "",
+      });
+    }
+  }, [form, settings?.social]);
 
   const updateSocialMediaMutation = useMutation({
     mutationFn: async (values: SocialMediaFormValues) => {
@@ -64,7 +90,7 @@ export function SocialMediaSettings() {
 
       try {
         const response = await api.patch<BusinessSocialResponse>(
-          'sp/socials',
+          "sp/socials",
           {
             website_url: values.website,
             instagram_url: values.instagram,
@@ -78,21 +104,28 @@ export function SocialMediaSettings() {
         );
         return response;
       } catch (error: unknown) {
-        if (error instanceof Error && error.name === 'AbortError') {
-          toast.error('Request was cancelled');
+        if (error instanceof Error && error.name === "AbortError") {
+          toast.error("Request was cancelled");
         }
         throw error;
       }
     },
     onMutate: () => {
-      toast.loading('Saving social media links...', { id: 'social-media-save' });
+      toast.loading("Saving social media links...", {
+        id: "social-media-save",
+      });
     },
     onSuccess: (response) => {
-      toast.success('Social media links updated successfully', { id: 'social-media-save' });
+      toast.success("Social media links updated successfully", {
+        id: "social-media-save",
+      });
       updateSettings("social", response.data);
+      form.reset(form.getValues());
     },
     onError: (error: Error) => {
-      toast.error(error?.message || 'Failed to update social media links', { id: 'social-media-save' });
+      toast.error(error?.message || "Failed to update social media links", {
+        id: "social-media-save",
+      });
     },
   });
 
@@ -104,159 +137,166 @@ export function SocialMediaSettings() {
     }
   }
 
+  const { isDirty } = form.formState;
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div>
-          <h3 className="text-lg font-medium">Social Media Links</h3>
-          <p className="text-sm text-muted-foreground">Connect your social media accounts to your business profile</p>
-        </div>
+    <>
+      {isDirty && <UnsavedChangesBanner form={form} />}
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <div>
+            <h3 className="text-lg font-medium">Social Media Links</h3>
+            <p className="text-sm text-muted-foreground">
+              Connect your social media accounts to your business profile
+            </p>
+          </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="website"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center gap-2">
-                  <Globe className="h-4 w-4" />
-                  Website
-                </FormLabel>
-                <FormControl>
-                  <Input placeholder="https://yourbusiness.com" {...field} />
-                </FormControl>
-                <FormDescription>Your business website URL</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="grid gap-4 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="website"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <Globe className="h-4 w-4" />
+                    Website
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="https://yourbusiness.com" {...field} />
+                  </FormControl>
+                  <FormDescription>Your business website URL</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="instagram"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center gap-2">
-                  <Instagram className="h-4 w-4" />
-                  Instagram
-                </FormLabel>
-                <FormControl>
-                  <Input placeholder="@yourbusiness" {...field} />
-                </FormControl>
-                <FormDescription>Your Instagram handle</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="instagram"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <Instagram className="h-4 w-4" />
+                    Instagram
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="@yourbusiness" {...field} />
+                  </FormControl>
+                  <FormDescription>Your Instagram handle</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="facebook"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center gap-2">
-                  <Facebook className="h-4 w-4" />
-                  Facebook
-                </FormLabel>
-                <FormControl>
-                  <Input placeholder="yourbusiness" {...field} />
-                </FormControl>
-                <FormDescription>Your Facebook page name</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="facebook"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <Facebook className="h-4 w-4" />
+                    Facebook
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="yourbusiness" {...field} />
+                  </FormControl>
+                  <FormDescription>Your Facebook page name</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="twitter"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center gap-2">
-                  <Twitter className="h-4 w-4" />
-                  Twitter
-                </FormLabel>
-                <FormControl>
-                  <Input placeholder="@yourbusiness" {...field} />
-                </FormControl>
-                <FormDescription>Your Twitter handle</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="twitter"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <Twitter className="h-4 w-4" />
+                    Twitter
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="@yourbusiness" {...field} />
+                  </FormControl>
+                  <FormDescription>Your Twitter handle</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="linkedin"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center gap-2">
-                  <Linkedin className="h-4 w-4" />
-                  LinkedIn
-                </FormLabel>
-                <FormControl>
-                  <Input placeholder="company/yourbusiness" {...field} />
-                </FormControl>
-                <FormDescription>Your LinkedIn company page</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="linkedin"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <Linkedin className="h-4 w-4" />
+                    LinkedIn
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="company/yourbusiness" {...field} />
+                  </FormControl>
+                  <FormDescription>Your LinkedIn company page</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="youtube"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center gap-2">
-                  <Youtube className="h-4 w-4" />
-                  YouTube
-                </FormLabel>
-                <FormControl>
-                  <Input placeholder="@yourbusiness" {...field} />
-                </FormControl>
-                <FormDescription>Your YouTube channel</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="youtube"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <Youtube className="h-4 w-4" />
+                    YouTube
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="@yourbusiness" {...field} />
+                  </FormControl>
+                  <FormDescription>Your YouTube channel</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="tiktok"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center gap-2">
-                  <TikTok className="h-4 w-4" />
-                  TikTok
-                </FormLabel>
-                <FormControl>
-                  <Input placeholder="@yourbusiness" {...field} />
-                </FormControl>
-                <FormDescription>Your TikTok handle</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+            <FormField
+              control={form.control}
+              name="tiktok"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <TikTok className="h-4 w-4" />
+                    TikTok
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="@yourbusiness" {...field} />
+                  </FormControl>
+                  <FormDescription>Your TikTok handle</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
-        <div className="flex justify-end">
-          <Button
-            type="submit"
-            disabled={updateSocialMediaMutation.isPending || settingsLoading}
-          >
-            {updateSocialMediaMutation.isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              "Save Changes"
-            )}
-          </Button>
-        </div>
-      </form>
-    </Form>
-  )
+          <div className="flex justify-end">
+            <Button
+              type="submit"
+              disabled={updateSocialMediaMutation.isPending || settingsLoading}
+            >
+              {updateSocialMediaMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </Button>
+          </div>
+        </form>
+      </Form>
+      \
+    </>
+  );
 }
-

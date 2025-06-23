@@ -33,12 +33,33 @@ import { useState } from "react";
 import { PolicyData } from "@/types/response";
 import { Checkbox } from "./ui/checkbox";
 
+const amountToBePaid = (
+  serviceChargeAbsorbed: boolean,
+  amount: number,
+  applicationFeeInCents: number
+) => {
+  if (serviceChargeAbsorbed) {
+    return { amount, serviceCharge: applicationFeeInCents / 100 };
+  }
+  if (applicationFeeInCents === 100) {
+    return { amount: amount + 1, serviceCharge: applicationFeeInCents / 100 };
+  }
+  const finalAmount = Math.ceil(100 * ((amount + 0.8) / 0.971));
+  const serviceCharge = finalAmount - amount * 100;
+  return { amount: finalAmount / 100, serviceCharge: serviceCharge / 100 };
+};
+
 export const bookingSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
-  gender: z.enum(["Male", "Female", "Prefer not to say"], {
-    required_error: "Please select a gender",
-  }),
+  // gender: z.enum(["Male", "Female", "Prefer not to say"], {
+  //   required_error: "Please select a gender",
+  // }),
+  phone: z
+    .string()
+    .min(10, "Please enter a valid phone number")
+    .nullable()
+    .or(z.string().length(0)),
   age_category: z.enum(["Adult", "Child"], {
     required_error: "Please select an age category",
   }),
@@ -50,8 +71,9 @@ export const bookingSchema = z.object({
 export type BookingType = z.infer<typeof bookingSchema>;
 
 interface BookingFormProps {
+  absorbServiceCharge: boolean;
   policies: PolicyData[];
-  additionalPolicy?: string;
+  customPolicies: CustomPolicy[];
   currencySymbol?: string;
   allowDeposits: boolean;
   amount: number;
@@ -63,7 +85,7 @@ interface BookingFormProps {
 
 const BookingForm = ({
   policies,
-  additionalPolicy = "",
+  customPolicies,
   currencySymbol = "£",
   allowDeposits,
   amount,
@@ -71,6 +93,7 @@ const BookingForm = ({
   showBookingModal,
   setShowBookingModal,
   onSubmit,
+  absorbServiceCharge = false,
 }: BookingFormProps) => {
   const [TandCagreed, setTandCagreed] = useState(false);
   const policyTypes = Array.from(new Set(policies.map((p) => p.type)));
@@ -79,17 +102,20 @@ const BookingForm = ({
     defaultValues: {
       name: "",
       email: "",
-      gender: "Male",
+      phone: "",
+      // gender: "Male",
       age_category: "Adult",
       agree_to_terms: false,
     },
   });
 
-  const amountToPay = allowDeposits && depositAmount ? depositAmount : amount;
-  const applicationFee =
-    allowDeposits && depositAmount === 5
-      ? 1
-      : Math.ceil(amountToPay * 2.9 + 80) / 100;
+  const initialAmount = allowDeposits && depositAmount ? depositAmount : amount
+  const applicationFeeInCents = Math.max(100, initialAmount * 2.9 + 80);
+  const { amount: finalAmount, serviceCharge } = amountToBePaid(
+    absorbServiceCharge,
+    initialAmount,
+    applicationFeeInCents
+  );
 
   return (
     <Dialog open={showBookingModal} onOpenChange={setShowBookingModal}>
@@ -134,7 +160,7 @@ const BookingForm = ({
                 )}
               />
 
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="gender"
                 render={({ field }) => (
@@ -158,6 +184,19 @@ const BookingForm = ({
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              /> */}
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone (optional)</FormLabel>
+                    <FormControl>
+                      <Input {...field} value={field.value || ""} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -195,7 +234,17 @@ const BookingForm = ({
                 <div className="text-sm font-medium leading-none">
                   Amount to Pay
                 </div>
-
+                <p className="text-sm text-muted-foreground">
+                  {allowDeposits && depositAmount
+                    ? `This is a deposit payment of ${currencySymbol}${depositAmount.toFixed(
+                        2
+                      )}. Full payment is ${currencySymbol}${amount.toFixed(
+                        2
+                      )}.`
+                    : `This is a full payment of ${currencySymbol}${amount.toFixed(
+                        2
+                      )}.`}
+                </p>
                 <div className="h-10 px-3 py-2 border border-input bg-muted rounded-md text-sm flex items-center justify-between">
                   <span>Service Total:</span>
                   <span>
@@ -207,41 +256,26 @@ const BookingForm = ({
                 </div>
 
                 <div className="h-10 px-3 py-2 border border-input bg-muted rounded-md text-sm flex items-center justify-between">
-                  <span>Booking Fee:</span>
-                  <span>{currencySymbol}1.00</span>
+                  <span>
+                    Service charge {absorbServiceCharge ? "(inclusive)" : ""}:
+                  </span>
+                  <span>
+                    {currencySymbol}
+                    {serviceCharge.toFixed(2)}
+                  </span>
                 </div>
 
                 <div className="h-10 px-3 py-2 border border-input bg-muted rounded-md font-semibold text-sm flex items-center justify-between">
                   <span>Total to Pay:</span>
                   <span>
                     {currencySymbol}
-                    {(
-                      (allowDeposits && depositAmount
-                        ? depositAmount
-                        : amount) + 1
-                    ) // booking fee
-                      .toFixed(2)}
+                    {finalAmount.toFixed(2)}
                   </span>
                 </div>
-
-                {applicationFee > 1 && (
-                  <p className="text-sm italic text-muted-foreground">
-                    A processing fee of {currencySymbol}
-                    {applicationFee.toFixed(2)} is included and is{" "}
-                    <span className="font-medium">non-refundable</span>.
-                  </p>
-                )}
-
-                <p className="text-sm text-muted-foreground">
-                  {allowDeposits && depositAmount
-                    ? `This is a deposit payment of ${currencySymbol}${depositAmount.toFixed(
-                        2
-                      )}. Full payment is ${currencySymbol}${amount.toFixed(
-                        2
-                      )}.`
-                    : `This is a full payment of ${currencySymbol}${amount.toFixed(
-                        2
-                      )}.`}
+                <p className="text-sm italic text-muted-foreground">
+                  The service charge of {currencySymbol}
+                  {serviceCharge.toFixed(2)} is{" "}
+                  <span className="font-medium">non-refundable</span>.
                 </p>
               </div>
 
@@ -272,7 +306,7 @@ const BookingForm = ({
                 control={form.control}
                 name="agree_to_terms"
                 render={({ field }) => (
-                  <FormItem className="flex items-center space-x-2 space-y-0">
+                  <FormItem className="flex flex-col items-center space-x-2 space-y-0">
                     <FormLabel
                       htmlFor="agree_to_terms"
                       className="flex items-center justify-center gap-4 text-sm font-normal"
@@ -287,7 +321,7 @@ const BookingForm = ({
                       <span>
                         I agree to the{" "}
                         <a
-                          href="#"
+                          href="/terms_and_conditions"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="underline text-primary"
@@ -337,12 +371,16 @@ const BookingForm = ({
                 </ul>
               </div>
             ))}
-            {additionalPolicy && (
-              <div className="">
-                <h3>Additional Notes:</h3>
-                <p className="text-sm">{additionalPolicy}</p>
+            {customPolicies.map((policy, i) => (
+              <div className="" key={`custom-policy-${i}`}>
+                <h3>{policy.title}</h3>
+                <ul>
+                  {policy.policies.map((p, j) => (
+                    <li key={`custom-policy-${i}-policy-${j}`}>{p}</li>
+                  ))}
+                </ul>
               </div>
-            )}
+            ))}
           </div>
           <DialogFooter className="flex flex-col-reverse md:flex-row md:items-center md:justify-between gap-2 md:gap-0 mt-4">
             <Button

@@ -5,7 +5,6 @@ import useLocalStorage from "use-local-storage";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import { Service } from "@/components/onboarding/type";
 import { ServiceFrontend } from "@/types/response";
 
 dayjs.extend(utc);

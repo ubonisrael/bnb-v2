@@ -21,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { OnboardingFormData } from "../type";
 import { Ref, useImperativeHandle, useRef } from "react";
 
 export const notificationSettingsSchema = z.object({

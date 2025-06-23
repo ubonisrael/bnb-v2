@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import Image from "next/image";
-import { BookingTemplateData } from "@/components/onboarding/type";
 import { bookingTemplateSchema } from "@/components/onboarding/steps/booking-template";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -53,7 +52,6 @@ export default function TemplatesPage() {
     defaultValues: {
       templateType: settings?.template.templateType || "",
       aboutUs: settings?.template.aboutUs || "",
-      additionalPolicies: settings?.template.additionalPolicies || "",
     },
   });
 
@@ -426,27 +424,6 @@ export default function TemplatesPage() {
                     appear in the “About” section of your booking page. Mention
                     what you do, who you serve, and what makes your service
                     special.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="additionalPolicies"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Additional Policies (Optional)</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    General policies for deposits, cancellations, rescheduling
-                    and no shows will be generated based on your settings in the
-                    booking settings section. Specify any additional rules, or
-                    special requirements that clients should know before
-                    booking. This helps set clear expectations and ensures
-                    smooth service delivery.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

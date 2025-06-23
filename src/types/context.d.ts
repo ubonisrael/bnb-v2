@@ -4,6 +4,7 @@ interface UserSettings {
     email: string;
     phone: string;
     address: string;
+    display_address: boolean; // New field for displaying address
     city: string;
     state: string;
     postal_code: string;
@@ -75,12 +76,15 @@ interface UserSettings {
     saturday_enabled: boolean;
     saturday_opening: number;
     saturday_closing: number;
+    special_off_days: OffDay[];
+    break_times: BreakTime[];
+    absorb_service_charge: boolean;
+    custom_policies: CustomPolicy[];
   };
   template: {
     templateType: string;
     aboutUs: string;
     imageUrls: string[];
-    additionalPolicies: string;
   };
   subscription: {
     planName: string;

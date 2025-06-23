@@ -1,4 +1,4 @@
-import { Service } from "@/components/onboarding/type";
+import { Service } from "@/types/onboarding";
 import { boolean } from "zod";
 
 export interface VoidResponse {
@@ -118,6 +118,7 @@ export interface BusinessProfileData {
   logo: string | undefined;
   desc: string;
   address: string;
+  display_address: boolean;
   city: string;
   state: string;
   country: string;
@@ -339,16 +340,17 @@ export interface Review {
 }
 
 interface BusinessDataResponse {
+  absorbServiceCharge: boolean;
   currencySymbol: string;
   bUrl: string;
   logo: string;
   name: string;
   email: string;
   aboutUs: string;
-  state: string;
+  state?: string;
   zip: string;
-  address: string;
-  city: string;
+  address?: string;
+  city?: string;
   serviceCategories: ServiceCategory[];
   businessHours: { day: string; hours: string }[];
   phone: string;
@@ -356,7 +358,7 @@ interface BusinessDataResponse {
   longitude?: number;
   reviews: Review[];
   bookingPolicy: PolicyData[];
-  additionalPolicies?: string;
+  customPolicies: CustomPolicy[];
   allowDeposits: boolean;
   depositAmount: number;
   images: CarouselImage[];

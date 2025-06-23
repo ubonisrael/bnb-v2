@@ -11,7 +11,6 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Badge } from "../ui/badge";
-import { ServiceCategory } from "../onboarding/type";
 
 export function FilterControls({
   filters,
