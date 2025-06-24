@@ -3,13 +3,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, X } from "lucide-react";
 import { useState } from "react";
-import { UseFormReturn } from "react-hook-form";
+import { ControllerRenderProps, UseFormReturn } from "react-hook-form";
 
 interface PolicyManagerProps {
   form: UseFormReturn<any>;
+  field: ControllerRenderProps<any>
 }
 
-export function PolicyManager({ form }: PolicyManagerProps) {
+export function PolicyManager({ form, field }: PolicyManagerProps) {
   const [newTitle, setNewTitle] = useState("");
   const [newPolicy, setNewPolicy] = useState("");
   const [activePolicyId, setActivePolicyId] = useState<string | null>(null);
@@ -25,7 +26,7 @@ export function PolicyManager({ form }: PolicyManagerProps) {
       policies: [],
     };
 
-    form.setValue("custom_policies", [...policies, newPolicyGroup]);
+    field.onChange([...policies, newPolicyGroup])
     setNewTitle("");
     setActivePolicyId(newPolicyGroup.id);
   };
@@ -43,7 +44,7 @@ export function PolicyManager({ form }: PolicyManagerProps) {
       return group;
     });
 
-    form.setValue("custom_policies", updatedPolicies);
+    field.onChange(updatedPolicies)
     setNewPolicy("");
   };
 
@@ -60,15 +61,13 @@ export function PolicyManager({ form }: PolicyManagerProps) {
       return group;
     });
 
-    form.setValue(
-      "custom_policies",
+    field.onChange(
       updatedPolicies.filter((group: any) => group.policies.length > 0)
     );
   };
 
   const removePolicyGroup = (policyGroupId: string) => {
-    form.setValue(
-      "custom_policies",
+    field.onChange(
       policies.filter((group: any) => group.id !== policyGroupId)
     );
   };
