@@ -1017,26 +1017,6 @@ export function BookingSettingsSetupStep({
                             form={form}
                             breakTimes={form.watch("break_times") || []}
                             dayId={day.id}
-                            onAdd={(breakTime) => {
-                              const current = form.watch("break_times") || [];
-                              const newBreakTimes = [...current];
-                              const index = newBreakTimes.findIndex(
-                                (b) => b.id === breakTime.id
-                              );
-                              if (index >= 0) {
-                                newBreakTimes[index] = breakTime;
-                              } else {
-                                newBreakTimes.push(breakTime);
-                              }
-                              form.setValue("break_times", newBreakTimes);
-                            }}
-                            onRemove={(id) => {
-                              const current = form.watch("break_times") || [];
-                              form.setValue(
-                                "break_times",
-                                current.filter((b) => b.id !== id)
-                              );
-                            }}
                           />
                         </div>
                       )}
@@ -1089,7 +1069,7 @@ export function BookingSettingsSetupStep({
             <FormItem>
               <FormLabel>Custom Policies</FormLabel>
               <FormControl>
-                <PolicyManager form={form} />
+                <PolicyManager form={form} field={field} />
               </FormControl>
               <FormDescription>
                 Add custom policies for your business. Each policy must belong
