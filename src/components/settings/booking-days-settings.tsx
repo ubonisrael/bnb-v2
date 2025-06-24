@@ -440,7 +440,7 @@ export function BookingDaysSettings() {
                       />
                     </FormControl>
                     <FormDescription>
-                      Specify the minimum amout required for a deposit. Should
+                      Specify the minimum amount required for a deposit. Should
                       not be less than 5.
                     </FormDescription>
                     <FormMessage />

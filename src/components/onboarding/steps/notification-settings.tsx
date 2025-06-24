@@ -29,13 +29,14 @@ export const notificationSettingsSchema = z.object({
     sendReminders: z.boolean().default(true),
     reminderHours: z.coerce
       .number()
-      .min(1, { message: "Must be at least 1 hour" }),
+      .min(0.25, { message: "Must be at least 15 minutes" })
+      .optional(),
     sendCancellationNotices: z.boolean().default(true),
     sendNoShowNotifications: z.boolean().default(true),
     sendFollowUpEmails: z.boolean().default(false),
     followUpDelayHours: z.coerce
       .number()
-      .min(1, { message: "Must be at least 1 hour" })
+      .min(0.25, { message: "Must be at least 15 minutes" })
       .optional(),
   }),
 });
@@ -113,7 +114,11 @@ export function NotificationSettingsStep({
 
   return (
     <Form {...form}>
-      <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form
+        ref={formRef}
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-6"
+      >
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-[#121212]">
             Notification Settings
@@ -185,11 +190,8 @@ export function NotificationSettingsStep({
                       </FormLabel>
                       <Select
                         name="emailSettings.reminderHours"
-                        onValueChange={(value) =>
-                          field.onChange(Number.parseInt(value))
-                        }
-                        defaultValue={field.value.toString()}
-                        value={field.value.toString()}
+                        onValueChange={(value) => field.onChange(Number(value))}
+                        value={field.value ? field.value.toString() : ""}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -197,12 +199,22 @@ export function NotificationSettingsStep({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="0.25">15 minutes</SelectItem>
+                          <SelectItem value="0.5">30 minutes</SelectItem>
+                          <SelectItem value="0.75">45 minutes</SelectItem>
                           <SelectItem value="1">1 hour</SelectItem>
+                          <SelectItem value="1.25">
+                            1 hour 15 minutes
+                          </SelectItem>
+                          <SelectItem value="1.5">1 hour 30 minutes</SelectItem>
+                          <SelectItem value="1.75">
+                            1 hour 45 minutes
+                          </SelectItem>
                           <SelectItem value="2">2 hours</SelectItem>
                           <SelectItem value="4">4 hours</SelectItem>
+                          <SelectItem value="8">8 hours</SelectItem>
                           <SelectItem value="12">12 hours</SelectItem>
                           <SelectItem value="24">24 hours (1 day)</SelectItem>
-                          <SelectItem value="48">48 hours (2 days)</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormDescription>
@@ -291,11 +303,8 @@ export function NotificationSettingsStep({
                       </FormLabel>
                       <Select
                         name="emailSettings.followUpDelayHours"
-                        onValueChange={(value) =>
-                          field.onChange(Number.parseInt(value))
-                        }
-                        defaultValue={field.value?.toString() || "24"}
-                        value={field.value?.toString() || "24"}
+                        onValueChange={(value) => field.onChange(Number(value))}
+                        value={field.value ? field.value.toString() : ""}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -303,11 +312,22 @@ export function NotificationSettingsStep({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="0.25">15 minutes</SelectItem>
+                          <SelectItem value="0.5">30 minutes</SelectItem>
+                          <SelectItem value="0.75">45 minutes</SelectItem>
+                          <SelectItem value="1">1 hour</SelectItem>
+                          <SelectItem value="1.25">
+                            1 hour 15 minutes
+                          </SelectItem>
+                          <SelectItem value="1.5">1 hour 30 minutes</SelectItem>
+                          <SelectItem value="1.75">
+                            1 hour 45 minutes
+                          </SelectItem>
+                          <SelectItem value="2">2 hours</SelectItem>
                           <SelectItem value="4">4 hours</SelectItem>
+                          <SelectItem value="8">8 hours</SelectItem>
                           <SelectItem value="12">12 hours</SelectItem>
                           <SelectItem value="24">24 hours (1 day)</SelectItem>
-                          <SelectItem value="48">48 hours (2 days)</SelectItem>
-                          <SelectItem value="72">72 hours (3 days)</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormDescription>

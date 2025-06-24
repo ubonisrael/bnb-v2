@@ -212,10 +212,9 @@ export function NotificationPreferences() {
                         <Select
                           name="emailSettings.reminderHours"
                           onValueChange={(value) =>
-                            field.onChange(Number.parseInt(value))
+                            field.onChange(Number(value))
                           }
-                          defaultValue={field.value.toString()}
-                          value={field.value.toString()}
+                          value={field.value ? field.value.toString() : ""}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -223,14 +222,24 @@ export function NotificationPreferences() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
+                            <SelectItem value="0.25">15 minutes</SelectItem>
+                            <SelectItem value="0.5">30 minutes</SelectItem>
+                            <SelectItem value="0.75">45 minutes</SelectItem>
                             <SelectItem value="1">1 hour</SelectItem>
+                            <SelectItem value="1.25">
+                              1 hour 15 minutes
+                            </SelectItem>
+                            <SelectItem value="1.5">
+                              1 hour 30 minutes
+                            </SelectItem>
+                            <SelectItem value="1.75">
+                              1 hour 45 minutes
+                            </SelectItem>
                             <SelectItem value="2">2 hours</SelectItem>
                             <SelectItem value="4">4 hours</SelectItem>
+                            <SelectItem value="8">8 hours</SelectItem>
                             <SelectItem value="12">12 hours</SelectItem>
                             <SelectItem value="24">24 hours (1 day)</SelectItem>
-                            <SelectItem value="48">
-                              48 hours (2 days)
-                            </SelectItem>
                           </SelectContent>
                         </Select>
                         <FormDescription>
@@ -325,10 +334,9 @@ export function NotificationPreferences() {
                         <Select
                           name="emailSettings.followUpDelayHours"
                           onValueChange={(value) =>
-                            field.onChange(Number.parseInt(value))
+                            field.onChange(Number(value))
                           }
-                          defaultValue={field.value?.toString() || "24"}
-                          value={field.value?.toString() || "24"}
+                          value={field.value ? field.value.toString() : ""}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -336,15 +344,24 @@ export function NotificationPreferences() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
+                            <SelectItem value="0.25">15 minutes</SelectItem>
+                            <SelectItem value="0.5">30 minutes</SelectItem>
+                            <SelectItem value="0.75">45 minutes</SelectItem>
+                            <SelectItem value="1">1 hour</SelectItem>
+                            <SelectItem value="1.25">
+                              1 hour 15 minutes
+                            </SelectItem>
+                            <SelectItem value="1.5">
+                              1 hour 30 minutes
+                            </SelectItem>
+                            <SelectItem value="1.75">
+                              1 hour 45 minutes
+                            </SelectItem>
+                            <SelectItem value="2">2 hours</SelectItem>
                             <SelectItem value="4">4 hours</SelectItem>
+                            <SelectItem value="8">8 hours</SelectItem>
                             <SelectItem value="12">12 hours</SelectItem>
                             <SelectItem value="24">24 hours (1 day)</SelectItem>
-                            <SelectItem value="48">
-                              48 hours (2 days)
-                            </SelectItem>
-                            <SelectItem value="72">
-                              72 hours (3 days)
-                            </SelectItem>
                           </SelectContent>
                         </Select>
                         <FormDescription>
