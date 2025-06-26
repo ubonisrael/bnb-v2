@@ -279,6 +279,7 @@ interface BookingData {
 
 interface FetchBookingByIdResponse {
   status: boolean;
+  serviceProviderTimezone: string;
   data: BookingData;
 }
 
@@ -300,6 +301,17 @@ interface FetchBookingPolicyResponse {
   minNotice: number;
   maxNotice: number;
   utcOffset: number;
+}
+
+interface CancellationSettings {
+  allowed: boolean;
+  noticeHours: number;
+  feePercent: number;
+}
+
+interface FetchCancellationPolicyResponse {
+  status: boolean;
+  cancellation: CancellationSettings;
 }
 
 export interface ServiceFrontend {
