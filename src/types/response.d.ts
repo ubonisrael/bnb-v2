@@ -137,7 +137,7 @@ export interface BusinessSocialResponse {
   data: BusinessSocialData;
 }
 
-export interface BookingsResponse extends Service {
+interface BookingsResponse extends Service {
   Customer: {
     name: string;
     email: string;
