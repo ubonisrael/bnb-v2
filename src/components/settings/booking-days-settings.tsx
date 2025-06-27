@@ -483,7 +483,7 @@ export function BookingDaysSettings() {
                     <Select
                       name="cancellation_notice_hours"
                       onValueChange={(value) => field.onChange(Number(value))}
-                      value={field.value ? field.value.toString() : ""}
+                      value={field.value ? field.value.toString() : "0"}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -521,7 +521,7 @@ export function BookingDaysSettings() {
                         placeholder="e.g. 30"
                         {...field}
                         onChange={(e) => field.onChange(Number(e.target.value))}
-                        value={field.value ? Number(field.value) : ""}
+                        value={field.value ? Number(field.value) : "0"}
                       />
                     </FormControl>
                     <FormDescription>
@@ -567,7 +567,7 @@ export function BookingDaysSettings() {
                     <Select
                       name="reschedule_notice_hours"
                       onValueChange={(value) => field.onChange(Number(value))}
-                      value={field.value ? field.value.toString() : ""}
+                      value={field.value ? field.value.toString() : "0"}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -595,7 +595,7 @@ export function BookingDaysSettings() {
               <FormField
                 control={form.control}
                 name="reschedule_fee_percent"
-                disabled={!watchCancellationAllowed}
+                disabled={!watchRescheduleAllowed}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Reschedule Fee (%)</FormLabel>
@@ -605,7 +605,7 @@ export function BookingDaysSettings() {
                         placeholder="e.g. 30"
                         {...field}
                         onChange={(e) => field.onChange(Number(e.target.value))}
-                        value={field.value ? Number(field.value) : ""}
+                        value={field.value ? Number(field.value) : "0"}
                       />
                     </FormControl>
                     <FormDescription>
