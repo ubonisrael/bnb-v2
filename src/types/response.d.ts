@@ -309,9 +309,20 @@ interface CancellationSettings {
   feePercent: number;
 }
 
+interface ReschedulingOptions extends CancellationSettings {
+  minNotice: number;
+  maxNotice: number;
+  utcOffset: number;
+}
+
 interface FetchCancellationPolicyResponse {
   status: boolean;
   cancellation: CancellationSettings;
+}
+
+interface FetchReschedulingPolicyResponse {
+  status: boolean;
+  rescheduleOptions: ReschedulingOptions;
 }
 
 export interface ServiceFrontend {

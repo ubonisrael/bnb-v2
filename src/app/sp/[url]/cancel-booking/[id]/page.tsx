@@ -19,7 +19,7 @@ export default async function CancelBookingPage({
     const [bookingRes, policyRes] = await Promise.all([
       api.get<FetchBookingByIdResponse>(`sp/bookings/${id}`),
       api.get<FetchCancellationPolicyResponse>(
-        `sp/${url}/cancellation-policy`
+        `sp/${url}/cancellation-settings`
       ),
     ]);
     const { data: booking } = bookingRes;

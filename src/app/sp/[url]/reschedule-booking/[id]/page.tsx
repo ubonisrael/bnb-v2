@@ -3,6 +3,7 @@ import api from "@/services/api-service";
 import {
   FetchBookingByIdResponse,
   FetchBookingPolicyResponse,
+  FetchReschedulingPolicyResponse,
   PolicyData,
 } from "@/types/response";
 import Link from "next/link";
@@ -22,16 +23,19 @@ export default async function RescheduleBookingPage({
   try {
     const [bookingRes, policyRes] = await Promise.all([
       api.get<FetchBookingByIdResponse>(`sp/bookings/${id}`),
-      api.get<FetchBookingPolicyResponse>(`sp/${url}/booking-policies?type=rescheduling`),
+      api.get<FetchReschedulingPolicyResponse>(
+        `sp/${url}/rescheduling-settings`
+      ),
     ]);
     const { data: booking } = bookingRes;
-    const { policies, minNotice, maxNotice, utcOffset } = policyRes;
+    const { rescheduleOptions } = policyRes;
 
     return (
       <RescheduleBookingClient
         booking={booking}
-        policies={policies as PolicyData[]}
-        id={id} url={url} minNotice={minNotice} maxNotice={maxNotice} utcOffset={utcOffset}
+        id={id}
+        url={url}
+        rescheduleOptions={rescheduleOptions}
       />
     );
   } catch (error: any) {

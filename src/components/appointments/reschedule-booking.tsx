@@ -12,6 +12,7 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ import api from "@/services/api-service";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { useState } from "react";
-import { BookingData, PolicyData } from "@/types/response";
+import { BookingData, PolicyData, ReschedulingOptions } from "@/types/response";
 import {
   Dialog,
   DialogContent,
@@ -31,36 +32,36 @@ import {
 } from "../ui/dialog";
 import Calendar from "../templates/default/Calendar";
 import TimeSlots from "../templates/default/TimeSlots";
-import { convertTimeSlotsToUserLocalTime, minutesToTimeString } from "@/utils/time";
+import {
+  convertTimeSlotsToUserLocalTime,
+  minutesToTimeString,
+} from "@/utils/time";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import { CountdownTimer } from "../ui/countdown-timer";
+import {
+  emailFormSchema,
+  EmailFormValues,
+  otpFormSchema,
+  OtpFormValues,
+} from "./cancel-booking";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const formSchema = z.object({
-  email: z.string().email("Invalid email address"),
-});
-
 interface RescheduleBookingClientProps {
   id: string;
   url: string;
-  minNotice: number;
-  maxNotice: number;
-  utcOffset: number;
   booking: BookingData;
-  policies: PolicyData[];
+  rescheduleOptions: ReschedulingOptions;
 }
 
 export default function RescheduleBookingClient({
   id,
-  url,
-  minNotice,
-  maxNotice,
-  utcOffset,
   booking,
-  policies,
+  rescheduleOptions,
+  url,
 }: RescheduleBookingClientProps) {
   const [selectedDate, setSelectedDate] = useState(booking.event_date);
   const [selectedTime, setSelectedTime] = useState<number | null>(null);
@@ -68,8 +69,14 @@ export default function RescheduleBookingClient({
   const timezone = dayjs.tz.guess();
   const clientOffset = dayjs().tz(timezone).utcOffset();
 
-  const policyTypes = Array.from(new Set(policies.map((p) => p.type)));
   const eventDate = dayjs(booking.event_date).tz(dayjs.tz.guess());
+  const deadlineDate = eventDate.subtract(
+    rescheduleOptions.noticeHours,
+    "hour"
+  );
+  const [isPenaltyApplicable, setIsPenaltyApplicable] = useState(
+    dayjs().isAfter(deadlineDate)
+  );
 
   const handleSelectDate = (date: string | null) => {
     if (date) {
@@ -119,15 +126,15 @@ export default function RescheduleBookingClient({
               {/* Left Column: Date & Time Selection (3/5 width) */}
               <div className="w-full lg:w-3/5 pr-0 lg:pr-8 mb-6 lg:mb-0">
                 <Calendar
-                  minNotice={minNotice}
-                  maxNotice={maxNotice}
+                  minNotice={rescheduleOptions.minNotice}
+                  maxNotice={rescheduleOptions.maxNotice}
                   selectedDate={selectedDate}
                   onSelectDate={handleSelectDate}
                 />
 
                 <TimeSlots
                   bUrl={url}
-                  utcOffset={utcOffset}
+                  utcOffset={rescheduleOptions.utcOffset}
                   selectedDate={selectedDate}
                   selectedTime={selectedTime}
                   onSelectTime={setSelectedTime}
@@ -138,7 +145,7 @@ export default function RescheduleBookingClient({
 
               {/* Right Column: Cart and Appointment Details (2/5 width) */}
               <div className="w-full lg:w-2/5">
-                <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-4">
                   {/* Cart Component */}
                   <Card>
                     <CardHeader>
@@ -148,48 +155,72 @@ export default function RescheduleBookingClient({
                     </CardHeader>
                     <CardContent>
                       <div className="mb-4">
-                        {policyTypes.map((policyType) => (
-                          <div className="mb-2">
-                            <h3 className="capitalize">{policyType} policy</h3>
-                            <ul className="list-disc list-inside space-y-1">
-                              {policies
-                                .filter((policy) => policy.type === policyType)
-                                .map(({ policy }, i) => (
-                                  <li key={`${policyType}-${i}-${policy}`}>
-                                    {policy}
-                                  </li>
-                                ))}
-                            </ul>
+                        {!rescheduleOptions.allowed ? (
+                          <div className="bg-red-100 text-red-800 p-4 rounded-lg mb-4">
+                            Rescheduling is not allowed for this appointment.
                           </div>
-                        ))}
+                        ) : rescheduleOptions.feePercent === 0 ||
+                          rescheduleOptions.noticeHours === 0 ? (
+                          <div className="bg-green-100 text-green-800 p-4 rounded-lg mb-4">
+                            You can reschedule this appointment without a
+                            penalty.
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex flex-col items-center bg-white p-4 rounded-lg mb-4">
+                              <p className="mb-2 text-center">
+                                <strong className="font-medium">
+                                  Time until rescheduling fee applies:
+                                </strong>
+                              </p>
+                              <CountdownTimer
+                                targetDate={deadlineDate}
+                                onExpire={() => setIsPenaltyApplicable(true)}
+                              />
+                              {isPenaltyApplicable ? (
+                                <p className="text-red-600 mt-2">
+                                  Rescheduling now will incur a{" "}
+                                  {rescheduleOptions.feePercent}% fee.
+                                </p>
+                              ) : (
+                                <p className="text-green-600 mt-2">
+                                  Reschedule now to avoid the{" "}
+                                  {rescheduleOptions.feePercent}% fee.
+                                </p>
+                              )}
+                            </div>
+                          </>
+                        )}
                       </div>
                       <div className="mb-4">
                         <h3 className="capitalize">Booking Details</h3>
-                        <div className="p-1 pt-0">
-                          <p className="mb-1">
-                            <strong>Event Date:</strong>{" "}
+                        <div className="grid md:grid-cols-2 gap-1 md:gap-2 mb-2">
+                          <p className="flex md:flex-col p-2 bg-slate-100">
+                            <strong className="font-medium">Event Date:</strong>{" "}
                             {`${eventDate.format("YYYY-MM-DD")}`}
                           </p>
-                          <p className="mb-1">
-                            <strong>Event Time:</strong>{" "}
+                          <p className="flex md:flex-col p-2 bg-slate-100">
+                            <strong className="font-medium">Event Time:</strong>{" "}
                             {minutesToTimeString(
                               eventDate.get("hour") * 60 +
                                 eventDate.get("minute")
                             )}
                           </p>
-                          <p className="mb-1">
-                            <strong>Status:</strong> {booking.status}
+                          <p className="flex md:flex-col p-2 bg-slate-100">
+                            <strong className="font-medium">
+                              Amount Paid:
+                            </strong>{" "}
+                            £{booking.amount_paid}
                           </p>
-                          <p className="mb-1">
-                            <strong>Amount Paid:</strong> £{booking.amount_paid}
-                          </p>
-                          <p className="mb-1">
-                            <strong>Amount Due:</strong> £{booking.amount_due}
+                          <p className="flex md:flex-col p-2 bg-slate-100">
+                            <strong className="font-medium">Amount Due:</strong>{" "}
+                            £{booking.amount_due}
                           </p>
                         </div>
                       </div>
                       <RescheduleForm
                         id={id}
+                        reschedulingAllowed={rescheduleOptions.allowed}
                         selectedDate={selectedDate}
                         selectedTime={selectedTime}
                         setRequested={setRequested}
@@ -225,7 +256,7 @@ export default function RescheduleBookingClient({
                               Date
                             </p>
                             <p className="font-medium text-gray-900 dark:text-white">
-                              {selectedDate}
+                              {selectedDate.split("T")[0]}
                             </p>
                           </div>
                         </div>
@@ -255,7 +286,7 @@ export default function RescheduleBookingClient({
                                   convertTimeSlotsToUserLocalTime(
                                     selectedTime,
                                     clientOffset,
-                                    utcOffset
+                                    rescheduleOptions.utcOffset
                                   )
                                 )}
                               </p>
@@ -306,32 +337,61 @@ export default function RescheduleBookingClient({
 
 function RescheduleForm({
   id,
+  reschedulingAllowed,
   selectedDate,
   selectedTime,
   setRequested,
 }: {
   id: string;
+  reschedulingAllowed: boolean;
   selectedDate: string;
   selectedTime: number | null;
   setRequested: (val: boolean) => void;
 }) {
+  const [verifiedEmail, setVerifiedEmail] = useState("");
   const [showResheduleModal, setShowRescheduleModal] = useState(false);
-  const form = useForm({
-    resolver: zodResolver(formSchema),
+  const [showOtpForm, setShowOtpForm] = useState(false);
+
+  const emailForm = useForm({
+    resolver: zodResolver(emailFormSchema),
     defaultValues: { email: "" },
   });
 
+  const otpForm = useForm<OtpFormValues>({
+    resolver: zodResolver(otpFormSchema),
+    defaultValues: { otp: "" },
+  });
+
+  // Mutation for sending OTP
+  const sendOtpMutation = useMutation({
+    mutationFn: async (values: EmailFormValues) => {
+      const response = await api.post(`sp/bookings/${id}/request-otp`, {
+        email: values.email,
+        type: "rescheduling",
+      });
+      return response;
+    },
+    onSuccess: (_, variables) => {
+      toast.success("OTP sent to your email", { id: "send-otp" });
+      setVerifiedEmail(variables.email);
+      setShowOtpForm(true);
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to send OTP", { id: "send-otp" });
+    },
+  });
+
   const rescheduleBookingMutation = useMutation({
-    mutationFn: async (values: z.infer<typeof formSchema>) => {
+    mutationFn: async (values: z.infer<typeof otpFormSchema>) => {
       const controller = new AbortController();
       const signal = controller.signal;
 
       try {
         const response = await api.post(
-          `sp/reschedule-booking`,
+          `sp/bookings/${id}/verify-otp`,
           {
-            ...values,
-            id,
+            otp: values.otp,
+            type: "rescheduling",
             new_event_date: selectedDate,
             new_event_time: selectedTime,
             client_tz: dayjs.tz.guess(),
@@ -355,14 +415,23 @@ function RescheduleForm({
       });
       setRequested(true);
     },
-    onError: (error: Error) => {
-      toast.error(error?.message || "Failed to submit request", {
+    onError: (error: any) => {
+      console.error("Reschedule error:", error);
+      toast.error(error?.response?.data?.message || "Failed to submit request", {
         id: "reschedule-booking",
       });
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onEmailSubmit(values: EmailFormValues) {
+    try {
+      await sendOtpMutation.mutateAsync(values);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function onOtpSubmit(values: OtpFormValues) {
     try {
       await rescheduleBookingMutation.mutateAsync(values);
     } catch (err) {
@@ -374,8 +443,11 @@ function RescheduleForm({
       open={showResheduleModal}
       onOpenChange={(val) => {
         if (!val) {
-          form.reset({
+          emailForm.reset({
             email: "",
+          });
+          otpForm.reset({
+            otp: "",
           });
         }
         setShowRescheduleModal(val);
@@ -385,7 +457,7 @@ function RescheduleForm({
         <Button
           className="w-full mt-4"
           variant="default"
-          disabled={!selectedTime}
+          disabled={!selectedTime || !selectedDate || !reschedulingAllowed}
         >
           Reschedule
         </Button>
@@ -397,29 +469,87 @@ function RescheduleForm({
             Enter the email you used when booking the appointment.
           </DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-col space-y-4"
-          >
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input placeholder="you@example.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button className="self-end" type="submit">
-              Request Reschedule
-            </Button>
-          </form>
-        </Form>
+        {showOtpForm ? (
+          <Form key="otp-form" {...otpForm}>
+            <form
+              onSubmit={otpForm.handleSubmit(onOtpSubmit)}
+              className="flex flex-col space-y-4"
+            >
+              <FormField
+                control={otpForm.control}
+                name="otp"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>OTP</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={6}
+                        autoComplete="one-time-code"
+                        placeholder="Enter OTP"
+                        value={field.value || ""}
+                        onChange={(e) => {
+                          field.onChange(e.target.value);
+                        }}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Enter the OTP sent to {verifiedEmail}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex justify-between w-full">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setShowOtpForm(false);
+                    otpForm.reset(); // Reset OTP form when going back
+                  }}
+                >
+                  Back
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={rescheduleBookingMutation.isPending}
+                >
+                  Confirm Reschedule
+                </Button>
+              </div>
+            </form>
+          </Form>
+        ) : (
+          <Form key="email-form" {...emailForm}>
+            <form
+              onSubmit={emailForm.handleSubmit(onEmailSubmit)}
+              className="flex flex-col space-y-4"
+            >
+              <FormField
+                control={emailForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="you@example.com" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Enter the email you used when booking the appointment.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button disabled={!reschedulingAllowed} type="submit" className="self-end">
+                Send OTP
+              </Button>
+            </form>
+          </Form>
+        )}
       </DialogContent>
     </Dialog>
   );

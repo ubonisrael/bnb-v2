@@ -32,16 +32,16 @@ import { CountdownTimer } from "@/components/ui/countdown-timer";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const emailFormSchema = z.object({
+export const emailFormSchema = z.object({
   email: z.string().email("Invalid email address"),
 });
 
-const otpFormSchema = z.object({
+export const otpFormSchema = z.object({
   otp: z.string().length(6, "OTP must be 6 digits"),
 });
 
-type EmailFormValues = z.infer<typeof emailFormSchema>;
-type OtpFormValues = z.infer<typeof otpFormSchema>;
+export type EmailFormValues = z.infer<typeof emailFormSchema>;
+export type OtpFormValues = z.infer<typeof otpFormSchema>;
 
 interface CancelBookingClientProps {
   id: string;
