@@ -60,9 +60,9 @@ export const bookingSchema = z.object({
     .min(10, "Please enter a valid phone number")
     .nullable()
     .or(z.string().length(0)),
-  age_category: z.enum(["Adult", "Child"], {
-    required_error: "Please select an age category",
-  }),
+  // age_category: z.enum(["Adult", "Child"], {
+  //   required_error: "Please select an age category",
+  // }),
   agree_to_terms: z.boolean().refine((val) => val, {
     message: "You must agree to the terms and conditions to continue.",
   }),
@@ -104,7 +104,7 @@ const BookingForm = ({
       email: "",
       phone: "",
       // gender: "Male",
-      age_category: "Adult",
+      // age_category: "Adult",
       agree_to_terms: false,
     },
   });
@@ -202,7 +202,7 @@ const BookingForm = ({
                 )}
               />
 
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="age_category"
                 render={({ field }) => (
@@ -229,7 +229,7 @@ const BookingForm = ({
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
               <div className="space-y-2">
                 <div className="text-sm font-medium leading-none">
                   Amount to Pay
