@@ -80,6 +80,11 @@ interface UserSettings {
     break_times: BreakTime[];
     absorb_service_charge: boolean;
     custom_policies: CustomPolicy[];
+    auto_generate_deposit_policy: boolean;
+    auto_generate_cancellation_policy: boolean;
+    auto_generate_reschedule_policy: boolean;
+    auto_generate_no_show_policy: boolean;
+    absorb_service_charge: boolean;
   };
   template: {
     templateType: string;
@@ -99,7 +104,7 @@ interface UserSettings {
     status: string | null;
     requirements: {
       [key: string]: string[];
-    }
+    };
   };
 }
 
