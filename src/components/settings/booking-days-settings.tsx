@@ -12,6 +12,9 @@ import { useRef } from "react";
 import { UnsavedChangesBanner } from "../UnSavedChangesBanner";
 import { BookingSettingsForm } from "../ui/booking-settings-form";
 import { bookingSettingsSchema } from "@/schemas/schema";
+import { Form } from "../ui/form";
+import { Button } from "../ui/button";
+import { Loader2 } from "lucide-react";
 
 export function BookingDaysSettings() {
   const {
@@ -34,14 +37,14 @@ export function BookingDaysSettings() {
       cancellation_allowed:
         settings?.bookingSettings.cancellation_allowed || false,
       cancellation_notice_hours:
-        settings?.bookingSettings.cancellation_notice_hours || undefined,
+        settings?.bookingSettings.cancellation_notice_hours || 0,
       cancellation_fee_percent:
-        settings?.bookingSettings.cancellation_fee_percent || undefined,
+        settings?.bookingSettings.cancellation_fee_percent || 0,
       reschedule_allowed: settings?.bookingSettings.reschedule_allowed || false,
       reschedule_notice_hours:
-        settings?.bookingSettings.reschedule_notice_hours || undefined,
+        settings?.bookingSettings.reschedule_notice_hours || 0,
       reschedule_fee_percent:
-        settings?.bookingSettings.reschedule_fee_percent || undefined,
+        settings?.bookingSettings.reschedule_fee_percent || 0,
       no_show_fee_percent: settings?.bookingSettings.no_show_fee_percent || 100,
       minimum_notice: settings?.bookingSettings?.minimum_notice || 0,
       maximum_notice: settings?.bookingSettings?.maximum_notice || 0,
@@ -147,14 +150,34 @@ export function BookingDaysSettings() {
   return (
     <>
       {isDirty && <UnsavedChangesBanner form={form} />}
-      <BookingSettingsForm
-        form={form}
-        formRef={formRef}
-        onSubmit={onSubmit}
-        onError={onError}
-        updateBookingSettingsMutation={updateBookingSettingsMutation}
-        settingsLoading={settingsLoading}
-      />
+      <Form {...form}>
+        <form
+          ref={formRef}
+          onSubmit={form.handleSubmit(onSubmit, onError)}
+          className="space-y-4 md:space-y-6 xl:space-y-8"
+        >
+          <BookingSettingsForm
+            form={form}
+          />
+          <div className="flex justify-end">
+            <Button
+              type="submit"
+              disabled={
+                updateBookingSettingsMutation.isPending || settingsLoading
+              }
+            >
+              {updateBookingSettingsMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </Button>
+          </div>
+        </form>
+      </Form>
     </>
   );
 }

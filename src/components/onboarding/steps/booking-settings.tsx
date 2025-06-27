@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { BookingSettingsForm } from "@/components/ui/booking-settings-form";
 import { bookingSettingsSchema } from "@/schemas/schema";
+import { Form } from "@/components/ui/form";
 
 interface BookingSetupStepProps {
   data: OnboardingFormData;
@@ -64,6 +65,10 @@ export function BookingSettingsSetupStep({
   }));
 
   return (
-    <BookingSettingsForm form={form} formRef={formRef} />
+    <Form {...form}>
+      <form ref={formRef} className="space-y-4 md:space-y-6 xl:space-y-8">
+        <BookingSettingsForm form={form} />
+      </form>
+    </Form>
   );
 }
