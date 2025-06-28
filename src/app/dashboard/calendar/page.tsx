@@ -17,6 +17,8 @@ import { CalendarControls } from "@/components/calendar/calendar-controls";
 import { DayView } from "@/components/calendar/day-view";
 import { WeekView } from "@/components/calendar/week-view";
 import { generateTimeSlots, getTimeSlotIndex, heightOfCalendarRow } from "@/utils/calendar";
+import { CancelAppointmentDialog } from "@/components/calendar/cancel-appointment-dialog";
+import { RescheduleAppointmentDialog } from "@/components/calendar/reschdedule-appointment-dialog";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -25,7 +27,7 @@ export default function CalendarPage() {
   const { settings } = useUserSettings();
   const [date, setDate] = useState<Date>(new Date());
   const [view, setView] = useState<"day" | "week">("day");
-  const [appointment, setAppointment] = useState<BookingsResponse | null>(null);
+  const [appointment, setAppointment] = useState<AppointmentProps | null>(null);
 
   // Calculate the days to display in week view
   const weekStart = startOfWeek(date, { weekStartsOn: 1 });
@@ -178,9 +180,27 @@ export default function CalendarPage() {
 
   return (
     <>
-      {appointment && dayData && (
+      {appointment && appointment.type === 'dns' && dayData && (
         <MarkDNSDialog
-          appointment={appointment}
+          appointment={appointment.data}
+          setAppointment={setAppointment}
+          date={date.toISOString()}
+          tz={dayData?.timezone}
+          settings={settings}
+        />
+      )}
+      {appointment && appointment.type === 'cancel' && dayData && (
+        <CancelAppointmentDialog
+          appointment={appointment.data}
+          setAppointment={setAppointment}
+          date={date.toISOString()}
+          tz={dayData?.timezone}
+          settings={settings}
+        />
+      )}
+      {appointment && appointment.type === 'reschedule' && dayData && (
+        <RescheduleAppointmentDialog
+          appointment={appointment.data}
           setAppointment={setAppointment}
           date={date.toISOString()}
           tz={dayData?.timezone}

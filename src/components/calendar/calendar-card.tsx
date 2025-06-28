@@ -1,3 +1,4 @@
+import { Dispatch, SetStateAction } from "react";
 import { BookingsResponse } from "@/types/response";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -28,13 +29,14 @@ export default function CalendarCard({
   setAppointment,
   timeSlots,
   timezone,
+  view
 }: {
   appointment: BookingsResponse;
-  setAppointment: (appointment: BookingsResponse) => void;
+  setAppointment: Dispatch<SetStateAction<AppointmentProps | null>>;
   timeSlots: string[];
   timezone: string;
+  view: 'day' | 'week'
 }) {
-    console.log(appointment)
   const { settings } = useUserSettings();
   const date = dayjs(appointment.event_date).tz(timezone || "UTC");
   const startTime = date.format("HH:mm");
@@ -69,7 +71,8 @@ export default function CalendarCard({
             <Badge className="w-12 bg-red-400 text-white">DNS</Badge>
           )}
         </div>
-        <DropdownMenu>
+        { view === 'day' && (
+          <DropdownMenu>
           <DropdownMenuTrigger className="absolute top-0 right-0" asChild>
             <Button
               variant="ghost"
@@ -84,12 +87,27 @@ export default function CalendarCard({
             <DropdownMenuSeparator />
             <DropdownMenuItem
               disabled={appointment.dns}
-              onClick={() => setAppointment(appointment)}
+              onClick={() => setAppointment({ data: appointment, type: 'cancel'})}
+            >
+              Cancel
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              disabled={appointment.dns}
+              onClick={() => setAppointment({ data: appointment, type: 'reschedule'})}
+            >
+              Reschedule
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              disabled={appointment.dns}
+              onClick={() => setAppointment({ data: appointment, type: 'dns'})}
             >
               Mark as DNS
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        )}
       </div>
       <div className="mt-1 md:mt-2 text-sm text-[#121212]">
         {appointment.service_ids
