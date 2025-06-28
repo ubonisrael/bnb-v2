@@ -24,10 +24,9 @@ import { BookingData, CancellationSettings } from "@/types/response";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import {
-  minutesToTimeString,
-} from "@/utils/time";
+import { minutesToTimeString } from "@/utils/time";
 import { CountdownTimer } from "@/components/ui/countdown-timer";
+import { Textarea } from "../ui/textarea";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -38,6 +37,10 @@ export const emailFormSchema = z.object({
 
 export const otpFormSchema = z.object({
   otp: z.string().length(6, "OTP must be 6 digits"),
+  cancellation_reason: z
+    .string()
+    // .min(16, { message: "Cancellation reason must be at least 16 characters" })
+    .optional(),
 });
 
 export type EmailFormValues = z.infer<typeof emailFormSchema>;
@@ -65,19 +68,21 @@ export default function CancelBookingClient({
 
   const otpForm = useForm<OtpFormValues>({
     resolver: zodResolver(otpFormSchema),
-    defaultValues: { otp: "" },
+    defaultValues: { otp: "", cancellation_reason: "" },
   });
 
   const eventDate = dayjs(booking.event_date).tz(dayjs.tz.guess());
-  const deadlineDate = eventDate.subtract(setting.noticeHours, 'hour');
-  const [isPenaltyApplicable, setIsPenaltyApplicable] = useState(dayjs().isAfter(deadlineDate));
+  const deadlineDate = eventDate.subtract(setting.noticeHours, "hour");
+  const [isPenaltyApplicable, setIsPenaltyApplicable] = useState(
+    dayjs().isAfter(deadlineDate)
+  );
 
-  // Mutation for sending OTP
-  const sendOtpMutation = useMutation({
+  // Mutation for request OTP
+  const requestOtpMutation = useMutation({
     mutationFn: async (values: EmailFormValues) => {
       const response = await api.post(`sp/bookings/${id}/request-otp`, {
         email: values.email,
-        type: 'cancellation'
+        type: "cancellation",
       });
       return response;
     },
@@ -96,7 +101,7 @@ export default function CancelBookingClient({
     mutationFn: async (values: OtpFormValues) => {
       const response = await api.post(`sp/bookings/${id}/verify-otp`, {
         otp: values.otp,
-        type: 'cancellation'
+        type: "cancellation",
       });
       return response;
     },
@@ -113,7 +118,7 @@ export default function CancelBookingClient({
 
   async function onEmailSubmit(values: EmailFormValues) {
     try {
-      await sendOtpMutation.mutateAsync(values);
+      await requestOtpMutation.mutateAsync(values);
     } catch (err) {
       console.error(err);
     }
@@ -156,7 +161,8 @@ export default function CancelBookingClient({
                         <div className="bg-red-100 text-red-800 p-4 rounded-lg mb-4">
                           Cancellation is not allowed for this appointment.
                         </div>
-                      ) : setting.feePercent === 0 || setting.noticeHours === 0 ? (
+                      ) : setting.feePercent === 0 ||
+                        setting.noticeHours === 0 ? (
                         <div className="bg-green-100 text-green-800 p-4 rounded-lg mb-4">
                           You can cancel this appointment for a full refund.
                         </div>
@@ -164,19 +170,23 @@ export default function CancelBookingClient({
                         <>
                           <div className="flex flex-col items-center bg-white p-4 rounded-lg mb-4">
                             <p className="mb-2 text-center">
-                              <strong className="font-medium">Time until cancellation fee applies:</strong>
+                              <strong className="font-medium">
+                                Time until cancellation fee applies:
+                              </strong>
                             </p>
-                            <CountdownTimer 
+                            <CountdownTimer
                               targetDate={deadlineDate}
                               onExpire={() => setIsPenaltyApplicable(true)}
                             />
                             {isPenaltyApplicable ? (
                               <p className="text-red-600 mt-2">
-                                Cancelling now will incur a {setting.feePercent}% cancellation fee.
+                                Cancelling now will incur a {setting.feePercent}
+                                % cancellation fee.
                               </p>
                             ) : (
                               <p className="text-green-600 mt-2">
-                                Cancel now to avoid the {setting.feePercent}% cancellation fee.
+                                Cancel now to avoid the {setting.feePercent}%
+                                cancellation fee.
                               </p>
                             )}
                           </div>
@@ -195,8 +205,7 @@ export default function CancelBookingClient({
                         <p className="flex md:flex-col p-2 bg-slate-100">
                           <strong className="font-medium">Event Time:</strong>{" "}
                           {minutesToTimeString(
-                              eventDate.get("hour") * 60 +
-                                eventDate.get("minute"),
+                            eventDate.get("hour") * 60 + eventDate.get("minute")
                           )}
                         </p>
                         <p className="flex md:flex-col p-2 bg-slate-100">
@@ -220,12 +229,29 @@ export default function CancelBookingClient({
                     >
                       <FormField
                         control={otpForm.control}
+                        name="cancellation_reason"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              Reason for cancellation (optional)
+                            </FormLabel>
+                            <FormControl>
+                              <Textarea
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={otpForm.control}
                         name="otp"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>OTP</FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 {...field}
                                 type="text"
                                 inputMode="numeric"
@@ -256,8 +282,8 @@ export default function CancelBookingClient({
                         >
                           Back
                         </Button>
-                        <Button 
-                          type="submit" 
+                        <Button
+                          type="submit"
                           disabled={cancelBookingMutation.isPending}
                         >
                           Confirm Cancellation
@@ -266,7 +292,7 @@ export default function CancelBookingClient({
                     </form>
                   </Form>
                 ) : (
-                  <Form  key="email-form"{...emailForm}>
+                  <Form key="email-form" {...emailForm}>
                     <form
                       onSubmit={emailForm.handleSubmit(onEmailSubmit)}
                       className="flex flex-col space-y-4"
