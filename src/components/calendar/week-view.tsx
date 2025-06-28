@@ -16,7 +16,6 @@ export function WeekView({
   weekDays,
   data,
   filteredBookings,
-  settings,
   setAppointment,
 }: WeekViewProps) {
   return (
@@ -71,7 +70,7 @@ export function WeekView({
             {weekDays.map((day, dayIndex) => (
               <>
                 <div
-                  key={day.toString()}
+                  key={`${day.getMilliseconds()}`}
                   className="relative border-r border-[#E0E0E5]"
                 >
                   {timeSlots.map((time, timeIndex) => (
@@ -93,6 +92,7 @@ export function WeekView({
                         setAppointment={setAppointment}
                         timeSlots={timeSlots}
                         timezone={data[dayIndex].timezone}
+                        view="week"
                       />
                     ))}
                   </div>

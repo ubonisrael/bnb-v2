@@ -17,7 +17,6 @@ export function DayView({
   timeSlots,
   filteredBookings,
   setAppointment,
-  settings,
 }: DayViewProps) {
   if (!data.bookings.length) {
     return (
@@ -64,6 +63,7 @@ export function DayView({
               setAppointment={setAppointment}
               timeSlots={timeSlots}
               timezone={data.timezone}
+              view="day"
             />
           ))}
         </div>
