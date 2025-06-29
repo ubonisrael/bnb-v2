@@ -152,7 +152,7 @@ const Calendar: React.FC<CalendarProps> = ({
               key={index}
               onClick={() => selectDate(day)}
               className={`
-              h-14 text-center py-2 relative text-gray-900 dark:text-white flex items-center justify-center
+              h-14 text-center py-2 relative text-gray-900 flex items-center justify-center
               ${
                 day && !isPast(day)
                   ? "hover:bg-blue-50 dark:hover:bg-blue-100 cursor-pointer"
@@ -171,7 +171,7 @@ const Calendar: React.FC<CalendarProps> = ({
               }
               ${
                 isToday(day)
-                  ? "text-primary-700 dark:text-primary-400 bg-green-200 font-semibold"
+                  ? "bg-green-700 text-white font-semibold hover:text-black"
                   : ""
               }
             `}

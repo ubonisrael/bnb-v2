@@ -193,7 +193,7 @@ const BookingForm = ({
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone (optional)</FormLabel>
+                    <FormLabel>Phone</FormLabel>
                     <FormControl>
                       <Input {...field} value={field.value || ""} />
                     </FormControl>
