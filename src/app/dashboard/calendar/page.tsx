@@ -16,87 +16,18 @@ import { CalendarHeader } from "@/components/calendar/calendar-header";
 import { CalendarControls } from "@/components/calendar/calendar-controls";
 import { DayView } from "@/components/calendar/day-view";
 import { WeekView } from "@/components/calendar/week-view";
+import { generateTimeSlots, getTimeSlotIndex, heightOfCalendarRow } from "@/utils/calendar";
+import { CancelAppointmentDialog } from "@/components/calendar/cancel-appointment-dialog";
+import { RescheduleAppointmentDialog } from "@/components/calendar/reschdedule-appointment-dialog";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
-  // Function to get time slot index
-  export const getTimeSlotIndex = (time: string, slots: string[]) => {
-    return slots.findIndex((slot) => slot === time);
-  };
-
-  export   // Function to get appointment color
-  const getAppointmentColor = (() => {
-    const colors = [
-      "bg-[hsl(var(--appointment-blue))]",
-      "bg-[hsl(var(--appointment-pink))]",
-      "bg-[hsl(var(--appointment-teal))]",
-      "bg-[hsl(var(--appointment-orange))]",
-      "bg-[hsl(var(--appointment-purple))]",
-      "bg-[hsl(var(--appointment-green))]",
-      "bg-[hsl(var(--appointment-red))]",
-      "bg-[hsl(var(--appointment-yellow))]",
-      "bg-[hsl(var(--appointment-indigo))]",
-      "bg-[hsl(var(--appointment-cyan))]",
-    ];
-    let usedColors: string[] = [];
-    let lastUsedColor: string | null = null;
-
-    return () => {
-      if (usedColors.length === colors.length) {
-        // Get all colors except the last used one
-        const availableColors = colors.filter(
-          (color) => color !== lastUsedColor
-        );
-        // Select a random color from available colors
-        const selectedColor =
-          availableColors[Math.floor(Math.random() * availableColors.length)];
-        // Reset usedColors with only the new selected color
-        usedColors = [selectedColor];
-        lastUsedColor = selectedColor;
-        return selectedColor;
-      }
-
-      const availableColors = colors.filter(
-        (color) => !usedColors.includes(color)
-      );
-      const selectedColor =
-        availableColors[Math.floor(Math.random() * availableColors.length)];
-      usedColors.push(selectedColor);
-      lastUsedColor = selectedColor;
-
-      return selectedColor;
-    };
-  })();
-
-// Time slots for the calendar
-// Example usage:
-// const timeSlots = generateTimeSlots(420, 1380, 60); // 7:00 to 23:00, hourly intervals
-const generateTimeSlots = (
-  start: number,
-  end: number,
-  interval: number
-): string[] => {
-  const slots: string[] = [];
-  for (let i = start; i <= end; i += interval) {
-    const hours = Math.floor(i / 60);
-    const minutes = i % 60;
-    slots.push(
-      `${hours.toString().padStart(2, "0")}:${minutes
-        .toString()
-        .padStart(2, "0")}`
-    );
-  }
-  return slots;
-};
-
-export const heightOfCalendarRow = 32; // Height of each row in the calendar (in pixels)
 
 export default function CalendarPage() {
   const { settings } = useUserSettings();
   const [date, setDate] = useState<Date>(new Date());
   const [view, setView] = useState<"day" | "week">("day");
-  const [appointment, setAppointment] = useState<BookingsResponse | null>(null);
+  const [appointment, setAppointment] = useState<AppointmentProps | null>(null);
 
   // Calculate the days to display in week view
   const weekStart = startOfWeek(date, { weekStartsOn: 1 });
@@ -105,14 +36,14 @@ export default function CalendarPage() {
 
   const { data: dayData, isLoading: isDayDataLoading } =
     useQuery<BookingDataResponse>({
-      queryKey: ["dayBookings", date.toISOString()],
+      queryKey: [`day-${date.toISOString()}`],
       queryFn: () => api.get(`sp/bookings?date=${format(date, "yyyy-MM-dd")}`),
     });
 
   const { data: weekData, isLoading: isWeekDataLoading } = useQuery<
     BookingDataResponse[]
   >({
-    queryKey: ["weekBookings", date.toISOString()], // More descriptive queryKey
+    queryKey: [`week-${date.toISOString()}`], // More descriptive queryKey
     queryFn: async (): Promise<BookingDataResponse[]> => {
       try {
         return await Promise.all(
@@ -249,9 +180,27 @@ export default function CalendarPage() {
 
   return (
     <>
-      {appointment && dayData && (
+      {appointment && appointment.type === 'dns' && dayData && (
         <MarkDNSDialog
-          appointment={appointment}
+          appointment={appointment.data}
+          setAppointment={setAppointment}
+          date={date.toISOString()}
+          tz={dayData?.timezone}
+          settings={settings}
+        />
+      )}
+      {appointment && appointment.type === 'cancel' && dayData && (
+        <CancelAppointmentDialog
+          appointment={appointment.data}
+          setAppointment={setAppointment}
+          date={date.toISOString()}
+          tz={dayData?.timezone}
+          settings={settings}
+        />
+      )}
+      {appointment && appointment.type === 'reschedule' && dayData && (
+        <RescheduleAppointmentDialog
+          appointment={appointment.data}
           setAppointment={setAppointment}
           date={date.toISOString()}
           tz={dayData?.timezone}

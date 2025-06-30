@@ -138,11 +138,11 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
               variant={selectedTime === time ? "secondary" : "outline"}
               onClick={() => onSelectTime(time)}
               className={`
-                px-3 py-2 border rounded-md text-center font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500
+                px-3 py-2 border rounded-md text-center font-medium hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500
                 ${
                   selectedTime === time
-                    ? "bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 border-primary-200 dark:border-primary-700"
-                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    ? "bg-blue-100 text-black border-primary-200 dark:border-primary-700"
+                    : "bg-white text-gray-700 border-gray-200"
                 }
               `}
             >

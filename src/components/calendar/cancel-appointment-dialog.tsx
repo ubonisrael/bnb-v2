@@ -22,14 +22,14 @@ import api from "@/services/api-service";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-export function MarkDNSDialog({
+export function CancelAppointmentDialog({
   appointment,
   date,
   setAppointment,
   settings,
   tz,
 }: AppointmentDialogProps) {
-  const [dnsMessage, setDnsMessage] = useState<string>("");
+  const [cancelMessage, setCancelMessage] = useState<string>("");
   const queryClient = useQueryClient();
   return (
     <AlertDialog
@@ -38,12 +38,12 @@ export function MarkDNSDialog({
     >
       <AlertDialogContent className="max-h-screen overflow-y-auto">
         <AlertDialogHeader>
-          <AlertDialogTitle>Mark as DNS</AlertDialogTitle>
+          <AlertDialogTitle>Cancel Appointment</AlertDialogTitle>
           <AlertDialogDescription className="text-sm text-[#121212]">
             <span className="inline-block mb-2">
-              Are you sure you want to mark this appointment as Did Not Show?
+              Are you sure you want to cancel this appointment? (Booking ID:{" "}
+              {appointment?.id})
             </span>
-            <span className="inline-block">Booking ID: {appointment?.id}</span>
             <span className="inline-block">
               Customer: {appointment?.Customer?.name} (
               {appointment?.Customer?.email})
@@ -68,20 +68,9 @@ export function MarkDNSDialog({
                 .format("HH:mm, MMMM D, YYYY")}
             </span>
             <br />
-            <span className="inline-block">
-              According to your booking policy,{" "}
-              {settings?.bookingSettings.no_show_fee_percent === 100
-                ? `a 100% no-show fee will be applied to this booking and the customer will not be refunded.`
-                : `a ${
-                    settings?.bookingSettings.no_show_fee_percent
-                  }% no-show fee will be applied to this booking. ${
-                    appointment?.Customer?.name
-                  } will be refunded £${(
-                    appointment?.amount_paid *
-                    (settings
-                      ? settings?.bookingSettings.no_show_fee_percent / 100
-                      : 0)
-                  ).toFixed(2)}.`}
+            <span className="inline-block mt-2">
+              If canceled, customer will be fully refunded. Please note that you
+              can not cancel appointments whose event time has passed.
             </span>
             <br />
             <span className="inline-block mt-2 text-red-600">
@@ -90,48 +79,61 @@ export function MarkDNSDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <div className="my-4">
+        <div className="mb-4">
           <label
             htmlFor="dns-message"
             className="text-sm font-medium text-[#121212]"
           >
-            Message to{" "}
-            {`${appointment.Customer.name} (${appointment.Customer.email})`}{" "}
-            (optional)
+            Provide reason for cancellation{" "}. This will be relayed to the customer in an email
           </label>
           <textarea
             id="dns-message"
             className="mt-2 w-full rounded-md border border-[#E0E0E5] p-3 text-sm"
-            placeholder="Send a follow up message..."
+            placeholder="Your appointment has been cancelled..."
             rows={3}
-            value={dnsMessage}
-            onChange={(e) => setDnsMessage(e.target.value)}
+            value={cancelMessage}
+            onChange={(e) => setCancelMessage(e.target.value)}
           />
+          {(!cancelMessage.trim().length ||
+            cancelMessage.trim().length < 16 ||
+            cancelMessage.trim().length > 100) && (
+            <span className="inline-block text-red-600 text-sm">
+              Reason must have between 16 and 100 characters
+            </span>
+          )}
         </div>
 
         <AlertDialogFooter>
           <AlertDialogCancel
             onClick={() => {
-              setDnsMessage(""); // Clear message when canceling
+              setCancelMessage("");
               setAppointment(null);
             }}
           >
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
+            disabled={
+              !cancelMessage.trim().length ||
+              cancelMessage.trim().length < 16 ||
+              cancelMessage.trim().length > 100
+            }
             onClick={async (e) => {
               e.preventDefault()
               try {
-                toast.loading(`Marking booking-${appointment.id} as DNS`, {
-                  id: "mark-dns",
-                });
-                const res = (await api.post(`sp/booking/mark-dns`, {
+                toast.loading(
+                  `Cancelling appointment with ${appointment.Customer.name}@${appointment.event_date}`,
+                  {
+                    id: "cancel-appointment",
+                  }
+                );
+                const res = (await api.post(`sp/booking/cancel`, {
                   id: appointment.id,
-                  message: dnsMessage.trim() || "", // Only send if message exists
+                  message: cancelMessage.trim() || "",
                   email: appointment.Customer.email,
                 })) as any;
 
-                // Update the cache with the new DNS status
+                // remove booking from cache
                 queryClient.setQueryData(
                   [`day-${date}`],
                   (oldData: BookingDataResponse | undefined) => {
@@ -139,30 +141,22 @@ export function MarkDNSDialog({
 
                     return {
                       ...oldData,
-                      bookings: oldData.bookings.map((booking) => {
-                        if (booking.id === appointment.id) {
-                          return {
-                            ...booking,
-                            dns: true,
-                          };
-                        }
-                        return booking;
-                      }),
+                      bookings: oldData.bookings.filter((booking) => booking.id !== appointment.id),
                     };
                   }
                 );
 
                 toast.success(res.message, {
-                  id: "mark-dns",
+                  id: "cancel-appointment",
                 });
+                setCancelMessage(""); // Clear message after submission
+                setAppointment(null);
               } catch (e: any) {
                 console.error(e);
                 toast.error(e.response.data.message, {
-                  id: "mark-dns",
+                  id: "cancel-appointment",
                 });
               }
-              setDnsMessage(""); // Clear message after submission
-              setAppointment(null);
             }}
           >
             Confirm

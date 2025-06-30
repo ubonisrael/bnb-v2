@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -21,77 +20,111 @@ import api from "@/services/api-service";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { useState } from "react";
-import { BookingData, PolicyData } from "@/types/response";
+import { BookingData, CancellationSettings } from "@/types/response";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { minutesToTimeString } from "@/utils/time";
+import { CountdownTimer } from "@/components/ui/countdown-timer";
+import { Textarea } from "../ui/textarea";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const formSchema = z.object({
+export const emailFormSchema = z.object({
   email: z.string().email("Invalid email address"),
 });
+
+export const otpFormSchema = z.object({
+  otp: z.string().length(6, "OTP must be 6 digits"),
+  cancellation_reason: z
+    .string()
+    // .min(16, { message: "Cancellation reason must be at least 16 characters" })
+    .optional(),
+});
+
+export type EmailFormValues = z.infer<typeof emailFormSchema>;
+export type OtpFormValues = z.infer<typeof otpFormSchema>;
 
 interface CancelBookingClientProps {
   id: string;
   booking: BookingData;
-  policies: PolicyData[];
+  setting: CancellationSettings;
 }
 
 export default function CancelBookingClient({
   id,
   booking,
-  policies,
+  setting,
 }: CancelBookingClientProps) {
   const [cancelled, setCancelled] = useState(false);
-  const policyTypes = Array.from(new Set(policies.map((p) => p.type)));
+  const [showOtpForm, setShowOtpForm] = useState(false);
+  const [verifiedEmail, setVerifiedEmail] = useState("");
 
-  const form = useForm({
-    resolver: zodResolver(formSchema),
+  const emailForm = useForm<EmailFormValues>({
+    resolver: zodResolver(emailFormSchema),
     defaultValues: { email: "" },
   });
 
+  const otpForm = useForm<OtpFormValues>({
+    resolver: zodResolver(otpFormSchema),
+    defaultValues: { otp: "", cancellation_reason: "" },
+  });
+
   const eventDate = dayjs(booking.event_date).tz(dayjs.tz.guess());
+  const deadlineDate = eventDate.subtract(setting.noticeHours, "hour");
+  const [isPenaltyApplicable, setIsPenaltyApplicable] = useState(
+    dayjs().isAfter(deadlineDate)
+  );
 
+  // Mutation for request OTP
+  const requestOtpMutation = useMutation({
+    mutationFn: async (values: EmailFormValues) => {
+      const response = await api.post(`sp/bookings/${id}/request-otp`, {
+        email: values.email,
+        type: "cancellation",
+      });
+      return response;
+    },
+    onSuccess: (_, variables) => {
+      toast.success("OTP sent to your email", { id: "send-otp" });
+      setVerifiedEmail(variables.email);
+      setShowOtpForm(true);
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || "Failed to send OTP", { id: "send-otp" });
+    },
+  });
+
+  // Mutation for verifying OTP and cancelling booking
   const cancelBookingMutation = useMutation({
-    mutationFn: async (values: z.infer<typeof formSchema>) => {
-      const controller = new AbortController();
-      const signal = controller.signal;
-
-      try {
-        const response = await api.post(
-          `sp/cancel-booking`,
-          {
-            ...values,
-            id,
-          },
-          { signal }
-        );
-        return response;
-      } catch (error: unknown) {
-        if (error instanceof Error && error.name === "AbortError") {
-          toast.error("Request was cancelled");
-        }
-        throw error;
-      }
+    mutationFn: async (values: OtpFormValues) => {
+      const response = await api.post(`sp/bookings/${id}/verify-otp`, {
+        otp: values.otp,
+        type: "cancellation",
+      });
+      return response;
     },
-    onMutate: () => {
-      toast.loading("Cancelling booking...", { id: "cancel-booking" });
-    },
-    onSuccess: (response: any) => {
-      toast.success(`Booking cancelled successfully`, { id: "cancel-booking" });
+    onSuccess: () => {
+      toast.success("Booking cancelled successfully", { id: "cancel-booking" });
       setCancelled(true);
     },
     onError: (error: Error) => {
-      toast.error(error?.message || `Failed to cancel booking`, {
+      toast.error(error?.message || "Failed to cancel booking", {
         id: "cancel-booking",
       });
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onEmailSubmit(values: EmailFormValues) {
+    try {
+      await requestOtpMutation.mutateAsync(values);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function onOtpSubmit(values: OtpFormValues) {
     try {
       await cancelBookingMutation.mutateAsync(values);
     } catch (err) {
@@ -101,66 +134,85 @@ export default function CancelBookingClient({
 
   return (
     <div className="w-full min-h-screen flex items-center justify-center">
-      <div className="max-w-2xl mx-auto p-4 space-y-6">
+      <div className="max-w-xl mx-auto p-4 space-y-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-center">Cancel Appointment</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 bg-slate-100">
             {cancelled ? (
               <div className="bg-green-100 text-green-800 p-4 rounded-lg">
                 Your appointment has been successfully cancelled.
                 <div className="flex items-center justify-center pt-4">
-                  <Link href="/" className="text-blue-600 underline text-sm inline-block">
+                  <Link
+                    href="/"
+                    className="text-blue-600 underline text-sm inline-block"
+                  >
                     Return to Home
                   </Link>
                 </div>
               </div>
             ) : (
               <>
-                <div>
-                  <h2 className="font-medium text-xl">Cancellation Policy</h2>
+                <div className="py-4">
                   <div>
                     <div className="mb-4">
-                      {policyTypes.map((policyType) => (
-                        <ul
-                          key={policyType}
-                          className="list-disc list-inside space-y-1"
-                        >
-                          {policies
-                            .filter((policy) => policy.type === policyType)
-                            .map(({ policy }, i) => (
-                              <li key={`${policyType}-${policy}-${i}`}>
-                                {policy}
-                              </li>
-                            ))}
-                        </ul>
-                      ))}
+                      {!setting.allowed ? (
+                        <div className="bg-red-100 text-red-800 p-4 rounded-lg mb-4">
+                          Cancellation is not allowed for this appointment.
+                        </div>
+                      ) : setting.feePercent === 0 ||
+                        setting.noticeHours === 0 ? (
+                        <div className="bg-green-100 text-green-800 p-4 rounded-lg mb-4">
+                          You can cancel this appointment for a full refund.
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex flex-col items-center bg-white p-4 rounded-lg mb-4">
+                            <p className="mb-2 text-center">
+                              <strong className="font-medium">
+                                Time until cancellation fee applies:
+                              </strong>
+                            </p>
+                            <CountdownTimer
+                              targetDate={deadlineDate}
+                              onExpire={() => setIsPenaltyApplicable(true)}
+                            />
+                            {isPenaltyApplicable ? (
+                              <p className="text-red-600 mt-2">
+                                Cancelling now will incur a {setting.feePercent}
+                                % cancellation fee.
+                              </p>
+                            ) : (
+                              <p className="text-green-600 mt-2">
+                                Cancel now to avoid the {setting.feePercent}%
+                                cancellation fee.
+                              </p>
+                            )}
+                          </div>
+                        </>
+                      )}
                     </div>
                     <div className="">
                       <h3 className="capitalize font-medium text-lg">
                         Booking Details
                       </h3>
-                      <div className="p-1 pt-0">
-                        <p className="mb-1">
+                      <div className="grid md:grid-cols-2 gap-1 md:gap-2 mb-2">
+                        <p className="flex md:flex-col p-2 bg-slate-100">
                           <strong className="font-medium">Event Date:</strong>{" "}
                           {`${eventDate.format("YYYY-MM-DD")}`}
                         </p>
-                        <p className="mb-1">
+                        <p className="flex md:flex-col p-2 bg-slate-100">
                           <strong className="font-medium">Event Time:</strong>{" "}
                           {minutesToTimeString(
                             eventDate.get("hour") * 60 + eventDate.get("minute")
                           )}
                         </p>
-                        <p className="mb-1">
-                          <strong className="font-medium">Status:</strong>{" "}
-                          {booking.status}
-                        </p>
-                        <p className="mb-1">
+                        <p className="flex md:flex-col p-2 bg-slate-100">
                           <strong className="font-medium">Amount Paid:</strong>{" "}
                           £{booking.amount_paid}
                         </p>
-                        <p className="mb-1">
+                        <p className="flex md:flex-col p-2 bg-slate-100">
                           <strong className="font-medium">Amount Due:</strong> £
                           {booking.amount_due}
                         </p>
@@ -169,31 +221,105 @@ export default function CancelBookingClient({
                   </div>
                 </div>
 
-                <Form {...form}>
-                  <form
-                    onSubmit={form.handleSubmit(onSubmit)}
-                    className="flex flex-col space-y-4"
-                  >
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input placeholder="you@example.com" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            Enter the email you used when booking the
-                            appointment.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button type="submit" className="self-end">Confirm Cancellation</Button>
-                  </form>
-                </Form>
+                {showOtpForm ? (
+                  <Form key="otp-form" {...otpForm}>
+                    <form
+                      onSubmit={otpForm.handleSubmit(onOtpSubmit)}
+                      className="flex flex-col space-y-4"
+                    >
+                      <FormField
+                        control={otpForm.control}
+                        name="cancellation_reason"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              Reason for cancellation (optional)
+                            </FormLabel>
+                            <FormControl>
+                              <Textarea
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={otpForm.control}
+                        name="otp"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>OTP</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                type="text"
+                                inputMode="numeric"
+                                maxLength={6}
+                                autoComplete="one-time-code"
+                                placeholder="Enter OTP"
+                                value={field.value || ""}
+                                onChange={(e) => {
+                                  field.onChange(e.target.value);
+                                }}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Enter the OTP sent to {verifiedEmail}
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="flex justify-between w-full">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => {
+                            setShowOtpForm(false);
+                            otpForm.reset(); // Reset OTP form when going back
+                          }}
+                        >
+                          Back
+                        </Button>
+                        <Button
+                          type="submit"
+                          disabled={cancelBookingMutation.isPending}
+                        >
+                          Confirm Cancellation
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                ) : (
+                  <Form key="email-form" {...emailForm}>
+                    <form
+                      onSubmit={emailForm.handleSubmit(onEmailSubmit)}
+                      className="flex flex-col space-y-4"
+                    >
+                      <FormField
+                        control={emailForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input placeholder="you@example.com" {...field} />
+                            </FormControl>
+                            <FormDescription>
+                              Enter the email you used when booking the
+                              appointment.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button type="submit" className="self-end">
+                        Send OTP
+                      </Button>
+                    </form>
+                  </Form>
+                )}
               </>
             )}
           </CardContent>

@@ -137,7 +137,7 @@ export interface BusinessSocialResponse {
   data: BusinessSocialData;
 }
 
-export interface BookingsResponse extends Service {
+interface BookingsResponse extends Service {
   Customer: {
     name: string;
     email: string;
@@ -279,6 +279,7 @@ interface BookingData {
 
 interface FetchBookingByIdResponse {
   status: boolean;
+  serviceProviderTimezone: string;
   data: BookingData;
 }
 
@@ -300,6 +301,28 @@ interface FetchBookingPolicyResponse {
   minNotice: number;
   maxNotice: number;
   utcOffset: number;
+}
+
+interface CancellationSettings {
+  allowed: boolean;
+  noticeHours: number;
+  feePercent: number;
+}
+
+interface ReschedulingOptions extends CancellationSettings {
+  minNotice: number;
+  maxNotice: number;
+  utcOffset: number;
+}
+
+interface FetchCancellationPolicyResponse {
+  status: boolean;
+  cancellation: CancellationSettings;
+}
+
+interface FetchReschedulingPolicyResponse {
+  status: boolean;
+  rescheduleOptions: ReschedulingOptions;
 }
 
 export interface ServiceFrontend {

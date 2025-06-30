@@ -1,10 +1,6 @@
 import CancelBookingClient from "@/components/appointments/cancel-booking";
 import api from "@/services/api-service";
-import {
-  FetchBookingByIdResponse,
-  FetchBookingPolicyResponse,
-  PolicyData,
-} from "@/types/response";
+import { FetchBookingByIdResponse, FetchCancellationPolicyResponse } from "@/types/response";
 import Link from "next/link";
 
 interface CancelBookingPageProps {
@@ -22,41 +18,19 @@ export default async function CancelBookingPage({
   try {
     const [bookingRes, policyRes] = await Promise.all([
       api.get<FetchBookingByIdResponse>(`sp/bookings/${id}`),
-      api.get<FetchBookingPolicyResponse>(
-        `sp/${url}/booking-policies?type=cancellation`
+      api.get<FetchCancellationPolicyResponse>(
+        `sp/${url}/cancellation-settings`
       ),
     ]);
     const { data: booking } = bookingRes;
-    const { policies } = policyRes;
-    // const booking = {
-    //   id: Number(id),
-    //   event_date: "2025-06-02T10:28:39.250Z",
-    //   event_duration: 100,
-    //   amount_paid: 50,
-    //   amount_due: 70,
-    //   status: "confirmed",
-    //   payment_status: "succeeded",
-    //   services: [{ id: 1, name: "Haircut"}],
-    // };
-    // const policies = [
-    //   {
-    //     type: "rescheduling",
-    //     policy:
-    //       "Rescheduling is allowed up to 24 hours before the appointment.",
-    //   },
-    //   {
-    //     type: "rescheduling",
-    //     policy:
-    //       "One reschedule is allowed per booking without additional charges.",
-    //   },
-    // ];
+    const { cancellation } = policyRes;
 
     return (
       <div className="w-full min-h-screen flex items-center justify-center">
         <CancelBookingClient
-          booking={booking}
-          policies={policies as PolicyData[]}
           id={id}
+          setting={cancellation}
+          booking={booking}
         />
       </div>
     );

@@ -54,6 +54,10 @@ interface NotificationSettingsData {
 }
 
 interface BookingSettingsData {
+  auto_generate_deposit_policy: boolean;
+  auto_generate_cancellation_policy: boolean;
+  auto_generate_reschedule_policy: boolean;
+  auto_generate_no_show_policy: boolean;
   absorb_service_charge: boolean;
   break_times: BreakTime[];
   special_off_days: OffDay[];
