@@ -182,19 +182,23 @@ export function RescheduleAppointmentDialog({
 
                 // Update the cache
                 queryClient.setQueryData(
-                  [date],
+                  [`day-${date}`],
                   (oldData: BookingDataResponse | undefined) => {
-                    if (!oldData) return oldData;
+                    if (!oldData || !selectedTime) return oldData;
 
                     // if the selected date is the same as the current date, update the time
                     if (selectedDate === current_date) {
                       return {
                         ...oldData,
                         bookings: oldData.bookings.map((booking) => {
+                          const oldEventTime = dayjs(booking.event_date).tz(tz)
+                          const hrs = Math.floor(selectedTime! / 60);
+                          const mins = selectedTime! % 60;
+                          const newEventDate = oldEventTime.set("hour", hrs).set("minute", mins);
                           if (booking.id === appointment.id) {
                             return {
                               ...booking,
-                              event_time: selectedTime,
+                              event_date: newEventDate.toISOString(),
                             };
                           }
                           return booking;

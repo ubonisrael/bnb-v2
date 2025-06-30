@@ -135,7 +135,7 @@ export function CancelAppointmentDialog({
 
                 // remove booking from cache
                 queryClient.setQueryData(
-                  [date],
+                  [`day-${date}`],
                   (oldData: BookingDataResponse | undefined) => {
                     if (!oldData) return oldData;
 

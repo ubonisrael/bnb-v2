@@ -133,7 +133,7 @@ export function MarkDNSDialog({
 
                 // Update the cache with the new DNS status
                 queryClient.setQueryData(
-                  [date],
+                  [`day-${date}`],
                   (oldData: BookingDataResponse | undefined) => {
                     if (!oldData) return oldData;
 

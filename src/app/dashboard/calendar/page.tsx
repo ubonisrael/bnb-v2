@@ -36,14 +36,14 @@ export default function CalendarPage() {
 
   const { data: dayData, isLoading: isDayDataLoading } =
     useQuery<BookingDataResponse>({
-      queryKey: ["dayBookings", date.toISOString()],
+      queryKey: [`day-${date.toISOString()}`],
       queryFn: () => api.get(`sp/bookings?date=${format(date, "yyyy-MM-dd")}`),
     });
 
   const { data: weekData, isLoading: isWeekDataLoading } = useQuery<
     BookingDataResponse[]
   >({
-    queryKey: ["weekBookings", date.toISOString()], // More descriptive queryKey
+    queryKey: [`week-${date.toISOString()}`], // More descriptive queryKey
     queryFn: async (): Promise<BookingDataResponse[]> => {
       try {
         return await Promise.all(
