@@ -138,6 +138,7 @@ export const WaitlistModal = ({
           date: selectedDate,
           entries,
           unavailableSlots: data?.timeSlots || [],
+          service_ids: selectedServices.map(s => Number(s.id))
         })
       );
     } catch (err) {

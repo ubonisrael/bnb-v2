@@ -15,6 +15,7 @@ interface WaitListValues {
   date: string;
   start_time: number;
   duration: number;
+  service_ids: number[];
 }
 
 interface FlattenToDateTimePairsProps {
@@ -26,4 +27,5 @@ interface FlattenToDateTimePairsProps {
   duration: number;
   entries: number[];
   unavailableSlots: number[];
+  service_ids: number[];
 }

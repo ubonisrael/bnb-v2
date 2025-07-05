@@ -23,13 +23,15 @@ export const WaitlistTrigger = ({
   return (
     <Dialog
       onOpenChange={() => {
-        setShowModal((prev) => !prev);
         // reset mode to single when dialog is opened or closed
         setMode("single");
       }}
     >
       <DialogTrigger asChild>
-        <Button className="gap-2 rounded-md">
+        <Button onClick={(e) => {
+          e.stopPropagation()
+          setShowModal(true)
+        }} className="gap-2 rounded-md">
           <Clock className="h-4 w-4" />
           <span className="">Join Waitlist</span>
         </Button>
