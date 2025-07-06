@@ -21,7 +21,7 @@ import api from "@/services/api-service";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { useState } from "react";
-import { BookingData, PolicyData, ReschedulingOptions } from "@/types/response";
+import { BookingData, ReschedulingOptions } from "@/types/response";
 import {
   Dialog,
   DialogContent,
@@ -39,6 +39,7 @@ import {
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import LocalizedFormat from "dayjs/plugin/localizedFormat";
 import { CountdownTimer } from "../ui/countdown-timer";
 import {
   emailFormSchema,
@@ -49,6 +50,7 @@ import {
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+dayjs.extend(LocalizedFormat);
 
 interface RescheduleBookingClientProps {
   id: string;
@@ -70,9 +72,10 @@ export default function RescheduleBookingClient({
   const clientOffset = dayjs().tz(timezone).utcOffset();
 
   const eventDate = dayjs(booking.event_date).tz(dayjs.tz.guess());
+  // note rescheduleOptions.noticeHours is actually in minutes
   const deadlineDate = eventDate.subtract(
     rescheduleOptions.noticeHours,
-    "hour"
+    "minute"
   );
   const [isPenaltyApplicable, setIsPenaltyApplicable] = useState(
     dayjs().isAfter(deadlineDate)
@@ -83,6 +86,10 @@ export default function RescheduleBookingClient({
       setSelectedDate(date);
     }
   };
+
+  // rescheduling is allowed when the rescheduleOptions.allowed is true
+  // and if the deadline has passed and rescheduleOptions.penaltyEnabled is true
+  const isReschedulingAllowed = isPenaltyApplicable ? rescheduleOptions.penaltyEnabled : rescheduleOptions.allowed
 
   return (
     <div className="w-full">
@@ -161,16 +168,30 @@ export default function RescheduleBookingClient({
                           </div>
                         ) : rescheduleOptions.feePercent === 0 ||
                           rescheduleOptions.noticeHours === 0 ? (
-                          <div className="bg-green-100 text-green-800 p-4 rounded-lg mb-4">
-                            You can reschedule this appointment without a
-                            penalty.
-                          </div>
+                          <p className="bg-green-100 text-green-800 p-4 rounded-lg mb-4">
+                            You can reschedule this appointment before{" "}
+                            {deadlineDate.format("LLLL")}.
+                          </p>
                         ) : (
                           <>
+                            <p className="bg-yellow-100 text-yellow-800 p-4 rounded-lg mb-4">
+                              You can reschedule this appointment before{" "}
+                              {`${deadlineDate.format("LLLL")} ${
+                                rescheduleOptions.penaltyEnabled
+                                  ? "to avoid fees"
+                                  : ""
+                              }`}
+                            </p>
                             <div className="flex flex-col items-center bg-white p-4 rounded-lg mb-4">
                               <p className="mb-2 text-center">
                                 <strong className="font-medium">
-                                  Time until rescheduling fee applies:
+                                  Time until rescheduling{" "}
+                                  {`${
+                                    rescheduleOptions.penaltyEnabled
+                                      ? "fee applies"
+                                      : "window closes"
+                                  }`}
+                                  :
                                 </strong>
                               </p>
                               <CountdownTimer
@@ -178,15 +199,33 @@ export default function RescheduleBookingClient({
                                 onExpire={() => setIsPenaltyApplicable(true)}
                               />
                               {isPenaltyApplicable ? (
-                                <p className="text-red-600 mt-2">
-                                  Rescheduling now will incur a{" "}
-                                  {rescheduleOptions.feePercent}% fee.
-                                </p>
+                                <>
+                                  {rescheduleOptions.penaltyEnabled ? (
+                                    <p className="text-red-600 mt-2 text-center">
+                                      Rescheduling now will incur a{" "}
+                                      {rescheduleOptions.feePercent}% fee.
+                                    </p>
+                                  ) : (
+                                    <p className="text-red-600 mt-2 text-center">
+                                      You are not allowed to reschedule this
+                                      appointment as the deadline has passed.
+                                    </p>
+                                  )}
+                                </>
                               ) : (
-                                <p className="text-green-600 mt-2">
-                                  Reschedule now to avoid the{" "}
-                                  {rescheduleOptions.feePercent}% fee.
-                                </p>
+                                <>
+                                  {rescheduleOptions.penaltyEnabled ? (
+                                    <p className="text-green-600 mt-2">
+                                      Reschedule now to avoid the{" "}
+                                      {rescheduleOptions.feePercent}% fee.
+                                    </p>
+                                  ) : (
+                                    <p className="text-green-600 mt-2">
+                                      Reschedule now before the deadline
+                                      expires.
+                                    </p>
+                                  )}
+                                </>
                               )}
                             </div>
                           </>
@@ -220,7 +259,7 @@ export default function RescheduleBookingClient({
                       </div>
                       <RescheduleForm
                         id={id}
-                        reschedulingAllowed={rescheduleOptions.allowed}
+                        reschedulingAllowed={isReschedulingAllowed}
                         selectedDate={selectedDate}
                         selectedTime={selectedTime}
                         setRequested={setRequested}
@@ -377,7 +416,9 @@ function RescheduleForm({
       setShowOtpForm(true);
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Failed to send OTP", { id: "send-otp" });
+      toast.error(error?.response?.data?.message || "Failed to send OTP", {
+        id: "send-otp",
+      });
     },
   });
 
@@ -417,9 +458,12 @@ function RescheduleForm({
     },
     onError: (error: any) => {
       console.error("Reschedule error:", error);
-      toast.error(error?.response?.data?.message || "Failed to submit request", {
-        id: "reschedule-booking",
-      });
+      toast.error(
+        error?.response?.data?.message || "Failed to submit request",
+        {
+          id: "reschedule-booking",
+        }
+      );
     },
   });
 
@@ -544,8 +588,12 @@ function RescheduleForm({
                   </FormItem>
                 )}
               />
-              <Button disabled={!reschedulingAllowed} type="submit" className="self-end">
-                Send OTP
+              <Button
+                disabled={!reschedulingAllowed}
+                type="submit"
+                className="self-end"
+              >
+                Request OTP
               </Button>
             </form>
           </Form>

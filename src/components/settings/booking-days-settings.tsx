@@ -22,7 +22,6 @@ export function BookingDaysSettings() {
     updateSettings,
     isLoading: settingsLoading,
   } = useUserSettings();
-  console.log(settings)
 
   const form = useForm<z.infer<typeof bookingSettingsSchema>>({
     mode: "all",
@@ -152,7 +151,7 @@ export function BookingDaysSettings() {
   return (
     <>
       {isDirty && <UnsavedChangesBanner form={form} />}
-      <Form {...form}>
+      <Form key="dashboard-booking-setting-form" {...form}>
         <form
           ref={formRef}
           onSubmit={form.handleSubmit(onSubmit, onError)}

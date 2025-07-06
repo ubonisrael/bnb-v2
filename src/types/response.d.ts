@@ -310,6 +310,7 @@ interface CancellationSettings {
 }
 
 interface ReschedulingOptions extends CancellationSettings {
+  penaltyEnabled: boolean;
   minNotice: number;
   maxNotice: number;
   utcOffset: number;

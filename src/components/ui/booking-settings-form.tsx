@@ -2,7 +2,6 @@ import { Ref, RefObject, useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
-  Form,
   FormControl,
   FormDescription,
   FormField,
@@ -37,6 +36,10 @@ export const days = [
   { id: "friday", label: "Friday" },
   { id: "saturday", label: "Saturday" },
   { id: "sunday", label: "Sunday" },
+];
+
+const presetDuration = [
+  0, 15, 30, 45, 60, 120, 240, 320, 720, 1440, 2880, 4320,
 ];
 
 export function BookingSettingsForm({
@@ -415,7 +418,7 @@ export function BookingSettingsForm({
               name="cancellation_notice_hours"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Cancellation Notice (Hours)</FormLabel>
+                  <FormLabel>Cancellation Notice (Minutes)</FormLabel>
                   <div className="space-y-2">
                     <div>
                       <FormLabel className="text-sm text-muted-foreground">
@@ -430,9 +433,7 @@ export function BookingSettingsForm({
                           field.onChange(Number(value));
                         }}
                         value={
-                          [0, 1, 2, 4, 8, 12, 24, 48, 72].includes(
-                            Number(field.value)
-                          )
+                          presetDuration.includes(Number(field.value))
                             ? field.value?.toString()
                             : "custom"
                         }
@@ -444,27 +445,33 @@ export function BookingSettingsForm({
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="0">No notice required</SelectItem>
-                          <SelectItem value="1">1 hour</SelectItem>
-                          <SelectItem value="2">2 hours</SelectItem>
-                          <SelectItem value="4">4 hours</SelectItem>
-                          <SelectItem value="8">8 hours</SelectItem>
-                          <SelectItem value="12">12 hours</SelectItem>
-                          <SelectItem value="24">24 hours (1 day)</SelectItem>
-                          <SelectItem value="48">48 hours (2 days)</SelectItem>
-                          <SelectItem value="72">72 hours (3 days)</SelectItem>
+                          <SelectItem value="15">15 minutes</SelectItem>
+                          <SelectItem value="30">30 minutes</SelectItem>
+                          <SelectItem value="45">45 minutes</SelectItem>
+                          <SelectItem value="60">1 hour</SelectItem>
+                          <SelectItem value="120">2 hours</SelectItem>
+                          <SelectItem value="240">4 hours</SelectItem>
+                          <SelectItem value="320">8 hours</SelectItem>
+                          <SelectItem value="720">12 hours</SelectItem>
+                          <SelectItem value="1440">24 hours (1 day)</SelectItem>
+                          <SelectItem value="2880">
+                            48 hours (2 days)
+                          </SelectItem>
+                          <SelectItem value="4320">
+                            72 hours (3 days)
+                          </SelectItem>
                           <SelectItem value="custom">Custom</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div>
                       <FormLabel className="text-sm text-muted-foreground">
-                        Custom duration (enter hours directly)
+                        Custom duration (enter minutes directly)
                       </FormLabel>
                       <FormControl>
                         <Input
                           type="number"
-                          min="0"
-                          placeholder="Enter custom hours"
+                          placeholder="Enter custom minutes"
                           className="w-full"
                           value={
                             field.value
@@ -476,7 +483,10 @@ export function BookingSettingsForm({
                           onChange={(e) => {
                             const value = e.target.value;
                             field.onChange(Number(value));
-                            if (value.startsWith("0") && value !== "0") {
+                            if (
+                              value.startsWith("0") &&
+                              parseInt(value) !== 0
+                            ) {
                               e.target.value = value.replace(/^0+/, "");
                             }
                           }}
@@ -512,7 +522,7 @@ export function BookingSettingsForm({
                       onChange={(e) => {
                         const value = e.target.value;
                         field.onChange(Number(value));
-                        if (value.startsWith("0") && value !== "0") {
+                        if (value.startsWith("0") && parseInt(value) !== 0) {
                           e.target.value = value.replace(/^0+/, "");
                         }
                       }}
@@ -587,7 +597,7 @@ export function BookingSettingsForm({
               name="reschedule_notice_hours"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Rescheduling Notice (Hours)</FormLabel>
+                  <FormLabel>Rescheduling Notice (Minutes)</FormLabel>
                   <div className="space-y-2">
                     <div>
                       <FormLabel className="text-sm text-muted-foreground">
@@ -602,9 +612,7 @@ export function BookingSettingsForm({
                           field.onChange(Number(value));
                         }}
                         value={
-                          [0, 1, 2, 4, 8, 12, 24, 48, 72].includes(
-                            Number(field.value)
-                          )
+                          presetDuration.includes(Number(field.value))
                             ? field.value?.toString()
                             : "custom"
                         }
@@ -616,27 +624,34 @@ export function BookingSettingsForm({
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="0">No notice required</SelectItem>
-                          <SelectItem value="1">1 hour</SelectItem>
-                          <SelectItem value="2">2 hours</SelectItem>
-                          <SelectItem value="4">4 hours</SelectItem>
-                          <SelectItem value="8">8 hours</SelectItem>
-                          <SelectItem value="12">12 hours</SelectItem>
-                          <SelectItem value="24">24 hours (1 day)</SelectItem>
-                          <SelectItem value="48">48 hours (2 days)</SelectItem>
-                          <SelectItem value="72">72 hours (3 days)</SelectItem>
+                          <SelectItem value="15">15 minutes</SelectItem>
+                          <SelectItem value="30">30 minutes</SelectItem>
+                          <SelectItem value="45">45 minutes</SelectItem>
+                          <SelectItem value="60">1 hour</SelectItem>
+                          <SelectItem value="120">2 hours</SelectItem>
+                          <SelectItem value="240">4 hours</SelectItem>
+                          <SelectItem value="320">8 hours</SelectItem>
+                          <SelectItem value="720">12 hours</SelectItem>
+                          <SelectItem value="1440">24 hours (1 day)</SelectItem>
+                          <SelectItem value="2880">
+                            48 hours (2 days)
+                          </SelectItem>
+                          <SelectItem value="4320">
+                            72 hours (3 days)
+                          </SelectItem>
                           <SelectItem value="custom">Custom</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div>
                       <FormLabel className="text-sm text-muted-foreground">
-                        Custom duration (enter hours directly)
+                        Custom duration (enter minutes directly)
                       </FormLabel>
                       <FormControl>
                         <Input
                           type="number"
                           min="0"
-                          placeholder="Enter custom hours"
+                          placeholder="Enter custom minutes"
                           className="w-full"
                           value={
                             field.value
@@ -648,7 +663,10 @@ export function BookingSettingsForm({
                           onChange={(e) => {
                             const value = e.target.value;
                             field.onChange(Number(value));
-                            if (value.startsWith("0") && value !== "0") {
+                            if (
+                              value.startsWith("0") &&
+                              parseInt(value) !== 0
+                            ) {
                               e.target.value = value.replace(/^0+/, "");
                             }
                           }}
@@ -657,8 +675,8 @@ export function BookingSettingsForm({
                     </div>
                   </div>
                   <FormDescription>
-                    Choose a preset duration or enter custom hours directly in
-                    the input field above. This sets how many hours in advance
+                    Choose a preset duration or enter custom minutes directly in
+                    the input field above. This sets how many minutes in advance
                     clients must notify you to reschedule their booking without
                     incurring a penalty.
                   </FormDescription>
@@ -674,9 +692,9 @@ export function BookingSettingsForm({
                   <div className="space-y-0.5">
                     <FormLabel>Allow Late Rescheduling</FormLabel>
                     <FormDescription>
-                      Enable this to allow rescheduling after the notice period has
-                      passed. If disabled, customers must place a new booking
-                      instead.
+                      Enable this to allow rescheduling after the notice period
+                      has passed. If disabled, customers must place a new
+                      booking instead.
                     </FormDescription>
                   </div>
                   <FormControl>
@@ -704,20 +722,24 @@ export function BookingSettingsForm({
                         placeholder="e.g. 30"
                         {...field}
                         value={
-                          field.value ? field.value : field.value === 0 ? "0" : ""
+                          field.value
+                            ? field.value
+                            : field.value === 0
+                            ? "0"
+                            : ""
                         }
                         onChange={(e) => {
                           const value = e.target.value;
                           field.onChange(Number(value));
-                          if (value.startsWith("0") && value !== "0") {
+                          if (value.startsWith("0") && parseInt(value) !== 0) {
                             e.target.value = value.replace(/^0+/, "");
                           }
                         }}
                       />
                     </FormControl>
                     <FormDescription>
-                      Set the percentage of the booking fee charged as penalty for
-                      rescheduling after the notice period has passed
+                      Set the percentage of the booking fee charged as penalty
+                      for rescheduling after the notice period has passed
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -779,7 +801,7 @@ export function BookingSettingsForm({
                   onChange={(e) => {
                     const value = e.target.value;
                     field.onChange(Number(value));
-                    if (value.startsWith("0") && value !== "0") {
+                    if (value.startsWith("0") && parseInt(value) !== 0) {
                       e.target.value = value.replace(/^0+/, "");
                     }
                   }}
