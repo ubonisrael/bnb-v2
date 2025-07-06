@@ -22,11 +22,13 @@ export function BookingDaysSettings() {
     updateSettings,
     isLoading: settingsLoading,
   } = useUserSettings();
+  console.log(settings)
 
   const form = useForm<z.infer<typeof bookingSettingsSchema>>({
     mode: "all",
     resolver: zodResolver(bookingSettingsSchema),
     defaultValues: {
+      reschedule_penalty_enabled: settings?.bookingSettings.reschedule_penalty_enabled || false,
       absorb_service_charge:
         settings?.bookingSettings?.absorb_service_charge || false,
       welcome_message: settings?.bookingSettings?.welcome_message || "",

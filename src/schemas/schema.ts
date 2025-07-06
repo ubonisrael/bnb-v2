@@ -49,6 +49,7 @@ export const baseBookingSettingsSchema = (allowedTimeZones: string[]) =>
         .number()
         .min(0, "Notice hours must be 0 or greater")
         .optional(),
+      reschedule_penalty_enabled: z.boolean(),
       reschedule_fee_percent: z.number().min(0).max(100).optional(),
       maximum_notice: z.number().min(0),
       minimum_notice: z.number().min(0),
@@ -146,10 +147,14 @@ export const baseBookingSettingsSchema = (allowedTimeZones: string[]) =>
             path: ["reschedule_notice_hours"],
           });
         }
-        if (data.reschedule_fee_percent === undefined) {
+        // Validate fee percentage when late rescheduling is enabled
+        if (
+          data.reschedule_penalty_enabled &&
+          data.reschedule_fee_percent === undefined
+        ) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Please specify the reschedule fee percentage",
+            message: "Please specify the late reschedule fee percentage",
             path: ["reschedule_fee_percent"],
           });
         }

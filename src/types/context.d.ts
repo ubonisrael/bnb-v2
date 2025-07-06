@@ -85,6 +85,7 @@ interface UserSettings {
     auto_generate_reschedule_policy: boolean;
     auto_generate_no_show_policy: boolean;
     absorb_service_charge: boolean;
+    reschedule_penalty_enabled: boolean;
   };
   template: {
     templateType: string;

@@ -59,6 +59,7 @@ export function BookingSettingsForm({
     "auto_generate_reschedule_policy"
   );
   const watchAutoGenerateNoShow = form.watch("auto_generate_no_show_policy");
+  const watchReschedulePenalty = form.watch("reschedule_penalty_enabled");
 
   const getPreviewPolicies = (type: typeof previewType) => {
     if (!type) return [];
@@ -554,6 +555,9 @@ export function BookingSettingsForm({
             Preview Policies
           </Button>
         </div>
+      </div>
+
+      <div className="space-y-1 md:space-y-2">
         <FormField
           control={form.control}
           name="reschedule_allowed"
@@ -576,9 +580,6 @@ export function BookingSettingsForm({
             </FormItem>
           )}
         />
-      </div>
-
-      <div className="space-y-1 md:space-y-2">
         {watchRescheduleAllowed && (
           <>
             <FormField
@@ -667,36 +668,62 @@ export function BookingSettingsForm({
             />
             <FormField
               control={form.control}
-              name="reschedule_fee_percent"
-              disabled={!watchRescheduleAllowed}
+              name="reschedule_penalty_enabled"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Reschedule Fee (%)</FormLabel>
+                <FormItem className="flex items-center justify-between space-y-0 border p-3 rounded-lg">
+                  <div className="space-y-0.5">
+                    <FormLabel>Allow Late Rescheduling</FormLabel>
+                    <FormDescription>
+                      Enable this to allow rescheduling after the notice period has
+                      passed. If disabled, customers must place a new booking
+                      instead.
+                    </FormDescription>
+                  </div>
                   <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="e.g. 30"
-                      {...field}
-                      value={
-                        field.value ? field.value : field.value === 0 ? "0" : ""
-                      }
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(Number(value));
-                        if (value.startsWith("0") && value !== "0") {
-                          e.target.value = value.replace(/^0+/, "");
-                        }
-                      }}
+                    <Switch
+                      name="reschedule_penalty_enabled"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
                     />
                   </FormControl>
-                  <FormDescription>
-                    Set the percentage of the booking fee charged as
-                    rescheduling penalty
-                  </FormDescription>
-                  <FormMessage />
                 </FormItem>
               )}
             />
+
+            {watchReschedulePenalty && (
+              <FormField
+                control={form.control}
+                name="reschedule_fee_percent"
+                disabled={!watchReschedulePenalty}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Late Reschedule Fee (%)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="e.g. 30"
+                        {...field}
+                        value={
+                          field.value ? field.value : field.value === 0 ? "0" : ""
+                        }
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(Number(value));
+                          if (value.startsWith("0") && value !== "0") {
+                            e.target.value = value.replace(/^0+/, "");
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Set the percentage of the booking fee charged as penalty for
+                      rescheduling after the notice period has passed
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
           </>
         )}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
