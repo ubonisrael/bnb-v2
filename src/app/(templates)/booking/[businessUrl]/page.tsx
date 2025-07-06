@@ -488,6 +488,7 @@ const businessData: BusinessDataResponse = {
     },
   ],
   absorbServiceCharge: false,
+  cancellationAllowed: true,
 };
 
 async function getServiceProviderDetails(url: string) {

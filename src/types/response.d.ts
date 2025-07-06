@@ -363,6 +363,7 @@ export interface Review {
 }
 
 interface BusinessDataResponse {
+  cancellationAllowed: boolean;
   absorbServiceCharge: boolean;
   currencySymbol: string;
   bUrl: string;
