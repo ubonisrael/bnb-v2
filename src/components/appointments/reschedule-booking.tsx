@@ -89,7 +89,7 @@ export default function RescheduleBookingClient({
 
   // rescheduling is allowed when the rescheduleOptions.allowed is true
   // and if the deadline has passed and rescheduleOptions.penaltyEnabled is true
-  const isReschedulingAllowed = isPenaltyApplicable ? rescheduleOptions.penaltyEnabled : rescheduleOptions.allowed
+  const isReschedulingAllowed = isPenaltyApplicable ? rescheduleOptions.penaltyEnabled && rescheduleOptions.allowed : rescheduleOptions.allowed
 
   return (
     <div className="w-full">
