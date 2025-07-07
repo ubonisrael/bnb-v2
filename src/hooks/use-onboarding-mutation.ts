@@ -76,6 +76,7 @@ export function useOnboardingMutation() {
         saturday_closing: data.bookingSettings.saturday_closing,
         time_slot_duration: data.bookingSettings.time_slot_duration,
         absorb_service_charge: data.bookingSettings.absorb_service_charge,
+        reschedule_penalty_enabled: data.bookingSettings.reschedule_penalty_enabled,
         break_times: data.bookingSettings.break_times,
         special_off_days: data.bookingSettings.special_off_days,
         custom_policies: data.bookingSettings.custom_policies,

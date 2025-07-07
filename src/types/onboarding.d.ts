@@ -54,6 +54,7 @@ interface NotificationSettingsData {
 }
 
 interface BookingSettingsData {
+  reschedule_penalty_enabled: boolean;
   auto_generate_deposit_policy: boolean;
   auto_generate_cancellation_policy: boolean;
   auto_generate_reschedule_policy: boolean;

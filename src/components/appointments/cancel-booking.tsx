@@ -24,12 +24,14 @@ import { BookingData, CancellationSettings } from "@/types/response";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import LocalizedFormat from "dayjs/plugin/localizedFormat";
 import { minutesToTimeString } from "@/utils/time";
 import { CountdownTimer } from "@/components/ui/countdown-timer";
 import { Textarea } from "../ui/textarea";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+dayjs.extend(LocalizedFormat);
 
 export const emailFormSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -72,7 +74,8 @@ export default function CancelBookingClient({
   });
 
   const eventDate = dayjs(booking.event_date).tz(dayjs.tz.guess());
-  const deadlineDate = eventDate.subtract(setting.noticeHours, "hour");
+  // setting.noticeHours is actually in minutes
+  const deadlineDate = eventDate.subtract(setting.noticeHours, "minute");
   const [isPenaltyApplicable, setIsPenaltyApplicable] = useState(
     dayjs().isAfter(deadlineDate)
   );
@@ -159,15 +162,21 @@ export default function CancelBookingClient({
                     <div className="mb-4">
                       {!setting.allowed ? (
                         <div className="bg-red-100 text-red-800 p-4 rounded-lg mb-4">
-                          Cancellation is not allowed for this appointment.
+                          Deposits and amount paid will not be refunded for this
+                          appointment if cancelled.
                         </div>
                       ) : setting.feePercent === 0 ||
                         setting.noticeHours === 0 ? (
                         <div className="bg-green-100 text-green-800 p-4 rounded-lg mb-4">
-                          You can cancel this appointment for a full refund.
+                          You can cancel this appointment before{" "}
+                          {deadlineDate.format("LLLL")} for a full refund.
                         </div>
                       ) : (
                         <>
+                          <p className="bg-green-100 text-green-800 p-4 rounded-lg mb-4">
+                            You can cancel this appointment before{" "}
+                            {deadlineDate.format("LLLL")} to avoid fees.
+                          </p>
                           <div className="flex flex-col items-center bg-white p-4 rounded-lg mb-4">
                             <p className="mb-2 text-center">
                               <strong className="font-medium">
@@ -236,9 +245,7 @@ export default function CancelBookingClient({
                               Reason for cancellation (optional)
                             </FormLabel>
                             <FormControl>
-                              <Textarea
-                                {...field}
-                              />
+                              <Textarea {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -315,7 +322,7 @@ export default function CancelBookingClient({
                         )}
                       />
                       <Button type="submit" className="self-end">
-                        Send OTP
+                        Request OTP
                       </Button>
                     </form>
                   </Form>

@@ -19,13 +19,6 @@ import {
   FormMessage,
 } from "./ui/form";
 import { Input } from "./ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -71,6 +64,7 @@ export const bookingSchema = z.object({
 export type BookingType = z.infer<typeof bookingSchema>;
 
 interface BookingFormProps {
+  cancellationAllowed: boolean;
   absorbServiceCharge: boolean;
   policies: PolicyData[];
   customPolicies: CustomPolicy[];
@@ -94,8 +88,9 @@ const BookingForm = ({
   setShowBookingModal,
   onSubmit,
   absorbServiceCharge = false,
+  cancellationAllowed,
 }: BookingFormProps) => {
-  const [TandCagreed, setTandCagreed] = useState(false);
+  const [continueBooking, setContinueBooking] = useState(false);
   const policyTypes = Array.from(new Set(policies.map((p) => p.type)));
   const form = useForm<z.infer<typeof bookingSchema>>({
     resolver: zodResolver(bookingSchema),
@@ -109,7 +104,7 @@ const BookingForm = ({
     },
   });
 
-  const initialAmount = allowDeposits && depositAmount ? depositAmount : amount
+  const initialAmount = allowDeposits && depositAmount ? depositAmount : amount;
   const applicationFeeInCents = Math.max(100, initialAmount * 2.9 + 80);
   const { amount: finalAmount, serviceCharge } = amountToBePaid(
     absorbServiceCharge,
@@ -122,7 +117,7 @@ const BookingForm = ({
       <DialogTrigger asChild>
         <Button className="w-full py-3 px-4">Schedule Appointment</Button>
       </DialogTrigger>
-      {TandCagreed ? (
+      {continueBooking ? (
         <DialogContent className="sm:max-w-[600px] overflow-y-auto max-h-screen">
           <DialogHeader>
             <DialogTitle>Enter your details</DialogTitle>
@@ -272,11 +267,18 @@ const BookingForm = ({
                     {finalAmount.toFixed(2)}
                   </span>
                 </div>
-                <p className="text-sm italic text-muted-foreground">
-                  The service charge of {currencySymbol}
-                  {serviceCharge.toFixed(2)} is{" "}
-                  <span className="font-medium">non-refundable</span>.
-                </p>
+                {cancellationAllowed ? (
+                  <p className="text-sm italic text-muted-foreground">
+                    The service charge of {currencySymbol}
+                    {serviceCharge.toFixed(2)} is{" "}
+                    <span className="font-medium">non-refundable</span>.
+                  </p>
+                ) : (
+                  <p className="text-sm italic text-muted-foreground">
+                    This payment is{" "}
+                    <span className="font-medium">non-refundable</span>.
+                  </p>
+                )}
               </div>
 
               <div className="rounded-md bg-yellow-50 p-4 mb-4">
@@ -337,16 +339,29 @@ const BookingForm = ({
               />
 
               <DialogFooter className="flex flex-col-reverse md:flex-row md:items-center md:justify-between gap-2 md:gap-0 mt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    form.reset();
-                    setShowBookingModal(false);
-                  }}
-                >
-                  Cancel
-                </Button>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-4">
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => {
+                      form.reset();
+                      setShowBookingModal(false);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  {continueBooking && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setContinueBooking(false);
+                      }}
+                    >
+                      Back
+                    </Button>
+                  )}
+                </div>
                 <Button type="submit">Make appointment</Button>
               </DialogFooter>
             </form>
@@ -362,7 +377,7 @@ const BookingForm = ({
             {policyTypes.map((policyType, i) => (
               <div key={`${i}-${policyType}`} className="space-y-2">
                 <h3 className="capitalize">{policyType}</h3>
-                <ul className="list-disc list-inside space-y-1">
+                <ul className="space-y-1">
                   {policies
                     .filter((policy) => policy.type === policyType)
                     .map(({ policy }, i) => (
@@ -374,7 +389,7 @@ const BookingForm = ({
             {customPolicies.map((policy, i) => (
               <div className="" key={`custom-policy-${i}`}>
                 <h3>{policy.title}</h3>
-                <ul>
+                <ul className="space-y-1">
                   {policy.policies.map((p, j) => (
                     <li key={`custom-policy-${i}-policy-${j}`}>{p}</li>
                   ))}
@@ -385,7 +400,7 @@ const BookingForm = ({
           <DialogFooter className="flex flex-col-reverse md:flex-row md:items-center md:justify-between gap-2 md:gap-0 mt-4">
             <Button
               type="button"
-              variant="outline"
+              variant="destructive"
               onClick={() => {
                 form.reset();
                 setShowBookingModal(false);
@@ -393,7 +408,7 @@ const BookingForm = ({
             >
               Cancel
             </Button>
-            <Button onClick={() => setTandCagreed(true)} type="button">
+            <Button onClick={() => setContinueBooking(true)} type="button">
               Continue
             </Button>
           </DialogFooter>

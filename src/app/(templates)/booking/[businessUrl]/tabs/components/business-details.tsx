@@ -180,7 +180,7 @@ export default function BusinessDetails({
                 {policyTypes.map((policyType) => (
                   <div>
                     <h3 className="capitalize">{policyType}</h3>
-                    <ul className="list-disc list-inside space-y-1">
+                    <ul className="space-y-1">
                       {businessData.bookingPolicy
                         .filter((policy) => policy.type === policyType)
                         .map(({ policy }, i) => (
@@ -192,7 +192,7 @@ export default function BusinessDetails({
                 {businessData.customPolicies.map((policy, i) => (
                   <div className="" key={`custom-policy-${i}`}>
                     <h3>{policy.title}</h3>
-                    <ul>
+                    <ul className="space-y-1">
                       {policy.policies.map((p, j) => (
                         <li key={`custom-policy-${i}-policy-${j}`}>{p}</li>
                       ))}

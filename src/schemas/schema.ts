@@ -35,23 +35,27 @@ export const baseBookingSettingsSchema = (allowedTimeZones: string[]) =>
             "Please specify a deposit amount when deposits are allowed",
           invalid_type_error: "Deposit amount must be a valid number",
         })
+        .int()
         .min(5)
         .optional(),
       cancellation_allowed: z.boolean(),
       cancellation_notice_hours: z
         .number()
+        .int()
         .min(0, "Notice hours must be 0 or greater")
         .optional(),
-      cancellation_fee_percent: z.number().min(0).max(100).optional(),
-      no_show_fee_percent: z.number().min(0).max(100),
+      cancellation_fee_percent: z.number().int().min(0).max(100).optional(),
+      no_show_fee_percent: z.number().int().min(0).max(100),
       reschedule_allowed: z.boolean(),
       reschedule_notice_hours: z
         .number()
+        .int()
         .min(0, "Notice hours must be 0 or greater")
         .optional(),
-      reschedule_fee_percent: z.number().min(0).max(100).optional(),
-      maximum_notice: z.number().min(0),
-      minimum_notice: z.number().min(0),
+      reschedule_penalty_enabled: z.boolean(),
+      reschedule_fee_percent: z.number().int().min(0).max(100).optional(),
+      maximum_notice: z.number().int().min(0),
+      minimum_notice: z.number().int().min(0),
       time_zone: z
         .string()
         .min(2)
@@ -146,10 +150,14 @@ export const baseBookingSettingsSchema = (allowedTimeZones: string[]) =>
             path: ["reschedule_notice_hours"],
           });
         }
-        if (data.reschedule_fee_percent === undefined) {
+        // Validate fee percentage when late rescheduling is enabled
+        if (
+          data.reschedule_penalty_enabled &&
+          data.reschedule_fee_percent === undefined
+        ) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Please specify the reschedule fee percentage",
+            message: "Please specify the late reschedule fee percentage",
             path: ["reschedule_fee_percent"],
           });
         }

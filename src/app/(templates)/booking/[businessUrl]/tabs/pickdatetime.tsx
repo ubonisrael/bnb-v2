@@ -5,12 +5,16 @@ import Cart from "@/components/templates/default/Cart";
 import TimeSlots from "@/components/templates/default/TimeSlots";
 import { Button } from "@/components/templates/default/ui/button";
 import { useApp } from "@/contexts/AppContext";
-import { convertTimeSlotsToUserLocalTime, minutesToTimeString } from "@/utils/time";
+import {
+  convertTimeSlotsToUserLocalTime,
+  minutesToTimeString,
+} from "@/utils/time";
 import { ArrowLeft, Home } from "lucide-react";
 import React from "react";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import { WaitlistTrigger } from "@/components/ui/waitlist-trigger";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -44,7 +48,7 @@ export const DateTimePickerTab = ({
     selectedTime,
     setSelectedTime,
     getTotalDuration,
-    selectedServices
+    selectedServices,
   } = useApp();
   const timezone = dayjs.tz.guess();
   const clientOffset = dayjs().tz(timezone).utcOffset();
@@ -97,6 +101,16 @@ export const DateTimePickerTab = ({
               selectedServices={selectedServices}
               totalDuration={getTotalDuration()}
             />
+            {selectedDate && (
+              <div className="mt-4">
+                <WaitlistTrigger
+                  url={bUrl}
+                  selectedDate={selectedDate}
+                  selectedServices={selectedServices}
+                  totalDuration={getTotalDuration()}
+                />
+              </div>
+            )}
           </div>
 
           {/* Right Column: Cart and Appointment Details (2/5 width) */}
@@ -168,7 +182,13 @@ export const DateTimePickerTab = ({
                         </p>
                         {selectedTime ? (
                           <p className="font-medium text-gray-900 dark:text-white">
-                            {minutesToTimeString(convertTimeSlotsToUserLocalTime(selectedTime, clientOffset, utcOffset))}
+                            {minutesToTimeString(
+                              convertTimeSlotsToUserLocalTime(
+                                selectedTime,
+                                clientOffset,
+                                utcOffset
+                              )
+                            )}
                           </p>
                         ) : (
                           <p className="text-gray-500 dark:text-gray-400 italic">

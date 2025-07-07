@@ -310,6 +310,7 @@ interface CancellationSettings {
 }
 
 interface ReschedulingOptions extends CancellationSettings {
+  penaltyEnabled: boolean;
   minNotice: number;
   maxNotice: number;
   utcOffset: number;
@@ -363,6 +364,7 @@ export interface Review {
 }
 
 interface BusinessDataResponse {
+  cancellationAllowed: boolean;
   absorbServiceCharge: boolean;
   currencySymbol: string;
   bUrl: string;

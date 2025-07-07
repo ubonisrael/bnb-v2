@@ -16,6 +16,7 @@ export type AppStep = "home" | "services" | "datetime" | "confirmation";
 type AppContextType = {
   selectedServices: ServiceFrontend[];
   addService: (service: ServiceFrontend) => void;
+  addServices: (services: ServiceFrontend[]) => void;
   removeService: (serviceId: string) => void;
   selectedDate: string | null;
   setSelectedDate: (date: string | null) => void;
@@ -49,6 +50,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const addServices = (services: ServiceFrontend[]) => {
+    setSelectedServices([...services])
+  }
+
   const removeService = (serviceId: string) => {
     setSelectedServices((prev = []) =>
       prev.filter((service) => service.id !== serviceId)
@@ -74,6 +79,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       value={{
         selectedServices,
         addService,
+        addServices,
         removeService,
         selectedDate,
         setSelectedDate,

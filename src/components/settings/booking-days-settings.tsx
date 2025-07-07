@@ -27,6 +27,7 @@ export function BookingDaysSettings() {
     mode: "all",
     resolver: zodResolver(bookingSettingsSchema),
     defaultValues: {
+      reschedule_penalty_enabled: settings?.bookingSettings.reschedule_penalty_enabled || false,
       absorb_service_charge:
         settings?.bookingSettings?.absorb_service_charge || false,
       welcome_message: settings?.bookingSettings?.welcome_message || "",
@@ -150,7 +151,7 @@ export function BookingDaysSettings() {
   return (
     <>
       {isDirty && <UnsavedChangesBanner form={form} />}
-      <Form {...form}>
+      <Form key="dashboard-booking-setting-form" {...form}>
         <form
           ref={formRef}
           onSubmit={form.handleSubmit(onSubmit, onError)}

@@ -50,6 +50,7 @@ export function OnboardingWizard() {
         aboutUs: "",
       },
       bookingSettings: {
+        reschedule_penalty_enabled: false,
         auto_generate_deposit_policy: true,
         auto_generate_cancellation_policy: true,
         auto_generate_reschedule_policy: true,
@@ -159,6 +160,7 @@ export function OnboardingWizard() {
             aboutUs: "",
           },
           bookingSettings: {
+            reschedule_penalty_enabled: false,
             auto_generate_deposit_policy: true,
             auto_generate_cancellation_policy: true,
             auto_generate_reschedule_policy: true,

@@ -10,6 +10,7 @@ import {
   BookingResponse,
   BusinessDataResponse,
   ErrorResponse,
+  ServiceFrontend,
 } from "@/types/response";
 import toast from "react-hot-toast";
 import api from "@/services/api-service";
@@ -19,6 +20,7 @@ import timezone from "dayjs/plugin/timezone";
 import { BusinessLanding } from "./tabs/landing";
 import { ServicesTab } from "./tabs/services";
 import { DateTimePickerTab } from "./tabs/pickdatetime";
+import { usePathname, useRouter } from "next/navigation";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -44,9 +46,12 @@ const steps = [
 
 export function BookingWizard(props: BusinessDataResponse) {
   const {
+    addServices,
     selectedServices,
     getTotalDuration,
     getTotalPrice,
+    setSelectedDate,
+    setSelectedTime,
     selectedDate,
     selectedTime,
     resetBooking,
@@ -54,6 +59,9 @@ export function BookingWizard(props: BusinessDataResponse) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+
+  const router = useRouter()
+  const pathname = usePathname()
 
   const currentStep = steps[currentStepIndex];
 
@@ -112,6 +120,48 @@ export function BookingWizard(props: BusinessDataResponse) {
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
+    // check for info in URL
+    const event_date = searchParams.get("event_date");
+    const event_time = searchParams.get("event_time");
+    const service_ids = searchParams.get("service_ids");
+
+    let step = 0;
+
+    if (service_ids) {
+      // Parse and set the service IDs
+      const parsedServiceIds = service_ids
+        .split(",")
+        .map((id) => Number(id.trim()));
+      // add services to context
+      const services: ServiceFrontend[] = [];
+      props.serviceCategories.forEach((category) => {
+        category.services.forEach((service) => {
+          if (parsedServiceIds.includes(Number(service.id))) {
+            services.push({
+              ...service,
+            });
+          }
+        });
+      });
+      addServices(services);
+      step = 2;
+      searchParams.delete("service_ids");
+      if (event_date && event_time) {
+        // Set selected date and time
+        const date = dayjs(event_date).format("YYYY-MM-DD");
+        const time = parseInt(event_time, 10);
+        // Set the selected date and time in context
+        setSelectedDate(date);
+        setSelectedTime(time);
+
+        searchParams.delete("event_date");
+        searchParams.delete("event_time");
+      }
+      setCurrentStepIndex(step);
+      if (step) router.replace(pathname);
+    }
+
+    // Check for cancellation status in URL
     const status = searchParams.get("status");
     const productId = searchParams.get("productId");
     const productType = searchParams.get("productType");
@@ -160,6 +210,7 @@ export function BookingWizard(props: BusinessDataResponse) {
         {/* Booking Form Modal */}
         {showBookingModal && selectedDate && selectedTime && (
           <BookingForm
+          cancellationAllowed={props.cancellationAllowed}
             absorbServiceCharge={props.absorbServiceCharge}
             policies={props.bookingPolicy}
             customPolicies={props.customPolicies}
