@@ -7,6 +7,7 @@ import { Header } from "@/components/dashboard/header";
 import { UserSettingsProvider } from "@/contexts/UserSettingsContext";
 import api, { getCsrfTokenFromCookie } from "@/services/api-service";
 import { InfoBar } from "@/components/dashboard/info-bar";
+import { SupportModalTrigger } from "@/components/ui/support-modal-trigger";
 
 function CSRFInitializer() {
   useEffect(() => {
@@ -74,12 +75,15 @@ export default function DashboardLayout({
       <div className="flex min-h-screen">
         <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
         <div
-          className={`flex flex-1 flex-col transition-all duration-300 ${collapsed ? "md:ml-16" : "md:ml-64"}`}
+          className={`flex flex-1 flex-col transition-all duration-300 ${
+            collapsed ? "md:ml-16" : "md:ml-64"
+          }`}
         >
           <Header />
           <InfoBar />
           <main className="flex-1 p-6">{children}</main>
         </div>
+        <SupportModalTrigger />
       </div>
     </UserSettingsProvider>
   );
