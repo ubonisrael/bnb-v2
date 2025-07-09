@@ -34,12 +34,12 @@ const supportFormSchema = z.object({
   message: z.string().min(1, "Message is required"),
 });
 
-  const defaultSupportFormValues = {
-    name: "",
-    email: "",
-    subject: "",
-    message: "",
-  };
+const defaultSupportFormValues = {
+  name: "",
+  email: "",
+  subject: "",
+  message: "",
+};
 
 type SupportFormData = z.infer<typeof supportFormSchema>;
 
@@ -48,11 +48,8 @@ interface SupportModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function SupportModal({
-  open,
-  onOpenChange,
-}: SupportModalProps) {
-  const [isSuccess, setIsSuccess] = useState(false);
+export function SupportModal({ open, onOpenChange }: SupportModalProps) {
+  const [isSuccess, setIsSuccess] = useState({ status: false, message: "" });
 
   const form = useForm<SupportFormData>({
     mode: "all",
@@ -80,7 +77,7 @@ export function SupportModal({
       const signal = controller.signal;
 
       try {
-        const response = await api.post(
+        const response = await api.post<{ message: string }>(
           "customer-support",
           {
             ...values,
@@ -104,7 +101,7 @@ export function SupportModal({
       toast.success("Message has been sent successfully", {
         id: "support-message-send",
       });
-      setIsSuccess(true);
+      setIsSuccess({ status: true, message: response.message });
       // reset form after successful save
       form.reset(defaultSupportFormValues);
     },
@@ -136,9 +133,9 @@ export function SupportModal({
           <DialogTitle>Contact Support</DialogTitle>
         </DialogHeader>
 
-        {isSuccess ? (
+        {isSuccess.status ? (
           <div className="text-center text-green-600">
-            <p>Thank you for your message! We'll get back to you soon.</p>
+            <p>{isSuccess.message || "Thank you for your message! We'll get back to you soon."}</p>
           </div>
         ) : (
           <Form {...form}>
