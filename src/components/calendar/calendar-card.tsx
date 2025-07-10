@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
-import { MoreHorizontal } from "lucide-react";
+import { AtSign, MoreHorizontal, Phone } from "lucide-react";
 import { useUserSettings } from "@/contexts/UserSettingsContext";
 
 dayjs.extend(utc);
@@ -29,13 +29,13 @@ export default function CalendarCard({
   setAppointment,
   timeSlots,
   timezone,
-  view
+  view,
 }: {
   appointment: BookingsResponse;
   setAppointment: Dispatch<SetStateAction<AppointmentProps | null>>;
   timeSlots: string[];
   timezone: string;
-  view: 'day' | 'week'
+  view: "day" | "week";
 }) {
   const { settings } = useUserSettings();
   const date = dayjs(appointment.event_date).tz(timezone || "UTC");
@@ -65,48 +65,61 @@ export default function CalendarCard({
             {appointment.Customer?.name}
           </div>
           <div className="text-sm text-[#121212]">
-            {appointment.Customer?.email}
+            <p className="flex items-center gap-2">
+              <AtSign /> {appointment.Customer?.email}
+            </p>
+          </div>
+          <div className="text-sm text-[#121212]">
+            <p className="flex items-center gap-2">
+              <Phone /> {appointment.Customer?.phone || "N/A"}
+            </p>
           </div>
           {appointment.dns && (
             <Badge className="w-12 bg-red-400 text-white">DNS</Badge>
           )}
         </div>
-        { view === 'day' && (
+        {view === "day" && (
           <DropdownMenu>
-          <DropdownMenuTrigger className="absolute top-0 right-0" asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 rounded-full hover:bg-black/5"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              disabled={appointment.dns}
-              onClick={() => setAppointment({ data: appointment, type: 'cancel'})}
-            >
-              Cancel
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              disabled={appointment.dns}
-              onClick={() => setAppointment({ data: appointment, type: 'reschedule'})}
-            >
-              Reschedule
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              disabled={appointment.dns}
-              onClick={() => setAppointment({ data: appointment, type: 'dns'})}
-            >
-              Mark as DNS
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            <DropdownMenuTrigger className="absolute top-0 right-0" asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 rounded-full hover:bg-black/5"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                disabled={appointment.dns}
+                onClick={() =>
+                  setAppointment({ data: appointment, type: "cancel" })
+                }
+              >
+                Cancel
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                disabled={appointment.dns}
+                onClick={() =>
+                  setAppointment({ data: appointment, type: "reschedule" })
+                }
+              >
+                Reschedule
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                disabled={appointment.dns}
+                onClick={() =>
+                  setAppointment({ data: appointment, type: "dns" })
+                }
+              >
+                Mark as DNS
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
       <div className="mt-1 md:mt-2 text-sm text-[#121212]">
