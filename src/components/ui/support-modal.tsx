@@ -125,6 +125,7 @@ export function SupportModal({ open, onOpenChange }: SupportModalProps) {
       open={open}
       onOpenChange={(e) => {
         form.reset(defaultSupportFormValues);
+        setIsSuccess({ status: false, message: "" });
         onOpenChange(e);
       }}
     >
