@@ -141,6 +141,7 @@ interface BookingsResponse extends Service {
   Customer: {
     name: string;
     email: string;
+    phone: string;
   };
   service_ids: string[];
   event_date: string;

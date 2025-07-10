@@ -19,6 +19,7 @@ import { useMutation } from "@tanstack/react-query";
 import { ErrorResponse } from "react-router-dom";
 import api from "@/services/api-service";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 const formSchema = z
   .object({
@@ -33,7 +34,7 @@ const formSchema = z
 type ResetPasswordFormValues = z.infer<typeof formSchema>;
 
 export default function ResetPasswordForm() {
-  const [loading, setLoading] = useState(false);
+  const [response, setResponse] = useState({ status: false, message: "" });
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
@@ -44,7 +45,6 @@ export default function ResetPasswordForm() {
       confirmPassword: "",
     },
   });
-  const router = useRouter()
 
   const resetPasswordMutation = useMutation<
     { status: boolean; message: string },
@@ -55,9 +55,9 @@ export default function ResetPasswordForm() {
       return api.post("auth/password-reset", data);
     },
     onSuccess: (data) => {
-      toast.success(data.message, { id: "reset-password" });
+      toast.dismiss("reset-password");
+      setResponse({ status: true, message: data.message });
       form.reset();
-      router.push("/auth/login");
     },
     onError: (error: any) => {
       toast.error(error.message, { id: "reset-password" });
@@ -70,64 +70,88 @@ export default function ResetPasswordForm() {
       return;
     }
 
-    setLoading(true);
     try {
       resetPasswordMutation.mutate({ ...values, token });
     } catch (err: any) {
       toast.error(err.message || "Failed to reset password");
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-4 max-w-sm mx-auto"
-      >
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>New Password</FormLabel>
-              <FormControl>
-                <Input
-                  type="password"
-                  placeholder="Enter new password"
-                  {...field}
-                  disabled={loading}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+    <>
+      {response.status ? (
+        <div className="p-4 mb-4">
+          <p className="p-4 text-center text-green-600 bg-green-50">
+            {response.message}
+          </p>
+          <Link
+            href="/auth/login"
+            className="block mt-4 text-center text-blue-600 hover:underline"
+          >
+            Go to Login
+          </Link>
+        </div>
+      ) : (
+        <Form {...form}>
+          {!response.status && response.message && (
+            <p className="p-4 mb-4 text-center text-red-600 bg-red-50">
+              {response.message}
+            </p>
           )}
-        />
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 max-w-sm mx-auto"
+          >
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>New Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="Enter new password"
+                      {...field}
+                      disabled={resetPasswordMutation.isPending}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <FormField
-          control={form.control}
-          name="confirmPassword"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Confirm Password</FormLabel>
-              <FormControl>
-                <Input
-                  type="password"
-                  placeholder="Confirm new password"
-                  {...field}
-                  disabled={loading}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="Confirm new password"
+                      {...field}
+                      disabled={resetPasswordMutation.isPending}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <Button type="submit" disabled={loading} className="w-full">
-          {loading ? "Resetting..." : "Reset Password"}
-        </Button>
-      </form>
-    </Form>
+            <Button
+              type="submit"
+              disabled={resetPasswordMutation.isPending}
+              className="w-full"
+            >
+              {resetPasswordMutation.isPending
+                ? "Resetting..."
+                : "Reset Password"}
+            </Button>
+          </form>
+        </Form>
+      )}
+    </>
   );
 }

@@ -12,6 +12,8 @@ import {
   TrendingUp,
   TrendingDown,
   PoundSterling,
+  Mail,
+  Phone,
 } from "lucide-react";
 import {
   Card,
@@ -312,7 +314,9 @@ export default function DashboardPage() {
                 ))
               ) : analytics && analytics.todaysBookings.length ? (
                 analytics.todaysBookings.map((b: any) => {
-                  const date = dayjs(b.event_date).tz(analytics.timezone || "UTC");
+                  const date = dayjs(b.event_date).tz(
+                    analytics.timezone || "UTC"
+                  );
                   return (
                     <div
                       key={b.id}
@@ -326,8 +330,22 @@ export default function DashboardPage() {
                           <div className="font-medium text-[#121212]">
                             {b.Customer.name}
                           </div>
+
                           <div className="text-sm text-[#121212]">
-                            {b.Customer.email}
+                            <p className="flex items-center gap-2">
+                              <Mail size={16} />{" "}
+                              <span className="inline-block text-ellipsis overflow-hidden">
+                                {b.Customer?.email}
+                              </span>
+                            </p>
+                          </div>
+                          <div className="text-sm text-[#121212]">
+                            <p className="flex items-center gap-2">
+                              <Phone size={16} />{" "}
+                              <span className="inline-block">
+                                {b.Customer?.phone || "N/A"}
+                              </span>
+                            </p>
                           </div>
                         </div>
                       </div>

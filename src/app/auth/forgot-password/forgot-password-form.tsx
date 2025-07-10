@@ -26,7 +26,7 @@ const formSchema = z.object({
 type ForgotPasswordFormValues = z.infer<typeof formSchema>;
 
 export default function ForgotPasswordForm() {
-  const [loading, setLoading] = useState(false);
+  const [response, setResponse] = useState({ status: false, message: "" });
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -43,53 +43,81 @@ export default function ForgotPasswordForm() {
       return api.post("auth/forgot-password", data);
     },
     onSuccess: (data) => {
-      toast.success(data.message, { id: "forgot-password" });
+      toast.dismiss("forgot-password");
+      setResponse({ status: true, message: data.message });
       form.reset();
     },
     onError: (error: any) => {
-      toast.error(error.message, { id: "forgot-password" });
+      setResponse({ status: false, message: error.response.data.message });
     },
   });
 
   const onSubmit = async (values: ForgotPasswordFormValues) => {
-    setLoading(true);
     try {
       forgotPasswordMutation.mutate(values);
     } catch (err: any) {
       toast.error(err.message || "Failed to send password reset email");
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-4 max-w-sm mx-auto"
-      >
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email address</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="you@example.com"
-                  {...field}
-                  disabled={loading}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+    <>
+      {response.status ? (
+        <div>
+          <p className="p-4 mb-4 text-center text-green-600 bg-green-50">
+            {response.message}
+          </p>
+          <p>
+            Have not received the email?{" "}
+            <span
+              onClick={() => setResponse({ status: false, message: "" })}
+              className="text-blue-600 hover:underline"
+            >
+              Request another
+            </span>
+          </p>
+        </div>
+      ) : (
+        <Form {...form}>
+          {!response.status && response.message && (
+            <p className="p-4 mb-4 text-center text-red-600 bg-red-50">
+              {response.message}
+            </p>
           )}
-        />
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 max-w-sm mx-auto"
+          >
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email address</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="you@example.com"
+                      {...field}
+                      disabled={forgotPasswordMutation.isPending}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <Button type="submit" disabled={loading} className="w-full">
-          {loading ? "Sending..." : "Request Password Reset"}
-        </Button>
-      </form>
-    </Form>
+            <Button
+              type="submit"
+              disabled={forgotPasswordMutation.isPending}
+              className="w-full"
+            >
+              {forgotPasswordMutation.isPending
+                ? "Sending..."
+                : "Request Password Reset"}
+            </Button>
+          </form>
+        </Form>
+      )}
+    </>
   );
 }
