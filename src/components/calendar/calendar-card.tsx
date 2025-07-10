@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
-import { AtSign, MoreHorizontal, Phone } from "lucide-react";
+import { ClipboardList, Mail, MoreHorizontal, Phone } from "lucide-react";
 import { useUserSettings } from "@/contexts/UserSettingsContext";
 
 dayjs.extend(utc);
@@ -66,12 +66,18 @@ export default function CalendarCard({
           </div>
           <div className="text-sm text-[#121212]">
             <p className="flex items-center gap-2">
-              <AtSign /> {appointment.Customer?.email}
+              <Mail size={16} />{" "}
+              <span className="inline-block text-ellipsis overflow-hidden">
+                {appointment.Customer?.email}
+              </span>
             </p>
           </div>
           <div className="text-sm text-[#121212]">
             <p className="flex items-center gap-2">
-              <Phone /> {appointment.Customer?.phone || "N/A"}
+              <Phone size={16} />{" "}
+              <span className="inline-block">
+                {appointment.Customer?.phone || "N/A"}
+              </span>
             </p>
           </div>
           {appointment.dns && (
@@ -123,14 +129,19 @@ export default function CalendarCard({
         )}
       </div>
       <div className="mt-1 md:mt-2 text-sm text-[#121212]">
-        {appointment.service_ids
-          .map((s: string) => {
-            const service = settings?.services.find(
-              (service: Service) => Number(service.id) === Number(s)
-            );
-            return service?.name;
-          })
-          .join(", ")}
+        <p className="flex items-center gap-2">
+          <ClipboardList size={16} />{" "}
+          <span className="inline-block">
+            {appointment.service_ids
+              .map((s: string) => {
+                const service = settings?.services.find(
+                  (service: Service) => Number(service.id) === Number(s)
+                );
+                return service?.name;
+              })
+              .join(", ")}
+          </span>
+        </p>
       </div>
       <div className="text-xs text-[#6E6E73]">
         {startTime} - {endTime}
