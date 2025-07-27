@@ -1,0 +1,20 @@
+# Node modules
+node_modules
+
+# Next.js build output
+.next
+
+# Git directory
+.git
+
+# Docker files
+Dockerfile.dev
+Dockerfile.prod
+.dockerignore
+
+# VSCode settings
+.vscode
+
+# Log files
+npm-debug.log*
+*.log
