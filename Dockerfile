@@ -1,7 +1,13 @@
 # Dockerfile for Production with PM2
 
 # Stage 1: Build the application
-FROM node:24-alpine AS builder
+FROM node:24 AS builder
+
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+ && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
 WORKDIR /app
@@ -19,7 +25,13 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Create the production image
-FROM node:24-alpine
+FROM node:24
+
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+ && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
 WORKDIR /app

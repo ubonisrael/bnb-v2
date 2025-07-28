@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 
 export const getCsrfTokenFromCookie = () => {
   if (typeof document === "undefined") {
-    return null
+    return null;
   }
   const match = document.cookie.match(/(^| )csrfToken=([^;]+)/);
   return match ? decodeURIComponent(match[2]) : null;
@@ -24,8 +24,7 @@ class ApiService {
 
   constructor() {
     this.baseUrl =
-      process.env.NEXT_PUBLIC_API_URL ||
-      "http://localhost:8000/api/v1/web/";
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1/web/";
     this.csrfToken = null;
     this.api = axios.create({
       baseURL: this.baseUrl,
@@ -41,8 +40,8 @@ class ApiService {
         // Attach CSRF token only on state-changing requests
         const method = config.method?.toUpperCase();
         if (!this.csrfToken) {
-            this.csrfToken = getCsrfTokenFromCookie();
-          }
+          this.csrfToken = getCsrfTokenFromCookie();
+        }
         if (
           ["POST", "PUT", "PATCH", "DELETE"].includes(method || "") &&
           this.csrfToken
@@ -50,6 +49,14 @@ class ApiService {
           config.headers["x-csrf-token"] = this.csrfToken;
         }
         // config.headers['x-csrf-token'] = this.csrfToken;
+        // dynamically set base url based on environment
+        if (typeof window === "undefined") {
+          // Server-side (e.g., during SSR)
+          config.baseURL = process.env.BNB_API_INTERNAL_URL || "http://localhost:8000/api/v1/web/";
+        } else {
+          // Client-side (browser)
+          config.baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1/web/";
+        }
         return config;
       },
       (error) => Promise.reject(error)

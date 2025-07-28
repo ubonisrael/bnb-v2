@@ -1,7 +1,13 @@
 # Dockerfile for Development
 
 # Use an official Node.js runtime as a parent image
-FROM node:24-alpine
+FROM node:24
+
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+ && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory in the container
 WORKDIR /app
