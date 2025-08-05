@@ -1,61 +1,83 @@
 # Dockerfile for Production with PM2
 
-# Stage 1: Build the application
-FROM node:24 AS builder
+# Stage 1: Dependencies installation
+FROM node:24-alpine AS deps
 
-RUN apt-get update && apt-get install -y \
-    python3 \
-    make \
-    g++ \
- && rm -rf /var/lib/apt/lists/*
+# Install necessary packages for node-gyp and native dependencies
+RUN apk add --no-cache libc6-compat
 
-# Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package.json package-lock.json ./
+# Copy package.json for dependency installation
+COPY package.json ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies using npm based on package.json
+RUN npm ci --only=production && npm cache clean --force
 
-# Copy the rest of the application source code
+# Stage 2: Build the application
+FROM node:24-alpine AS builder
+
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+# Copy package.json and install all dependencies (including devDependencies for build)
+COPY package.json ./
+RUN npm ci
+
+# Copy source code
 COPY . .
+
+# Disable telemetry during build
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build the Next.js application
 RUN npm run build
 
-# Stage 2: Create the production image
-FROM node:24
+# Stage 3: Production runtime
+FROM node:24-alpine AS runner
 
-RUN apt-get update && apt-get install -y \
-    python3 \
-    make \
-    g++ \
- && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache \
+    dumb-init \
+    curl \
+    && addgroup --system --gid 1001 nodejs \
+    && adduser --system --uid 1001 nextjs
 
-# Set the working directory
 WORKDIR /app
 
 # Install pm2 globally
 RUN npm install pm2 -g
 
-# Copy package.json and package-lock.json
-COPY package.json package-lock.json ./
+# Copy production dependencies from deps stage
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
 
-# Install only production dependencies
-RUN npm install --omit=dev
+# Copy built application from builder stage
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/next.config.js ./next.config.js
 
-# Copy the built application from the builder stage
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/next.config.js ./next.config.js
+# Copy PM2 configuration
+COPY --chown=nextjs:nodejs ecosystem.config.js ./
 
-# Copy the ecosystem file
-COPY ecosystem.config.js .
+# Switch to non-root user
+USER nextjs
 
-# Expose the port the app runs on
+# Expose the port
 EXPOSE 3000
 
-# Command to start the server with pm2
+# Set environment variables
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
+# Health check endpoint
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000/api/health || exit 1
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start the application with PM2
 CMD ["pm2-runtime", "start", "ecosystem.config.js"]
