@@ -45,13 +45,13 @@ export function BusinessLanding(
                 Book Now
               </Button>
             </CardHeader>
-            <CardContent className="grid md:grid-cols-2 xl:grid-cols-3 gap-4 p-4 md:p-8 !pt-0">
+            <CardContent className="grid gap-4 p-4 md:p-8 !pt-0">
               {props.serviceCategories.map((category) => (
                 <div key={category.id} className="flex flex-col">
                   <h3 className="text-lg capitalize font-semibold text-slate-800 mb-2">
                     {category.name}
                   </h3>
-                  <ul>
+                  <ul className="grid md:grid-cols-2 xl:grid-cols-3">
                     {category.services.map((service) => (
                       <li
                         key={service.id}

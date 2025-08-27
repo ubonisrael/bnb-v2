@@ -33,10 +33,13 @@ export const WaitlistTrigger = ({
             e.stopPropagation();
             setShowModal(true);
           }}
-          className="w-full gap-2 rounded-md mt-4"
+          className="w-full gap-2 rounded-md mt-4 sm:mt-6 md:mt-8 lg:mt-10 xl:mt-12"
         >
           <Clock className="h-4 w-4" />
-          Did not find a suitable time? <span className="">Join Waitlist</span>
+          Did not find a suitable time?{" "}
+          <span className="">
+            Join a waitlist and when a spot opens up you will be notified.
+          </span>
         </Button>
       </DialogTrigger>
       {showModal && (
