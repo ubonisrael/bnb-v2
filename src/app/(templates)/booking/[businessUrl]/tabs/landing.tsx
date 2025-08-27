@@ -39,7 +39,7 @@ export function BusinessLanding(
           <Card className="">
             <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <h2 className="text-2xl font-bold text-slate-800">
-                Categories We Offer Services In ({totalServices})
+                Our Services ({totalServices})
               </h2>
               <Button className="" onClick={() => gotoBooking(1)}>
                 Book Now
