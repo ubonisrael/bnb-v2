@@ -8,7 +8,7 @@ interface BusinessInfoProps {
 
 export default function BusinessInfo({ name, location }: BusinessInfoProps) {
   return (
-    <Card className="bg-white sm:rounded-2xl shadow-lg">
+    <Card className="bg-white sm:rounded-2xl">
       <CardContent className="p-4 md:p-8">
         <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold text-slate-800 mb-2">
           {name}

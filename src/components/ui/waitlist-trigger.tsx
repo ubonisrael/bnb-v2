@@ -28,12 +28,15 @@ export const WaitlistTrigger = ({
       }}
     >
       <DialogTrigger asChild>
-        <Button onClick={(e) => {
-          e.stopPropagation()
-          setShowModal(true)
-        }} className="gap-2 rounded-md">
+        <Button
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowModal(true);
+          }}
+          className="w-full gap-2 rounded-md mt-4"
+        >
           <Clock className="h-4 w-4" />
-          <span className="">Join Waitlist</span>
+          Did not find a suitable time? <span className="">Join Waitlist</span>
         </Button>
       </DialogTrigger>
       {showModal && (

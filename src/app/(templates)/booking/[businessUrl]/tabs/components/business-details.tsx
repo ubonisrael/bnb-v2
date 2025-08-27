@@ -72,7 +72,7 @@ export default function BusinessDetails({
   return (
     <>
       {/* Business Header */}
-      <Card className="bg-white rounded-2xl shadow-lg">
+      <Card className="bg-white rounded-2xl">
         <CardContent className="p-8 text-center">
           <div className="relative w-24 h-24 mx-auto mb-4">
             <Image
@@ -123,7 +123,7 @@ export default function BusinessDetails({
           open={openAccordions.has("about")}
           onOpenChange={() => toggleAccordion("about")}
         >
-          <Card className="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <Card className="bg-white rounded-2xl overflow-hidden">
             <CollapsibleTrigger className="w-full px-6 py-5 text-left flex items-center justify-between hover:bg-slate-50 transition-colors duration-200">
               <div className="flex items-center">
                 <ChevronRight
@@ -162,7 +162,7 @@ export default function BusinessDetails({
           open={openAccordions.has("policy")}
           onOpenChange={() => toggleAccordion("policy")}
         >
-          <Card className="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <Card className="bg-white rounded-2xl overflow-hidden">
             <CollapsibleTrigger className="w-full px-6 py-5 text-left flex items-center justify-between hover:bg-slate-50 transition-colors duration-200">
               <div className="flex items-center">
                 <ChevronRight
@@ -209,7 +209,7 @@ export default function BusinessDetails({
           open={openAccordions.has("contact")}
           onOpenChange={() => toggleAccordion("contact")}
         >
-          <Card className="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <Card className="bg-white rounded-2xl overflow-hidden">
             <CollapsibleTrigger className="w-full px-6 py-5 text-left flex items-center justify-between hover:bg-slate-50 transition-colors duration-200">
               <div className="flex items-center">
                 <ChevronRight
@@ -242,7 +242,7 @@ export default function BusinessDetails({
           open={openAccordions.has("hours")}
           onOpenChange={() => toggleAccordion("hours")}
         >
-          <Card className="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <Card className="bg-white rounded-2xl overflow-hidden">
             <CollapsibleTrigger className="w-full px-6 py-5 text-left flex items-center justify-between hover:bg-slate-50 transition-colors duration-200">
               <div className="flex items-center">
                 <ChevronRight
@@ -282,7 +282,7 @@ export default function BusinessDetails({
           open={openAccordions.has("social")}
           onOpenChange={() => toggleAccordion("social")}
         >
-          <Card className="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <Card className="bg-white rounded-2xl overflow-hidden">
             <CollapsibleTrigger className="w-full px-6 py-5 text-left flex items-center justify-between hover:bg-slate-50 transition-colors duration-200">
               <div className="flex items-center">
                 <ChevronRight

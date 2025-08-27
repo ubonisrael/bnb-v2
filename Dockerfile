@@ -1,10 +1,13 @@
 # Dockerfile for Production with PM2
+# Use more stable base image with glibc (avoids DNS issues)
+FROM node:24-bookworm-slim
 
-# Stage 1: Dependencies installation
-FROM node:24-alpine AS deps
-
-# Install necessary packages for node-gyp and native dependencies
-RUN apk add --no-cache libc6-compat
+# Install build dependencies for native modules
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -15,9 +18,13 @@ COPY package.json ./
 RUN npm ci --only=production && npm cache clean --force
 
 # Stage 2: Build the application
-FROM node:24-alpine AS builder
+FROM node:24-bookworm-slim AS builder
 
-RUN apk add --no-cache libc6-compat
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -35,11 +42,13 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # Stage 3: Production runtime
-FROM node:24-alpine AS runner
+FROM node:24-bookworm-slim AS runner
 
-RUN apk add --no-cache \
-    dumb-init \
-    curl \
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/* \
     && addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 nextjs
 
