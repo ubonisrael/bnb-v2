@@ -77,7 +77,7 @@ const Templates = () => {
         "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=800",
       category: "Events",
       delay: 0.2,
-      link: "",
+      link: "https://events.banknbook.com/auth/register",
     },
     {
       title: "Resource Booking",
