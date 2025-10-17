@@ -22,6 +22,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   Form,
   FormControl,
   FormDescription,
@@ -101,6 +112,7 @@ export default function ProgramsPage() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showDetailsView, setShowDetailsView] = useState(false);
   const [selectedProgram, setSelectedProgram] = useState<IProgram | null>(null);
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
   // Get user's timezone
   const userTimezone = dayjs.tz.guess();
@@ -395,14 +407,24 @@ export default function ProgramsPage() {
     }
   };
 
-  const handleDeleteProgram = async () => {
-    if (
-      selectedProgram &&
-      window.confirm(
-        "Are you sure you want to delete this program? This action cannot be undone."
-      )
-    ) {
+  const handleDeleteProgram = () => {
+    if (!selectedProgram) return;
+    
+    // Check if program is published
+    if (selectedProgram.is_published) {
+      toast.error("Cannot delete a published program. Please deactivate it instead.", {
+        duration: 4000,
+      });
+      return;
+    }
+    
+    setShowDeleteAlert(true);
+  };
+
+  const confirmDeleteProgram = async () => {
+    if (selectedProgram) {
       await deleteProjectMutation.mutateAsync(selectedProgram.id);
+      setShowDeleteAlert(false);
     }
   };
 
@@ -759,6 +781,8 @@ export default function ProgramsPage() {
                   variant="destructive"
                   size="sm"
                   onClick={handleDeleteProgram}
+                  disabled={selectedProgram.is_published}
+                  title={selectedProgram.is_published ? "Cannot delete published programs. Deactivate instead." : "Delete program"}
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   Delete
@@ -864,6 +888,21 @@ export default function ProgramsPage() {
                           {selectedProgram.about || "No description provided"}
                         </p>
                       </div>
+                      
+                      {/* Program Rules Notice */}
+                      {selectedProgram.is_published && (
+                        <div className="md:col-span-3 mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                          <div className="flex items-start gap-2">
+                            <div className="w-4 h-4 mt-0.5 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0">
+                              <span className="text-xs text-amber-900">!</span>
+                            </div>
+                            <div className="text-sm text-amber-800 dark:text-amber-200">
+                              <strong>Published Program:</strong> This program cannot be deleted or unpublished. 
+                              You can deactivate it to stop new bookings while keeping existing data.
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -1544,8 +1583,8 @@ export default function ProgramsPage() {
                         <div className="space-y-0.5">
                           <FormLabel className="text-base">Published</FormLabel>
                           <FormDescription>
-                            Program is visible to customers on your booking
-                            page.
+                            Program is visible to customers on your booking page. 
+                            Note: Once published, programs cannot be unpublished but can be deactivated.
                           </FormDescription>
                         </div>
                         <FormControl>
@@ -2216,14 +2255,22 @@ export default function ProgramsPage() {
                         <div className="space-y-0.5">
                           <FormLabel className="text-base">Published</FormLabel>
                           <FormDescription>
-                            Program is visible to customers on your booking
-                            page.
+                            {field.value 
+                              ? "Program is published and visible to customers. Cannot be unpublished but can be deactivated."
+                              : "Program is visible to customers on your booking page."
+                            }
                           </FormDescription>
                         </div>
                         <FormControl>
                           <Switch
                             checked={field.value}
-                            onCheckedChange={field.onChange}
+                            onCheckedChange={(checked) => {
+                              // Prevent unpublishing - only allow publishing
+                              if (!field.value || checked) {
+                                field.onChange(checked);
+                              }
+                            }}
+                            disabled={field.value} // Disable if already published
                           />
                         </FormControl>
                       </FormItem>
@@ -2291,6 +2338,30 @@ export default function ProgramsPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Alert */}
+      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Program</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{selectedProgram?.name}"? This action cannot be undone.
+              All program data will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowDeleteAlert(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteProgram}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete Program
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
