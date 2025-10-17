@@ -60,6 +60,7 @@ import {
   ArrowLeft,
   Edit2,
   Trash2,
+  Loader2,
 } from "lucide-react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -113,6 +114,8 @@ export default function ProgramsPage() {
   const [showDetailsView, setShowDetailsView] = useState(false);
   const [selectedProgram, setSelectedProgram] = useState<IProgram | null>(null);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [programDetails, setProgramDetails] = useState<Omit<IProgramDetails, "program"> | null>(null);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
   // Get user's timezone
   const userTimezone = dayjs.tz.guess();
@@ -390,14 +393,36 @@ export default function ProgramsPage() {
     },
   });
 
+  const fetchProgramDetails = async (programId: string) => {
+    setIsLoadingDetails(true);
+    try {
+      const response = await api.get<IProgramDetailsResponse>(`programs/${programId}`);
+      setProgramDetails({
+        students: response.data.students,
+        totalRevenue: response.data.totalRevenue,
+      });
+    } catch (error) {
+      console.error("Error fetching program details:", error);
+      toast.error("Failed to load program details");
+      setProgramDetails({
+        students: [],
+        totalRevenue: 0
+      });
+    } finally {
+      setIsLoadingDetails(false);
+    }
+  };
+
   const handleViewDetails = (program: IProgram) => {
     setSelectedProgram(program);
     setShowDetailsView(true);
+    fetchProgramDetails(program.id);
   };
 
   const handleBackFromDetails = () => {
     setShowDetailsView(false);
     setSelectedProgram(null);
+    setProgramDetails(null);
   };
 
   const handleEditFromDetails = () => {
@@ -744,7 +769,7 @@ export default function ProgramsPage() {
 
       {/* Details View */}
       <div
-        className={`absolute top-0 left-0 w-full h-full overflow-y-auto transition-transform duration-300 ease-in-out ${
+        className={`absolute top-0 left-0 w-full h-full md:px-4 xl:px-8 overflow-y-auto transition-transform duration-300 ease-in-out ${
           showDetailsView ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -914,24 +939,30 @@ export default function ProgramsPage() {
                   <CardTitle>Participants & Revenue</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                        0
+                  {isLoadingDetails ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                          {programDetails?.students.length || 0}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                          Total Participants
+                        </div>
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        Total Participants
+                      <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                          £{programDetails?.totalRevenue.toFixed(2) || '0.00'}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                          Total Revenue
+                        </div>
                       </div>
                     </div>
-                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                        £0
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        Total Revenue
-                      </div>
-                    </div>
-                  </div>
+                  )}
                   {/* <div className="grid grid-cols-2 gap-4">
                     <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
                       <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
@@ -959,14 +990,59 @@ export default function ProgramsPage() {
                   <CardTitle>Participants</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-8">
-                    <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                      <Users className="w-6 h-6 text-gray-400" />
+                  {isLoadingDetails ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
                     </div>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">
-                      No participants yet
-                    </p>
-                  </div>
+                  ) : programDetails?.students && programDetails.students.length > 0 ? (
+                    <div className="space-y-3">
+                      {programDetails.students.map((student) => (
+                        <div
+                          key={student.id}
+                          className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                        >
+                          <div className="flex-1">
+                            <div className="font-medium text-sm">
+                              {student.first_name} {student.last_name}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {student.email}
+                            </div>
+                            {/* <div className="text-xs text-gray-500 dark:text-gray-400">
+                              Booked: {dayjs(student.booking_date).format("MMM D, YYYY")}
+                            </div> */}
+                          </div>
+                          {/* <div className="text-right">
+                            <div className="text-sm font-medium">
+                              £{student.deposit_amount_paid?.toFixed(2)}
+                            </div>
+                            <Badge 
+                              variant={
+                                student.payment_status === 'paid'
+                                  ? 'default'
+                                  : student.payment_status === 'partial'
+                                  ? 'secondary'
+                                  : 'destructive'
+                              }
+                              className="text-xs"
+                            >
+                              {student.payment_status === 'paid' ? 'Paid' :
+                               student.payment_status === 'partial' ? 'Partial' : 'Pending'}
+                            </Badge>
+                          </div> */}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                        <Users className="w-6 h-6 text-gray-400" />
+                      </div>
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">
+                        No participants yet
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

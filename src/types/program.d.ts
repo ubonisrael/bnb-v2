@@ -26,6 +26,28 @@ interface IProgram {
   refund_percentage?: number;
 }
 
+interface IStudent {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  deposit_amount_paid?: number;
+  balance_amount_paid?: number;
+}
+
+interface IProgramDetails {
+    program: IProgram;
+    students: IStudent[];
+    totalRevenue: number;
+  };
+
+interface IProgramDetailsResponse {
+  success: true;
+  message: string;
+  data: IProgramDetails;
+}
+
 interface IProgramResponse {
   success: boolean;
   message: string;
