@@ -54,60 +54,9 @@ import dayjs from "@/utils/dayjsConfig";
 import { useMutation } from "@tanstack/react-query";
 import api from "@/services/api-service";
 import toast from "react-hot-toast";
-import { useUserSettings } from "@/contexts/UserSettingsContext";
 import { programSchema } from "@/schemas/schema";
 
 type ProgramFormValues = z.infer<typeof programSchema>;
-
-// Dummy data for programs
-const dummyPrograms: IProgramCard[] = [
-  {
-    id: "1",
-    name: "Beginner's Yoga Workshop",
-    banner_image_url:
-      "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=200&fit=crop",
-    start_date: "2025-11-01T09:00:00Z",
-    end_date: "2025-11-01T11:00:00Z",
-    price: 45.0,
-    capacity: 20,
-    is_published: true,
-    createdAt: "2025-10-15T08:00:00Z",
-  },
-  {
-    id: "2",
-    name: "Advanced Meditation Retreat",
-    banner_image_url: "",
-    start_date: "2025-11-15T10:00:00Z",
-    end_date: "2025-11-17T16:00:00Z",
-    price: 250.0,
-    capacity: 15,
-    is_published: false,
-    createdAt: "2025-10-12T14:30:00Z",
-  },
-  {
-    id: "3",
-    name: "Wellness & Nutrition Seminar",
-    banner_image_url:
-      "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&h=200&fit=crop",
-    start_date: "2025-12-05T14:00:00Z",
-    end_date: "2025-12-05T17:00:00Z",
-    price: 75.0,
-    capacity: 30,
-    is_published: true,
-    createdAt: "2025-10-10T11:15:00Z",
-  },
-  {
-    id: "4",
-    name: "Monthly Fitness Challenge",
-    banner_image_url: "",
-    start_date: "2025-11-01T06:00:00Z",
-    end_date: "2025-11-30T20:00:00Z",
-    price: 120.0,
-    capacity: 50,
-    is_published: true,
-    createdAt: "2025-10-08T16:45:00Z",
-  },
-];
 
 // Generate random colors for programs without banner images
 const getRandomColor = (id: string) => {
@@ -124,9 +73,7 @@ const getRandomColor = (id: string) => {
 };
 
 export default function ProgramsPage() {
-  const { settings, updateSettings } = useUserSettings();
-
-  const [programs] = useState<IProgramCard[]>(dummyPrograms);
+  const [programs, setPrograms] = useState<IProgram[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterBy, setFilterBy] = useState<string>("");
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -165,7 +112,7 @@ export default function ProgramsPage() {
   });
 
   const createProjectMutation = useMutation({
-    mutationFn: async (values: z.infer<typeof programSchema>) => {
+    mutationFn: async (values: any) => {
       const controller = new AbortController();
       const signal = controller.signal;
 
@@ -191,8 +138,9 @@ export default function ProgramsPage() {
       });
     },
     onSuccess: (response: any) => {
-      toast.success("Program created successfully", { id: "create-program" });
-      console.log(response);
+      toast.success(response.message, { id: "create-program" });
+      programForm.reset();
+      setPrograms((prev) => [...prev, response.data.program]);
     },
     onError: (error: Error) => {
       toast.error(error?.message || "Failed to create new program", {
@@ -202,14 +150,37 @@ export default function ProgramsPage() {
   });
 
   const onSubmitProgram = async (data: ProgramFormValues) => {
-    console.log("Program data:", data);
+    // Convert dates from user's timezone to UTC
+    const convertToUTC = (date: Date | null | undefined) => {
+      if (!date) return null;
+      return dayjs(date).utc().toISOString();
+    };
+
+    const formatData = (val: any) => {
+      const result: { [key: string]: any } = {};
+      for (const [key, value] of Object.entries(val)) {
+        if (value !== null && value !== undefined) {
+          result[key] = value;
+        }
+      }
+      return result;
+    }
+
+    const utcData = {
+      ...data,
+      start_date: convertToUTC(data.start_date),
+      end_date: convertToUTC(data.end_date),
+      start_booking_date: convertToUTC(data.start_booking_date),
+      end_booking_date: convertToUTC(data.end_booking_date),
+      early_bird_deadline: convertToUTC(data.early_bird_deadline),
+    };
+    
     try {
-      await createProjectMutation.mutateAsync(data);
+      await createProjectMutation.mutateAsync(formatData(utcData));
       setShowCreateModal(false);
     } catch (e) {
-      // console.error(error);
+      console.error(e);
     }
-    programForm.reset();
   };
 
   // Filter and search programs
@@ -227,13 +198,13 @@ export default function ProgramsPage() {
       case "unpublished":
         return matchesSearch && !program.is_published;
       case "price_very_high":
-        return matchesSearch && program.price > 500;
+        return matchesSearch && parseInt(program.price, 10) > 500;
       case "price_high":
-        return matchesSearch && program.price > 100 && program.price <= 500;
+        return matchesSearch && parseInt(program.price, 10) > 100 && parseInt(program.price, 10) <= 500;
       case "price_medium":
-        return matchesSearch && program.price > 50 && program.price <= 100;
+        return matchesSearch && parseInt(program.price, 10) > 50 && parseInt(program.price, 10) <= 100;
       case "price_low":
-        return matchesSearch && program.price <= 50;
+        return matchesSearch && parseInt(program.price, 10) <= 50;
       default:
         return matchesSearch;
     }
@@ -258,9 +229,8 @@ export default function ProgramsPage() {
     // Fetch programs data
     const fetchPrograms = async () => {
       try {
-        const response = await api.get("programs");
-        console.log(response);
-        // setPrograms(response.data);
+        const response = await api.get<IProgramResponse>("programs");
+        setPrograms(response.data.programs);
       } catch (error) {
         console.error("Error fetching programs:", error);
       }
@@ -421,7 +391,7 @@ export default function ProgramsPage() {
                 <div className="flex items-center gap-1">
                   <PoundSterling className="h-4 w-4 text-[#6E6E73]" />
                   <span className="font-semibold text-[#121212]">
-                    {program.price.toFixed(2)}
+                    {program.price}
                   </span>
                 </div>
 
@@ -429,7 +399,7 @@ export default function ProgramsPage() {
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-[#6E6E73]" />
                   <span className="text-sm text-[#6E6E73]">
-                    Up to {program.capacity} participants
+                    {program.capacity ? `Up to ${program.capacity} participants` : "Unlimited participants"}
                   </span>
                 </div>
 

@@ -1,24 +1,18 @@
-interface IProgramCard {
+interface IProgram {
   id: string;
   name: string;
   banner_image_url?: string;
   start_date: string;
   end_date: string;
-  price: number;
-  capacity: number;
+  price: string;
+  capacity?: number;
   is_published: boolean;
   createdAt: string;
-}
-
-interface IProgram extends IProgramCard {
   start_booking_immediately: boolean; // indicates if booking can start immediately
   start_booking_date?: string; // date when booking starts, null if booking starts immediately
   end_booking_when_program_ends: boolean; // indicates if booking ends when the program ends
   end_booking_date?: string; // date when booking ends, null if booking ends with the program
-  price: number;
-  capacity?: number; // null means unlimited
   is_active: boolean; // indicates if the program is currently active
-  is_published: boolean; // indicates if the program is published and visible to customers
   offer_early_bird: boolean; // indicates if the program has an early bird offer
   early_bird_discount_type?: "percentage" | "fixed_amount"; // type of early bird discount
   early_bird_discount_value?: number; // value of the early bird discount
@@ -29,4 +23,20 @@ interface IProgram extends IProgramCard {
   allow_refunds: boolean; // indicates if the program allows refunds
   refund_deadline_in_hours?: number; // deadline in hours for refund eligibility
   refund_percentage?: number;
+}
+
+interface IProgramResponse {
+  success: boolean;
+  message: string;
+  data: {
+    programs: IProgram[];
+  };
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
 }
