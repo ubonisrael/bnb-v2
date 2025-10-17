@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +38,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import {
   Plus,
@@ -46,295 +45,22 @@ import {
   Filter,
   Calendar,
   Users,
-  DollarSign,
   PoundSterling,
 } from "lucide-react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import dayjs from "@/utils/dayjsConfig";
-import { DropdownMenuRadioItem } from "@radix-ui/react-dropdown-menu";
-
-// Define the Program interface
-interface Program {
-  id: string;
-  name: string;
-  banner_image_url?: string;
-  start_date: string;
-  end_date: string;
-  price: number;
-  capacity: number;
-  is_published: boolean;
-  createdAt: string;
-}
-
-// Program creation schema based on backend validation
-const programSchema = z
-  .object({
-    name: z
-      .string()
-      .min(2, { message: "Program name must be at least 2 characters" })
-      .max(255, { message: "Program name must not exceed 255 characters" })
-      .trim(),
-    about: z
-      .string()
-      .min(10, {
-        message: "Program description must be at least 10 characters",
-      })
-      .max(2000, {
-        message: "Program description must not exceed 2000 characters",
-      })
-      .trim(),
-    start_date: z
-      .date({ required_error: "Start date is required" })
-      .refine((date) => date > new Date(), {
-        message: "Start date must be in the future",
-      }),
-    end_date: z.date({ required_error: "End date is required" }),
-    price: z.coerce
-      .number({ required_error: "Price is required" })
-      .min(0, { message: "Price cannot be negative" }),
-    capacity: z.coerce
-      .number()
-      .int()
-      .min(1, { message: "Capacity must be a positive integer" })
-      .optional()
-      .nullable(),
-    start_booking_immediately: z.boolean().default(true),
-    start_booking_date: z.date().optional().nullable(),
-    end_booking_when_program_ends: z.boolean().default(true),
-    end_booking_date: z.date().optional().nullable(),
-    is_active: z.boolean().default(true),
-    is_published: z.boolean().default(false),
-    offer_early_bird: z.boolean().default(false),
-    early_bird_discount_type: z
-      .enum(["percentage", "fixed_amount"])
-      .optional()
-      .nullable(),
-    early_bird_discount_value: z.coerce
-      .number()
-      .min(0, { message: "Early bird discount value cannot be negative" })
-      .optional()
-      .nullable(),
-    early_bird_deadline: z.date().optional().nullable(),
-    banner_image_url: z
-      .string()
-      .url({ message: "Banner image URL must be a valid URL" })
-      .optional()
-      .nullable(),
-    allow_deposits: z.boolean().default(false),
-    deposit_amount: z.coerce
-      .number()
-      .int()
-      .min(1, { message: "Deposit amount must be a positive integer" })
-      .optional()
-      .nullable(),
-    absorb_service_charge: z.boolean().default(false),
-    allow_refunds: z.boolean().default(false),
-    refund_deadline_in_hours: z.coerce
-      .number()
-      .int()
-      .min(0, { message: "Refund deadline must be a non-negative integer" })
-      .optional()
-      .nullable(),
-    refund_percentage: z.coerce
-      .number()
-      .int()
-      .min(0, { message: "Refund percentage must be between 0 and 100" })
-      .max(100, { message: "Refund percentage must be between 0 and 100" })
-      .optional()
-      .nullable(),
-  })
-  .refine((data) => data.end_date > data.start_date, {
-    message: "End date must be after start date",
-    path: ["end_date"],
-  })
-  .refine(
-    (data) => {
-      if (!data.start_booking_immediately && !data.start_booking_date) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "Start booking date is required when not starting immediately",
-      path: ["start_booking_date"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (data.start_booking_date && data.start_booking_immediately) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message:
-        "Cannot set start booking date when start booking immediately is true",
-      path: ["start_booking_date"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (!data.end_booking_when_program_ends && !data.end_booking_date) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "End booking date is required when not ending with program",
-      path: ["end_booking_date"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (data.end_booking_date && data.end_booking_when_program_ends) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message:
-        "Cannot set end booking date when end booking when program ends is true",
-      path: ["end_booking_date"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (data.end_booking_date && data.end_booking_date >= data.start_date) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "End booking date must be before program start date",
-      path: ["end_booking_date"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (
-        data.early_bird_deadline &&
-        data.early_bird_deadline >= data.start_date
-      ) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "Early bird deadline must be before program start date",
-      path: ["early_bird_deadline"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (
-        data.early_bird_discount_type === "percentage" &&
-        data.early_bird_discount_value
-      ) {
-        return data.early_bird_discount_value <= 100;
-      }
-      return true;
-    },
-    {
-      message: "Percentage discount must be between 0 and 100",
-      path: ["early_bird_discount_value"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (data.allow_deposits && !data.deposit_amount) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "Deposit amount is required when allow deposits is true",
-      path: ["deposit_amount"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (data.deposit_amount && !data.allow_deposits) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "Deposit amount can only be set when allow deposits is true",
-      path: ["deposit_amount"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (
-        data.allow_refunds &&
-        (data.refund_deadline_in_hours === null ||
-          data.refund_deadline_in_hours === undefined)
-      ) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message:
-        "Refund deadline in hours is required when allow refunds is true",
-      path: ["refund_deadline_in_hours"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (
-        data.allow_refunds &&
-        (data.refund_percentage === null ||
-          data.refund_percentage === undefined)
-      ) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "Refund percentage is required when allow refunds is true",
-      path: ["refund_percentage"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (
-        data.refund_deadline_in_hours !== null &&
-        data.refund_deadline_in_hours !== undefined &&
-        !data.allow_refunds
-      ) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "Refund deadline can only be set when allow refunds is true",
-      path: ["refund_deadline_in_hours"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (
-        data.refund_percentage !== null &&
-        data.refund_percentage !== undefined &&
-        !data.allow_refunds
-      ) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "Refund percentage can only be set when allow refunds is true",
-      path: ["refund_percentage"],
-    }
-  );
+import { useMutation } from "@tanstack/react-query";
+import api from "@/services/api-service";
+import toast from "react-hot-toast";
+import { useUserSettings } from "@/contexts/UserSettingsContext";
+import { programSchema } from "@/schemas/schema";
 
 type ProgramFormValues = z.infer<typeof programSchema>;
 
 // Dummy data for programs
-const dummyPrograms: Program[] = [
+const dummyPrograms: IProgramCard[] = [
   {
     id: "1",
     name: "Beginner's Yoga Workshop",
@@ -398,7 +124,9 @@ const getRandomColor = (id: string) => {
 };
 
 export default function ProgramsPage() {
-  const [programs] = useState<Program[]>(dummyPrograms);
+  const { settings, updateSettings } = useUserSettings();
+
+  const [programs] = useState<IProgramCard[]>(dummyPrograms);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterBy, setFilterBy] = useState<string>("");
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -436,10 +164,51 @@ export default function ProgramsPage() {
     },
   });
 
+  const createProjectMutation = useMutation({
+    mutationFn: async (values: z.infer<typeof programSchema>) => {
+      const controller = new AbortController();
+      const signal = controller.signal;
+
+      try {
+        const response = await api.post(
+          "programs",
+          {
+            ...values,
+          },
+          { signal }
+        );
+        return response;
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name === "AbortError") {
+          toast.error("Request was cancelled");
+        }
+        throw error;
+      }
+    },
+    onMutate: () => {
+      toast.loading("Creating program...", {
+        id: "create-program",
+      });
+    },
+    onSuccess: (response: any) => {
+      toast.success("Program created successfully", { id: "create-program" });
+      console.log(response);
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || "Failed to create new program", {
+        id: "create-program",
+      });
+    },
+  });
+
   const onSubmitProgram = async (data: ProgramFormValues) => {
     console.log("Program data:", data);
-    // TODO: Implement API call to create program
-    setShowCreateModal(false);
+    try {
+      await createProjectMutation.mutateAsync(data);
+      setShowCreateModal(false);
+    } catch (e) {
+      // console.error(error);
+    }
     programForm.reset();
   };
 
@@ -484,6 +253,21 @@ export default function ProgramsPage() {
       )}`;
     }
   };
+
+  useEffect(() => {
+    // Fetch programs data
+    const fetchPrograms = async () => {
+      try {
+        const response = await api.get("programs");
+        console.log(response);
+        // setPrograms(response.data);
+      } catch (error) {
+        console.error("Error fetching programs:", error);
+      }
+    };
+
+    fetchPrograms();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -603,7 +387,7 @@ export default function ProgramsPage() {
                     )} flex items-center justify-center`}
                   >
                     <span className="text-white text-xl font-semibold">
-                      {program.name.charAt(0).toUpperCase()}
+                      {program.name}
                     </span>
                   </div>
                 )}
@@ -634,9 +418,9 @@ export default function ProgramsPage() {
                 </div>
 
                 {/* Price */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   <PoundSterling className="h-4 w-4 text-[#6E6E73]" />
-                  <span className="text-lg font-semibold text-[#121212]">
+                  <span className="font-semibold text-[#121212]">
                     {program.price.toFixed(2)}
                   </span>
                 </div>
