@@ -46,6 +46,9 @@ import {
   Calendar,
   Users,
   PoundSterling,
+  ArrowLeft,
+  Edit2,
+  Trash2,
 } from "lucide-react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -96,6 +99,8 @@ export default function ProgramsPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingProgram, setEditingProgram] = useState<IProgram | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showDetailsView, setShowDetailsView] = useState(false);
+  const [selectedProgram, setSelectedProgram] = useState<IProgram | null>(null);
 
   // Get user's timezone
   const userTimezone = dayjs.tz.guess();
@@ -336,6 +341,62 @@ export default function ProgramsPage() {
     setShowConfirmDialog(false);
   };
 
+  const deleteProjectMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const controller = new AbortController();
+      const signal = controller.signal;
+
+      try {
+        const response = await api.delete(`programs/${id}`, { signal });
+        return response;
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name === "AbortError") {
+          toast.error("Request was cancelled");
+        }
+        throw error;
+      }
+    },
+    onMutate: () => {
+      toast.loading("Deleting program...", {
+        id: "delete-program",
+      });
+    },
+    onSuccess: (response: any) => {
+      toast.success(response.message || "Program deleted successfully", { id: "delete-program" });
+      setPrograms((prev) => prev.filter((program) => program.id !== selectedProgram?.id));
+      setShowDetailsView(false);
+      setSelectedProgram(null);
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || "Failed to delete program", {
+        id: "delete-program",
+      });
+    },
+  });
+
+  const handleViewDetails = (program: IProgram) => {
+    setSelectedProgram(program);
+    setShowDetailsView(true);
+  };
+
+  const handleBackFromDetails = () => {
+    setShowDetailsView(false);
+    setSelectedProgram(null);
+  };
+
+  const handleEditFromDetails = () => {
+    if (selectedProgram) {
+      handleEditProgram(selectedProgram);
+      setShowDetailsView(false);
+    }
+  };
+
+  const handleDeleteProgram = async () => {
+    if (selectedProgram && window.confirm('Are you sure you want to delete this program? This action cannot be undone.')) {
+      await deleteProjectMutation.mutateAsync(selectedProgram.id);
+    }
+  };
+
   const handleEditProgram = (program: IProgram) => {
     // Convert UTC dates back to user's timezone for editing
     const convertFromUTC = (dateString: string | undefined) => {
@@ -445,190 +506,332 @@ export default function ProgramsPage() {
   }, []);
 
   return (
-    <div className="space-y-6">
-      {/* Header Section */}
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-[#121212]">Programs</h1>
-          <p className="text-[#6E6E73]">Manage your programs and workshops.</p>
-        </div>
+    <div className="relative overflow-hidden h-full">
+      {/* Main View */}
+      <div className={`transition-transform duration-300 ease-in-out ${showDetailsView ? '-translate-x-full' : 'translate-x-0'}`}>
+        <div className="space-y-6">
+          {/* Header Section */}
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-[#121212]">Programs</h1>
+              <p className="text-[#6E6E73]">Manage your programs and workshops.</p>
+            </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          {/* Search Input */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search programs..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-64"
-            />
+            {/* Action Buttons */}
+            <div className="flex gap-2">
+              {/* Search Input */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Search programs..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 w-64"
+                />
+              </div>
+
+              {/* Filter Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="gap-2">
+                    <Filter className="h-4 w-4" />
+                    Filter
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Filter by</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setFilterBy("")}>
+                    All Programs
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterBy("published")}>
+                    Published Only
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterBy("unpublished")}>
+                    Unpublished Only
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setFilterBy("price_very_high")}>
+                    Price &gt; £500
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterBy("price_high")}>
+                    Price &gt;= £100 and &lt; £500
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterBy("price_medium")}>
+                    Price &gt;= £50 and &lt; £100
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterBy("price_low")}>
+                    Price &lt;= £50
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Create New Program Button */}
+              <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Create Program
+                  </Button>
+                </DialogTrigger>
+              </Dialog>
+            </div>
           </div>
 
-          {/* Filter Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                <Filter className="h-4 w-4" />
-                Filter
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setFilterBy("")}>
-                All Programs
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterBy("published")}>
-                Published Only
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterBy("unpublished")}>
-                Unpublished Only
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setFilterBy("price_very_high")}>
-                Price &gt; £500
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterBy("price_high")}>
-                Price &gt;= £100 and &lt; £500
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterBy("price_medium")}>
-                Price &gt;= £50 and &lt; £100
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterBy("price_low")}>
-                Price &lt;= £50
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Programs Grid */}
+          {filteredPrograms.length === 0 ? (
+            /* Empty State */
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="text-center">
+                <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {programs.length === 0 ? "No programs yet" : "No programs found"}
+                </h3>
+                <p className="text-gray-500 mb-6">
+                  {programs.length === 0
+                    ? "Create your first program to get started."
+                    : "Try adjusting your search or filter criteria."}
+                </p>
+                {programs.length === 0 && (
+                  <Button
+                    className="gap-2"
+                    onClick={() => setShowCreateModal(true)}
+                  >
+                    <Plus className="h-4 w-4" />
+                    Create Your First Program
+                  </Button>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* Programs Grid */
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredPrograms.map((program) => (
+                <Card
+                  key={program.id}
+                  className="border-0 shadow-card overflow-hidden hover:shadow-lg transition-shadow"
+                >
+                  {/* Banner Image or Random Color */}
+                  <div className="relative h-48 w-full">
+                    {program.banner_image_url ? (
+                      <img
+                        src={program.banner_image_url}
+                        alt={program.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div
+                        className={`h-full w-full ${getRandomColor(
+                          program.id
+                        )} flex items-center justify-center`}
+                      >
+                        <span className="text-white text-xl font-semibold">
+                          {program.name}
+                        </span>
+                      </div>
+                    )}
 
-          {/* Create New Program Button */}
-          <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                Create Program
-              </Button>
-            </DialogTrigger>
-          </Dialog>
+                    {/* Published Badge */}
+                    <div className="absolute top-3 right-3">
+                      <Badge
+                        variant={program.is_published ? "default" : "secondary"}
+                      >
+                        {program.is_published ? "Published" : "Draft"}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg font-semibold text-[#121212] line-clamp-2">
+                      {program.name}
+                    </CardTitle>
+                  </CardHeader>
+
+                  <CardContent className="space-y-3">
+                    {/* Date Range */}
+                    <div className="flex items-start gap-2">
+                      <Calendar className="h-4 w-4 text-[#6E6E73] mt-0.5 flex-shrink-0" />
+                      <span className="text-sm text-[#6E6E73]">
+                        {formatDateRange(program.start_date, program.end_date)}
+                      </span>
+                    </div>
+
+                    {/* Price */}
+                    <div className="flex items-center gap-1">
+                      <PoundSterling className="h-4 w-4 text-[#6E6E73]" />
+                      <span className="font-semibold text-[#121212]">
+                        {program.price}
+                      </span>
+                    </div>
+
+                    {/* Capacity */}
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-[#6E6E73]" />
+                      <span className="text-sm text-[#6E6E73]">
+                        {program.capacity
+                          ? `Up to ${program.capacity} participants`
+                          : "Unlimited participants"}
+                      </span>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2 pt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => handleEditProgram(program)}
+                      >
+                        Edit
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => handleViewDetails(program)}
+                      >
+                        View Details
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Programs Grid */}
-      {filteredPrograms.length === 0 ? (
-        /* Empty State */
-        <div className="flex flex-col items-center justify-center py-20">
-          <div className="text-center">
-            <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {programs.length === 0 ? "No programs yet" : "No programs found"}
-            </h3>
-            <p className="text-gray-500 mb-6">
-              {programs.length === 0
-                ? "Create your first program to get started."
-                : "Try adjusting your search or filter criteria."}
-            </p>
-            {programs.length === 0 && (
-              <Button
-                className="gap-2"
-                onClick={() => setShowCreateModal(true)}
-              >
-                <Plus className="h-4 w-4" />
-                Create Your First Program
-              </Button>
-            )}
-          </div>
-        </div>
-      ) : (
-        /* Programs Grid */
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredPrograms.map((program) => (
-            <Card
-              key={program.id}
-              className="border-0 shadow-card overflow-hidden hover:shadow-lg transition-shadow"
-            >
-              {/* Banner Image or Random Color */}
-              <div className="relative h-48 w-full">
-                {program.banner_image_url ? (
-                  <img
-                    src={program.banner_image_url}
-                    alt={program.name}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div
-                    className={`h-full w-full ${getRandomColor(
-                      program.id
-                    )} flex items-center justify-center`}
-                  >
-                    <span className="text-white text-xl font-semibold">
-                      {program.name}
-                    </span>
-                  </div>
-                )}
-
-                {/* Published Badge */}
-                <div className="absolute top-3 right-3">
-                  <Badge
-                    variant={program.is_published ? "default" : "secondary"}
-                  >
-                    {program.is_published ? "Published" : "Draft"}
-                  </Badge>
+      {/* Details View */}
+      <div className={`absolute top-0 left-0 w-full h-full transition-transform duration-300 ease-in-out ${showDetailsView ? 'translate-x-0' : 'translate-x-full'}`}>
+        {selectedProgram && (
+          <div className="space-y-6 h-full">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleBackFromDetails}
+                  className="p-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <div>
+                  <h1 className="text-3xl font-bold text-[#121212]">{selectedProgram.name}</h1>
+                  <p className="text-[#6E6E73]">Program Details</p>
                 </div>
               </div>
+              <div className="flex space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleEditFromDetails()}
+                >
+                  <Edit2 className="mr-2 h-4 w-4" />
+                  Edit
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  onClick={handleDeleteProgram}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </Button>
+              </div>
+            </div>
 
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-semibold text-[#121212] line-clamp-2">
-                  {program.name}
-                </CardTitle>
-              </CardHeader>
+            {/* Three Sections */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Section 1: Overview */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Overview</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Description</label>
+                    <p className="mt-1">{selectedProgram.about || 'No description provided'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Date Range</label>
+                    <p className="mt-1">{formatDateRange(selectedProgram.start_date, selectedProgram.end_date)}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Price</label>
+                    <p className="mt-1 text-lg font-semibold">£{selectedProgram.price}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Capacity</label>
+                    <p className="mt-1">{selectedProgram.capacity ? `${selectedProgram.capacity} participants` : 'Unlimited'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Early Bird</label>
+                    <p className="mt-1">{selectedProgram.offer_early_bird ? 'Yes' : 'No'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Status</label>
+                    <div className="mt-1">
+                      <Badge variant={selectedProgram.is_published ? "default" : "secondary"}>
+                        {selectedProgram.is_published ? "Published" : "Draft"}
+                      </Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-              <CardContent className="space-y-3">
-                {/* Date Range */}
-                <div className="flex items-start gap-2">
-                  <Calendar className="h-4 w-4 text-[#6E6E73] mt-0.5 flex-shrink-0" />
-                  <span className="text-sm text-[#6E6E73]">
-                    {formatDateRange(program.start_date, program.end_date)}
-                  </span>
-                </div>
+              {/* Section 2: Participants & Revenue */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Participants & Revenue</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">0</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Total Participants</div>
+                    </div>
+                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">£0</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Total Revenue</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">0</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Upcoming Sessions</div>
+                    </div>
+                    <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">0</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Completed Sessions</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-                {/* Price */}
-                <div className="flex items-center gap-1">
-                  <PoundSterling className="h-4 w-4 text-[#6E6E73]" />
-                  <span className="font-semibold text-[#121212]">
-                    {program.price}
-                  </span>
-                </div>
-
-                {/* Capacity */}
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-[#6E6E73]" />
-                  <span className="text-sm text-[#6E6E73]">
-                    {program.capacity
-                      ? `Up to ${program.capacity} participants`
-                      : "Unlimited participants"}
-                  </span>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-2 pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => handleEditProgram(program)}
-                  >
-                    Edit
-                  </Button>
-                  <Button variant="outline" size="sm" className="flex-1">
-                    View Details
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+              {/* Section 3: Participant List */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Participants</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8">
+                    <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                      <Users className="w-6 h-6 text-gray-400" />
+                    </div>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">
+                      No participants yet
+                    </p>
+                    <Button variant="outline" size="sm" className="mt-3">
+                      View All Participants
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Create Program Dialog */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
