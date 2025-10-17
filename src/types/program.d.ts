@@ -1,6 +1,7 @@
 interface IProgram {
   id: string;
   name: string;
+  about: string;
   banner_image_url?: string;
   start_date: string;
   end_date: string;

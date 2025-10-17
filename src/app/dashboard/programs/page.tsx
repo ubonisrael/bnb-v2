@@ -72,17 +72,65 @@ const getRandomColor = (id: string) => {
   return colors[index];
 };
 
+// Convert dates from user's timezone to UTC
+const convertToUTC = (date: Date | null | undefined) => {
+  if (!date) return null;
+  return dayjs(date).utc().toISOString();
+};
+
+const formatData = (val: any) => {
+  const result: { [key: string]: any } = {};
+  for (const [key, value] of Object.entries(val)) {
+    if (value !== null && value !== undefined) {
+      result[key] = value;
+    }
+  }
+  return result;
+};
+
 export default function ProgramsPage() {
   const [programs, setPrograms] = useState<IProgram[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterBy, setFilterBy] = useState<string>("");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingProgram, setEditingProgram] = useState<IProgram | null>(null);
 
   // Get user's timezone
   const userTimezone = dayjs.tz.guess();
 
   // Program form
   const programForm = useForm<ProgramFormValues>({
+    resolver: zodResolver(programSchema),
+    defaultValues: {
+      name: "",
+      about: "",
+      start_date: undefined,
+      end_date: undefined,
+      price: 0,
+      capacity: null,
+      start_booking_immediately: true,
+      start_booking_date: null,
+      end_booking_when_program_ends: true,
+      end_booking_date: null,
+      is_active: true,
+      is_published: false,
+      offer_early_bird: false,
+      early_bird_discount_type: null,
+      early_bird_discount_value: null,
+      early_bird_deadline: null,
+      banner_image_url: null,
+      allow_deposits: false,
+      deposit_amount: null,
+      absorb_service_charge: false,
+      allow_refunds: false,
+      refund_deadline_in_hours: null,
+      refund_percentage: null,
+    },
+  });
+
+  // Edit form
+  const editForm = useForm<ProgramFormValues>({
     resolver: zodResolver(programSchema),
     defaultValues: {
       name: "",
@@ -149,22 +197,70 @@ export default function ProgramsPage() {
     },
   });
 
+  const updateProjectMutation = useMutation({
+    mutationFn: async ({ id, values }: { id: string; values: any }) => {
+      const controller = new AbortController();
+      const signal = controller.signal;
+
+      try {
+        const response = await api.put(
+          `programs/${id}`,
+          {
+            ...values,
+          },
+          { signal }
+        );
+        return response;
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name === "AbortError") {
+          toast.error("Request was cancelled");
+        }
+        throw error;
+      }
+    },
+    onMutate: () => {
+      toast.loading("Updating program...", {
+        id: "update-program",
+      });
+    },
+    onSuccess: (response: any) => {
+      toast.success(response.message, { id: "update-program" });
+      editForm.reset();
+      setPrograms((prev) =>
+        prev.map((program) =>
+          program.id === response.data.program.id
+            ? response.data.program
+            : program
+        )
+      );
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || "Failed to update program", {
+        id: "update-program",
+      });
+    },
+  });
+
   const onSubmitProgram = async (data: ProgramFormValues) => {
-    // Convert dates from user's timezone to UTC
-    const convertToUTC = (date: Date | null | undefined) => {
-      if (!date) return null;
-      return dayjs(date).utc().toISOString();
+    const utcData = {
+      ...data,
+      start_date: convertToUTC(data.start_date),
+      end_date: convertToUTC(data.end_date),
+      start_booking_date: convertToUTC(data.start_booking_date),
+      end_booking_date: convertToUTC(data.end_booking_date),
+      early_bird_deadline: convertToUTC(data.early_bird_deadline),
     };
 
-    const formatData = (val: any) => {
-      const result: { [key: string]: any } = {};
-      for (const [key, value] of Object.entries(val)) {
-        if (value !== null && value !== undefined) {
-          result[key] = value;
-        }
-      }
-      return result;
+    try {
+      await createProjectMutation.mutateAsync(formatData(utcData));
+      setShowCreateModal(false);
+    } catch (e) {
+      console.error(e);
     }
+  };
+
+  const onSubmitEdit = async (data: ProgramFormValues) => {
+    if (!editingProgram) return;
 
     const utcData = {
       ...data,
@@ -174,13 +270,61 @@ export default function ProgramsPage() {
       end_booking_date: convertToUTC(data.end_booking_date),
       early_bird_deadline: convertToUTC(data.early_bird_deadline),
     };
-    
+
     try {
-      await createProjectMutation.mutateAsync(formatData(utcData));
-      setShowCreateModal(false);
+      await updateProjectMutation.mutateAsync({
+        id: editingProgram.id,
+        values: formatData(utcData),
+      });
+      setShowEditModal(false);
+      setEditingProgram(null);
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const handleEditProgram = (program: IProgram) => {
+    // Convert UTC dates back to user's timezone for editing
+    const convertFromUTC = (dateString: string | undefined) => {
+      if (!dateString) return undefined;
+      return dayjs.utc(dateString).tz(userTimezone).toDate();
+    };
+
+    setEditingProgram(program);
+    editForm.reset({
+      name: program.name,
+      about: program.about,
+      start_date: convertFromUTC(program.start_date),
+      end_date: convertFromUTC(program.end_date),
+      price: parseFloat(program.price),
+      capacity: program.capacity ? parseInt(program.capacity.toString()) : null,
+      start_booking_immediately: program.start_booking_immediately,
+      start_booking_date: convertFromUTC(program.start_booking_date),
+      end_booking_when_program_ends: program.end_booking_when_program_ends,
+      end_booking_date: convertFromUTC(program.end_booking_date),
+      is_active: program.is_active,
+      is_published: program.is_published,
+      offer_early_bird: program.offer_early_bird,
+      early_bird_discount_type: program.early_bird_discount_type,
+      early_bird_discount_value: program.early_bird_discount_value
+        ? parseFloat(program.early_bird_discount_value.toString())
+        : null,
+      early_bird_deadline: convertFromUTC(program.early_bird_deadline),
+      banner_image_url: program.banner_image_url,
+      allow_deposits: program.allow_deposits,
+      deposit_amount: program.deposit_amount
+        ? parseFloat(program.deposit_amount.toString())
+        : null,
+      absorb_service_charge: program.absorb_service_charge,
+      allow_refunds: program.allow_refunds,
+      refund_deadline_in_hours: program.refund_deadline_in_hours
+        ? parseInt(program.refund_deadline_in_hours.toString())
+        : null,
+      refund_percentage: program.refund_percentage
+        ? parseInt(program.refund_percentage.toString())
+        : null,
+    });
+    setShowEditModal(true);
   };
 
   // Filter and search programs
@@ -200,9 +344,17 @@ export default function ProgramsPage() {
       case "price_very_high":
         return matchesSearch && parseInt(program.price, 10) > 500;
       case "price_high":
-        return matchesSearch && parseInt(program.price, 10) > 100 && parseInt(program.price, 10) <= 500;
+        return (
+          matchesSearch &&
+          parseInt(program.price, 10) > 100 &&
+          parseInt(program.price, 10) <= 500
+        );
       case "price_medium":
-        return matchesSearch && parseInt(program.price, 10) > 50 && parseInt(program.price, 10) <= 100;
+        return (
+          matchesSearch &&
+          parseInt(program.price, 10) > 50 &&
+          parseInt(program.price, 10) <= 100
+        );
       case "price_low":
         return matchesSearch && parseInt(program.price, 10) <= 50;
       default:
@@ -399,13 +551,20 @@ export default function ProgramsPage() {
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-[#6E6E73]" />
                   <span className="text-sm text-[#6E6E73]">
-                    {program.capacity ? `Up to ${program.capacity} participants` : "Unlimited participants"}
+                    {program.capacity
+                      ? `Up to ${program.capacity} participants`
+                      : "Unlimited participants"}
                   </span>
                 </div>
 
                 {/* Action Buttons */}
                 <div className="flex gap-2 pt-2">
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => handleEditProgram(program)}
+                  >
                     Edit
                   </Button>
                   <Button variant="outline" size="sm" className="flex-1">
@@ -1076,6 +1235,672 @@ export default function ProgramsPage() {
                   Cancel
                 </Button>
                 <Button type="submit">Create Program</Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Program Dialog */}
+      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Program</DialogTitle>
+            <DialogDescription>
+              Update the program details and settings.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...editForm}>
+            <form
+              onSubmit={editForm.handleSubmit(onSubmitEdit)}
+              className="space-y-6"
+            >
+              {/* Basic Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Basic Information</h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={editForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Program Name *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Yoga Workshop" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={editForm.control}
+                    name="banner_image_url"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Banner Image URL</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="https://example.com/banner.jpg"
+                            {...field}
+                            value={field.value || ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={editForm.control}
+                  name="about"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description *</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Describe your program..."
+                          className="min-h-[100px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Tell customers what this program is about (10-2000
+                        characters).
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Dates and Pricing */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Dates and Pricing</h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={editForm.control}
+                    name="start_date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Start Date *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="datetime-local"
+                            {...field}
+                            value={
+                              field.value
+                                ? dayjs(field.value).format("YYYY-MM-DDTHH:mm")
+                                : ""
+                            }
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value
+                                  ? new Date(e.target.value)
+                                  : undefined
+                              )
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={editForm.control}
+                    name="end_date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>End Date *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="datetime-local"
+                            {...field}
+                            value={
+                              field.value
+                                ? dayjs(field.value).format("YYYY-MM-DDTHH:mm")
+                                : ""
+                            }
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value
+                                  ? new Date(e.target.value)
+                                  : undefined
+                              )
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={editForm.control}
+                    name="price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Price (£) *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            placeholder="0.00"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={editForm.control}
+                    name="capacity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Capacity</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="1"
+                            placeholder="Leave empty for unlimited"
+                            {...field}
+                            value={field.value || ""}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Maximum number of participants (leave empty for
+                          unlimited).
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Booking Settings */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Booking Settings</h3>
+
+                <div className="space-y-4">
+                  <FormField
+                    control={editForm.control}
+                    name="start_booking_immediately"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">
+                            Start Booking Immediately
+                          </FormLabel>
+                          <FormDescription>
+                            Allow customers to book as soon as the program is
+                            published.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {!editForm.watch("start_booking_immediately") && (
+                    <FormField
+                      control={editForm.control}
+                      name="start_booking_date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Booking Start Date *</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="datetime-local"
+                              {...field}
+                              value={
+                                field.value
+                                  ? dayjs(field.value).format(
+                                      "YYYY-MM-DDTHH:mm"
+                                    )
+                                  : ""
+                              }
+                              onChange={(e) =>
+                                field.onChange(
+                                  e.target.value
+                                    ? new Date(e.target.value)
+                                    : null
+                                )
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
+                  <FormField
+                    control={editForm.control}
+                    name="end_booking_when_program_ends"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">
+                            End Booking When Program Ends
+                          </FormLabel>
+                          <FormDescription>
+                            Stop accepting bookings when the program ends.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {!editForm.watch("end_booking_when_program_ends") && (
+                    <FormField
+                      control={editForm.control}
+                      name="end_booking_date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Booking End Date *</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="datetime-local"
+                              {...field}
+                              value={
+                                field.value
+                                  ? dayjs(field.value).format(
+                                      "YYYY-MM-DDTHH:mm"
+                                    )
+                                  : ""
+                              }
+                              onChange={(e) =>
+                                field.onChange(
+                                  e.target.value
+                                    ? new Date(e.target.value)
+                                    : null
+                                )
+                              }
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Must be before the program start date.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Early Bird Offer */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Early Bird Offer</h3>
+
+                <FormField
+                  control={editForm.control}
+                  name="offer_early_bird"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">
+                          Offer Early Bird Discount
+                        </FormLabel>
+                        <FormDescription>
+                          Provide a discount for customers who book early.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {editForm.watch("offer_early_bird") && (
+                  <div className="space-y-4 ml-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={editForm.control}
+                        name="early_bird_discount_type"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Discount Type</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value || ""}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select discount type" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="percentage">
+                                  Percentage
+                                </SelectItem>
+                                <SelectItem value="fixed_amount">
+                                  Fixed Amount
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={editForm.control}
+                        name="early_bird_discount_value"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              Discount Value{" "}
+                              {editForm.watch("early_bird_discount_type") ===
+                              "percentage"
+                                ? "(%)"
+                                : "(£)"}
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                max={
+                                  editForm.watch("early_bird_discount_type") ===
+                                  "percentage"
+                                    ? "100"
+                                    : undefined
+                                }
+                                placeholder="0"
+                                {...field}
+                                value={field.value || ""}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={editForm.control}
+                      name="early_bird_deadline"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Early Bird Deadline</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="datetime-local"
+                              {...field}
+                              value={
+                                field.value
+                                  ? dayjs(field.value).format(
+                                      "YYYY-MM-DDTHH:mm"
+                                    )
+                                  : ""
+                              }
+                              onChange={(e) =>
+                                field.onChange(
+                                  e.target.value
+                                    ? new Date(e.target.value)
+                                    : null
+                                )
+                              }
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Must be before the program start date.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Deposits */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Deposits</h3>
+
+                <FormField
+                  control={editForm.control}
+                  name="allow_deposits"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">
+                          Allow Deposits
+                        </FormLabel>
+                        <FormDescription>
+                          Allow customers to pay a deposit instead of the full
+                          amount.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {editForm.watch("allow_deposits") && (
+                  <FormField
+                    control={editForm.control}
+                    name="deposit_amount"
+                    render={({ field }) => (
+                      <FormItem className="ml-4">
+                        <FormLabel>Deposit Amount (£) *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="1"
+                            placeholder="0.00"
+                            {...field}
+                            value={field.value || ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+
+              {/* Refunds */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Refunds</h3>
+
+                <FormField
+                  control={editForm.control}
+                  name="allow_refunds"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">
+                          Allow Refunds
+                        </FormLabel>
+                        <FormDescription>
+                          Allow customers to request refunds for this program.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {editForm.watch("allow_refunds") && (
+                  <div className="space-y-4 ml-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={editForm.control}
+                        name="refund_deadline_in_hours"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Refund Deadline (Hours) *</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="0"
+                                placeholder="24"
+                                {...field}
+                                value={field.value || ""}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Hours before program start when refunds are no
+                              longer allowed.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={editForm.control}
+                        name="refund_percentage"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Refund Percentage (%) *</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="0"
+                                max="100"
+                                placeholder="100"
+                                {...field}
+                                value={field.value || ""}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Percentage of the payment to refund (0-100).
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Status Settings */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Status Settings</h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={editForm.control}
+                    name="is_active"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Active</FormLabel>
+                          <FormDescription>
+                            Program is currently active and can accept bookings.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={editForm.control}
+                    name="is_published"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Published</FormLabel>
+                          <FormDescription>
+                            Program is visible to customers on your booking
+                            page.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={editForm.control}
+                  name="absorb_service_charge"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">
+                          Absorb Service Charge
+                        </FormLabel>
+                        <FormDescription>
+                          You pay the service charges instead of passing them to
+                          customers.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="flex justify-end gap-4 pt-6">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingProgram(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">Update Program</Button>
               </div>
             </form>
           </Form>
