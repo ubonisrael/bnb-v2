@@ -362,8 +362,12 @@ export default function ProgramsPage() {
       });
     },
     onSuccess: (response: any) => {
-      toast.success(response.message || "Program deleted successfully", { id: "delete-program" });
-      setPrograms((prev) => prev.filter((program) => program.id !== selectedProgram?.id));
+      toast.success(response.message || "Program deleted successfully", {
+        id: "delete-program",
+      });
+      setPrograms((prev) =>
+        prev.filter((program) => program.id !== selectedProgram?.id)
+      );
       setShowDetailsView(false);
       setSelectedProgram(null);
     },
@@ -392,7 +396,12 @@ export default function ProgramsPage() {
   };
 
   const handleDeleteProgram = async () => {
-    if (selectedProgram && window.confirm('Are you sure you want to delete this program? This action cannot be undone.')) {
+    if (
+      selectedProgram &&
+      window.confirm(
+        "Are you sure you want to delete this program? This action cannot be undone."
+      )
+    ) {
       await deleteProjectMutation.mutateAsync(selectedProgram.id);
     }
   };
@@ -508,13 +517,19 @@ export default function ProgramsPage() {
   return (
     <div className="relative overflow-hidden h-full">
       {/* Main View */}
-      <div className={`transition-transform duration-700 ease-in-out ${showDetailsView ? '-translate-x-full' : 'translate-x-0'}`}>
+      <div
+        className={`transition-transform duration-700 ease-in-out ${
+          showDetailsView ? "-translate-x-full" : "translate-x-0"
+        }`}
+      >
         <div className="space-y-6">
           {/* Header Section */}
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
               <h1 className="text-3xl font-bold text-[#121212]">Programs</h1>
-              <p className="text-[#6E6E73]">Manage your programs and workshops.</p>
+              <p className="text-[#6E6E73]">
+                Manage your programs and workshops.
+              </p>
             </div>
 
             {/* Action Buttons */}
@@ -551,7 +566,9 @@ export default function ProgramsPage() {
                     Unpublished Only
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setFilterBy("price_very_high")}>
+                  <DropdownMenuItem
+                    onClick={() => setFilterBy("price_very_high")}
+                  >
                     Price &gt; £500
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setFilterBy("price_high")}>
@@ -585,7 +602,9 @@ export default function ProgramsPage() {
               <div className="text-center">
                 <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {programs.length === 0 ? "No programs yet" : "No programs found"}
+                  {programs.length === 0
+                    ? "No programs yet"
+                    : "No programs found"}
                 </h3>
                 <p className="text-gray-500 mb-6">
                   {programs.length === 0
@@ -684,9 +703,9 @@ export default function ProgramsPage() {
                       >
                         Edit
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         className="flex-1"
                         onClick={() => handleViewDetails(program)}
                       >
@@ -702,36 +721,42 @@ export default function ProgramsPage() {
       </div>
 
       {/* Details View */}
-      <div className={`absolute top-0 left-0 w-full h-full overflow-y-auto transition-transform duration-300 ease-in-out ${showDetailsView ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div
+        className={`absolute top-0 left-0 w-full h-full overflow-y-auto transition-transform duration-300 ease-in-out ${
+          showDetailsView ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
         {selectedProgram && (
           <div className="space-y-6 h-full">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={handleBackFromDetails}
                   className="p-2"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <div>
-                  <h1 className="text-3xl font-bold text-[#121212]">{selectedProgram.name}</h1>
+                  <h1 className="text-3xl font-bold text-[#121212]">
+                    {selectedProgram.name}
+                  </h1>
                   <p className="text-[#6E6E73]">Program Details</p>
                 </div>
               </div>
               <div className="flex space-x-2">
-                <Button 
+                {/* <Button 
                   variant="outline" 
                   size="sm"
                   onClick={() => handleEditFromDetails()}
                 >
                   <Edit2 className="mr-2 h-4 w-4" />
                   Edit
-                </Button>
-                <Button 
-                  variant="destructive" 
+                </Button> */}
+                <Button
+                  variant="destructive"
                   size="sm"
                   onClick={handleDeleteProgram}
                 >
@@ -750,10 +775,10 @@ export default function ProgramsPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* Banner Image Section */}
-                  <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex flex-col md:flex-row gap-4 md:gap-8 lg:gap-12">
                     {/* Banner Image or Random Color - Top on mobile, Left on tablet+ */}
                     <div className="w-full md:w-1/3 lg:w-1/4">
-                      <div className="relative h-32 md:h-24 lg:h-32 w-full rounded-lg overflow-hidden">
+                      <div className="relative h-48 lg:h-60 w-full rounded-lg overflow-hidden">
                         {selectedProgram.banner_image_url ? (
                           <img
                             src={selectedProgram.banner_image_url}
@@ -777,32 +802,67 @@ export default function ProgramsPage() {
                     {/* Program Details - Below on mobile, Right on tablet+ */}
                     <div className="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                       <div>
-                        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Description</label>
-                        <p className="mt-1 text-sm">{selectedProgram.about || 'No description provided'}</p>
+                        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                          Date Range
+                        </label>
+                        <p className="mt-1 text-sm">
+                          {formatDateRange(
+                            selectedProgram.start_date,
+                            selectedProgram.end_date
+                          )}
+                        </p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Date Range</label>
-                        <p className="mt-1 text-sm">{formatDateRange(selectedProgram.start_date, selectedProgram.end_date)}</p>
+                        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                          Price
+                        </label>
+                        <p className="mt-1 text-lg font-semibold">
+                          £{selectedProgram.price}
+                        </p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Price</label>
-                        <p className="mt-1 text-lg font-semibold">£{selectedProgram.price}</p>
+                        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                          Capacity
+                        </label>
+                        <p className="mt-1 text-sm">
+                          {selectedProgram.capacity
+                            ? `${selectedProgram.capacity} participants`
+                            : "Unlimited"}
+                        </p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Capacity</label>
-                        <p className="mt-1 text-sm">{selectedProgram.capacity ? `${selectedProgram.capacity} participants` : 'Unlimited'}</p>
+                        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                          Early Bird
+                        </label>
+                        <p className="mt-1 text-sm">
+                          {selectedProgram.offer_early_bird ? "Yes" : "No"}
+                        </p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Early Bird</label>
-                        <p className="mt-1 text-sm">{selectedProgram.offer_early_bird ? 'Yes' : 'No'}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Status</label>
+                        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                          Status
+                        </label>
                         <div className="mt-1">
-                          <Badge variant={selectedProgram.is_published ? "default" : "secondary"}>
-                            {selectedProgram.is_published ? "Published" : "Draft"}
+                          <Badge
+                            variant={
+                              selectedProgram.is_published
+                                ? "default"
+                                : "secondary"
+                            }
+                          >
+                            {selectedProgram.is_published
+                              ? "Published"
+                              : "Draft"}
                           </Badge>
                         </div>
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                          Description
+                        </label>
+                        <p className="mt-1 text-sm">
+                          {selectedProgram.about || "No description provided"}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -817,31 +877,47 @@ export default function ProgramsPage() {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">0</div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">Total Participants</div>
+                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                        0
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        Total Participants
+                      </div>
                     </div>
                     <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">£0</div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">Total Revenue</div>
+                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                        £0
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        Total Revenue
+                      </div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  {/* <div className="grid grid-cols-2 gap-4">
                     <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                      <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">0</div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">Upcoming Sessions</div>
+                      <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                        0
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        Upcoming Sessions
+                      </div>
                     </div>
                     <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">0</div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">Completed Sessions</div>
+                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                        0
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        Completed Sessions
+                      </div>
                     </div>
-                  </div>
+                  </div> */}
                 </CardContent>
               </Card>
 
               {/* Section 3: Participant List */}
               <Card className="flex-1">
                 <CardHeader>
-                  <CardTitle>Recent Participants</CardTitle>
+                  <CardTitle>Participants</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-center py-8">
@@ -851,9 +927,6 @@ export default function ProgramsPage() {
                     <p className="text-gray-500 dark:text-gray-400 text-sm">
                       No participants yet
                     </p>
-                    <Button variant="outline" size="sm" className="mt-3">
-                      View All Participants
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -1527,13 +1600,16 @@ export default function ProgramsPage() {
       </Dialog>
 
       {/* Edit Program Dialog */}
-      <Dialog open={showEditModal} onOpenChange={(open) => {
-        if (!open) {
-          handleCloseEditModal();
-        } else {
-          setShowEditModal(open);
-        }
-      }}>
+      <Dialog
+        open={showEditModal}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleCloseEditModal();
+          } else {
+            setShowEditModal(open);
+          }
+        }}
+      >
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Program</DialogTitle>
@@ -2201,20 +2277,15 @@ export default function ProgramsPage() {
           <DialogHeader>
             <DialogTitle>Unsaved Changes</DialogTitle>
             <DialogDescription>
-              You have unsaved changes. Are you sure you want to discard them and close the form?
+              You have unsaved changes. Are you sure you want to discard them
+              and close the form?
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-3 mt-6">
-            <Button
-              variant="outline"
-              onClick={handleCancelClose}
-            >
+            <Button variant="outline" onClick={handleCancelClose}>
               Keep Editing
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleConfirmClose}
-            >
+            <Button variant="destructive" onClick={handleConfirmClose}>
               Discard Changes
             </Button>
           </div>
