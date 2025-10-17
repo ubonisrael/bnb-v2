@@ -13,8 +13,47 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Search, Filter, Calendar, Users, DollarSign, PoundSterling } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
+import {
+  Plus,
+  Search,
+  Filter,
+  Calendar,
+  Users,
+  DollarSign,
+  PoundSterling,
+} from "lucide-react";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import dayjs from "@/utils/dayjsConfig";
+import { DropdownMenuRadioItem } from "@radix-ui/react-dropdown-menu";
 
 // Define the Program interface
 interface Program {
@@ -29,15 +68,281 @@ interface Program {
   createdAt: string;
 }
 
+// Program creation schema based on backend validation
+const programSchema = z
+  .object({
+    name: z
+      .string()
+      .min(2, { message: "Program name must be at least 2 characters" })
+      .max(255, { message: "Program name must not exceed 255 characters" })
+      .trim(),
+    about: z
+      .string()
+      .min(10, {
+        message: "Program description must be at least 10 characters",
+      })
+      .max(2000, {
+        message: "Program description must not exceed 2000 characters",
+      })
+      .trim(),
+    start_date: z
+      .date({ required_error: "Start date is required" })
+      .refine((date) => date > new Date(), {
+        message: "Start date must be in the future",
+      }),
+    end_date: z.date({ required_error: "End date is required" }),
+    price: z.coerce
+      .number({ required_error: "Price is required" })
+      .min(0, { message: "Price cannot be negative" }),
+    capacity: z.coerce
+      .number()
+      .int()
+      .min(1, { message: "Capacity must be a positive integer" })
+      .optional()
+      .nullable(),
+    start_booking_immediately: z.boolean().default(true),
+    start_booking_date: z.date().optional().nullable(),
+    end_booking_when_program_ends: z.boolean().default(true),
+    end_booking_date: z.date().optional().nullable(),
+    is_active: z.boolean().default(true),
+    is_published: z.boolean().default(false),
+    offer_early_bird: z.boolean().default(false),
+    early_bird_discount_type: z
+      .enum(["percentage", "fixed_amount"])
+      .optional()
+      .nullable(),
+    early_bird_discount_value: z.coerce
+      .number()
+      .min(0, { message: "Early bird discount value cannot be negative" })
+      .optional()
+      .nullable(),
+    early_bird_deadline: z.date().optional().nullable(),
+    banner_image_url: z
+      .string()
+      .url({ message: "Banner image URL must be a valid URL" })
+      .optional()
+      .nullable(),
+    allow_deposits: z.boolean().default(false),
+    deposit_amount: z.coerce
+      .number()
+      .int()
+      .min(1, { message: "Deposit amount must be a positive integer" })
+      .optional()
+      .nullable(),
+    absorb_service_charge: z.boolean().default(false),
+    allow_refunds: z.boolean().default(false),
+    refund_deadline_in_hours: z.coerce
+      .number()
+      .int()
+      .min(0, { message: "Refund deadline must be a non-negative integer" })
+      .optional()
+      .nullable(),
+    refund_percentage: z.coerce
+      .number()
+      .int()
+      .min(0, { message: "Refund percentage must be between 0 and 100" })
+      .max(100, { message: "Refund percentage must be between 0 and 100" })
+      .optional()
+      .nullable(),
+  })
+  .refine((data) => data.end_date > data.start_date, {
+    message: "End date must be after start date",
+    path: ["end_date"],
+  })
+  .refine(
+    (data) => {
+      if (!data.start_booking_immediately && !data.start_booking_date) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Start booking date is required when not starting immediately",
+      path: ["start_booking_date"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.start_booking_date && data.start_booking_immediately) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message:
+        "Cannot set start booking date when start booking immediately is true",
+      path: ["start_booking_date"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (!data.end_booking_when_program_ends && !data.end_booking_date) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "End booking date is required when not ending with program",
+      path: ["end_booking_date"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.end_booking_date && data.end_booking_when_program_ends) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message:
+        "Cannot set end booking date when end booking when program ends is true",
+      path: ["end_booking_date"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.end_booking_date && data.end_booking_date >= data.start_date) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "End booking date must be before program start date",
+      path: ["end_booking_date"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (
+        data.early_bird_deadline &&
+        data.early_bird_deadline >= data.start_date
+      ) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Early bird deadline must be before program start date",
+      path: ["early_bird_deadline"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (
+        data.early_bird_discount_type === "percentage" &&
+        data.early_bird_discount_value
+      ) {
+        return data.early_bird_discount_value <= 100;
+      }
+      return true;
+    },
+    {
+      message: "Percentage discount must be between 0 and 100",
+      path: ["early_bird_discount_value"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.allow_deposits && !data.deposit_amount) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Deposit amount is required when allow deposits is true",
+      path: ["deposit_amount"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.deposit_amount && !data.allow_deposits) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Deposit amount can only be set when allow deposits is true",
+      path: ["deposit_amount"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (
+        data.allow_refunds &&
+        (data.refund_deadline_in_hours === null ||
+          data.refund_deadline_in_hours === undefined)
+      ) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message:
+        "Refund deadline in hours is required when allow refunds is true",
+      path: ["refund_deadline_in_hours"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (
+        data.allow_refunds &&
+        (data.refund_percentage === null ||
+          data.refund_percentage === undefined)
+      ) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Refund percentage is required when allow refunds is true",
+      path: ["refund_percentage"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (
+        data.refund_deadline_in_hours !== null &&
+        data.refund_deadline_in_hours !== undefined &&
+        !data.allow_refunds
+      ) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Refund deadline can only be set when allow refunds is true",
+      path: ["refund_deadline_in_hours"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (
+        data.refund_percentage !== null &&
+        data.refund_percentage !== undefined &&
+        !data.allow_refunds
+      ) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Refund percentage can only be set when allow refunds is true",
+      path: ["refund_percentage"],
+    }
+  );
+
+type ProgramFormValues = z.infer<typeof programSchema>;
+
 // Dummy data for programs
 const dummyPrograms: Program[] = [
   {
     id: "1",
     name: "Beginner's Yoga Workshop",
-    banner_image_url: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=200&fit=crop",
+    banner_image_url:
+      "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=200&fit=crop",
     start_date: "2025-11-01T09:00:00Z",
     end_date: "2025-11-01T11:00:00Z",
-    price: 45.00,
+    price: 45.0,
     capacity: 20,
     is_published: true,
     createdAt: "2025-10-15T08:00:00Z",
@@ -48,7 +353,7 @@ const dummyPrograms: Program[] = [
     banner_image_url: "",
     start_date: "2025-11-15T10:00:00Z",
     end_date: "2025-11-17T16:00:00Z",
-    price: 250.00,
+    price: 250.0,
     capacity: 15,
     is_published: false,
     createdAt: "2025-10-12T14:30:00Z",
@@ -56,10 +361,11 @@ const dummyPrograms: Program[] = [
   {
     id: "3",
     name: "Wellness & Nutrition Seminar",
-    banner_image_url: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&h=200&fit=crop",
+    banner_image_url:
+      "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&h=200&fit=crop",
     start_date: "2025-12-05T14:00:00Z",
     end_date: "2025-12-05T17:00:00Z",
-    price: 75.00,
+    price: 75.0,
     capacity: 30,
     is_published: true,
     createdAt: "2025-10-10T11:15:00Z",
@@ -70,7 +376,7 @@ const dummyPrograms: Program[] = [
     banner_image_url: "",
     start_date: "2025-11-01T06:00:00Z",
     end_date: "2025-11-30T20:00:00Z",
-    price: 120.00,
+    price: 120.0,
     capacity: 50,
     is_published: true,
     createdAt: "2025-10-08T16:45:00Z",
@@ -95,26 +401,70 @@ export default function ProgramsPage() {
   const [programs] = useState<Program[]>(dummyPrograms);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterBy, setFilterBy] = useState<string>("");
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Get user's timezone
   const userTimezone = dayjs.tz.guess();
 
+  // Program form
+  const programForm = useForm<ProgramFormValues>({
+    resolver: zodResolver(programSchema),
+    defaultValues: {
+      name: "",
+      about: "",
+      start_date: undefined,
+      end_date: undefined,
+      price: 0,
+      capacity: null,
+      start_booking_immediately: true,
+      start_booking_date: null,
+      end_booking_when_program_ends: true,
+      end_booking_date: null,
+      is_active: true,
+      is_published: false,
+      offer_early_bird: false,
+      early_bird_discount_type: null,
+      early_bird_discount_value: null,
+      early_bird_deadline: null,
+      banner_image_url: null,
+      allow_deposits: false,
+      deposit_amount: null,
+      absorb_service_charge: false,
+      allow_refunds: false,
+      refund_deadline_in_hours: null,
+      refund_percentage: null,
+    },
+  });
+
+  const onSubmitProgram = async (data: ProgramFormValues) => {
+    console.log("Program data:", data);
+    // TODO: Implement API call to create program
+    setShowCreateModal(false);
+    programForm.reset();
+  };
+
   // Filter and search programs
   const filteredPrograms = programs.filter((program) => {
-    const matchesSearch = program.name.toLowerCase().includes(searchTerm.toLowerCase());
-    
+    const matchesSearch = program.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+
     if (!filterBy) return matchesSearch;
-    
+
     // Apply filters based on filterBy value
     switch (filterBy) {
       case "published":
         return matchesSearch && program.is_published;
       case "unpublished":
         return matchesSearch && !program.is_published;
+      case "price_very_high":
+        return matchesSearch && program.price > 500;
       case "price_high":
-        return matchesSearch && program.price > 100;
+        return matchesSearch && program.price > 100 && program.price <= 500;
+      case "price_medium":
+        return matchesSearch && program.price > 50 && program.price <= 100;
       case "price_low":
-        return matchesSearch && program.price <= 100;
+        return matchesSearch && program.price <= 50;
       default:
         return matchesSearch;
     }
@@ -123,11 +473,15 @@ export default function ProgramsPage() {
   const formatDateRange = (startDate: string, endDate: string) => {
     const start = dayjs(startDate).tz(userTimezone);
     const end = dayjs(endDate).tz(userTimezone);
-    
-    if (start.isSame(end, 'day')) {
-      return `${start.format('MMM D, YYYY')} • ${start.format('h:mm A')} - ${end.format('h:mm A')}`;
+
+    if (start.isSame(end, "day")) {
+      return `${start.format("MMM D, YYYY")} • ${start.format(
+        "h:mm A"
+      )} - ${end.format("h:mm A")}`;
     } else {
-      return `${start.format('MMM D, YYYY h:mm A')} - ${end.format('MMM D, YYYY h:mm A')}`;
+      return `${start.format("MMM D, YYYY h:mm A")} - ${end.format(
+        "MMM D, YYYY h:mm A"
+      )}`;
     }
   };
 
@@ -139,7 +493,7 @@ export default function ProgramsPage() {
           <h1 className="text-3xl font-bold text-[#121212]">Programs</h1>
           <p className="text-[#6E6E73]">Manage your programs and workshops.</p>
         </div>
-        
+
         {/* Action Buttons */}
         <div className="flex gap-2">
           {/* Search Input */}
@@ -152,7 +506,7 @@ export default function ProgramsPage() {
               className="pl-10 w-64"
             />
           </div>
-          
+
           {/* Filter Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -174,20 +528,30 @@ export default function ProgramsPage() {
                 Unpublished Only
               </DropdownMenuItem>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setFilterBy("price_very_high")}>
+                Price &gt; £500
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setFilterBy("price_high")}>
-                Price &gt; £100
+                Price &gt;= £100 and &lt; £500
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilterBy("price_medium")}>
+                Price &gt;= £50 and &lt; £100
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setFilterBy("price_low")}>
-                Price &lt;= £100
+                Price &lt;= £50
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          
+
           {/* Create New Program Button */}
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Create Program
-          </Button>
+          <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Create Program
+              </Button>
+            </DialogTrigger>
+          </Dialog>
         </div>
       </div>
 
@@ -201,13 +565,15 @@ export default function ProgramsPage() {
               {programs.length === 0 ? "No programs yet" : "No programs found"}
             </h3>
             <p className="text-gray-500 mb-6">
-              {programs.length === 0 
-                ? "Create your first program to get started." 
-                : "Try adjusting your search or filter criteria."
-              }
+              {programs.length === 0
+                ? "Create your first program to get started."
+                : "Try adjusting your search or filter criteria."}
             </p>
             {programs.length === 0 && (
-              <Button className="gap-2">
+              <Button
+                className="gap-2"
+                onClick={() => setShowCreateModal(true)}
+              >
                 <Plus className="h-4 w-4" />
                 Create Your First Program
               </Button>
@@ -218,7 +584,10 @@ export default function ProgramsPage() {
         /* Programs Grid */
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filteredPrograms.map((program) => (
-            <Card key={program.id} className="border-0 shadow-card overflow-hidden hover:shadow-lg transition-shadow">
+            <Card
+              key={program.id}
+              className="border-0 shadow-card overflow-hidden hover:shadow-lg transition-shadow"
+            >
               {/* Banner Image or Random Color */}
               <div className="relative h-48 w-full">
                 {program.banner_image_url ? (
@@ -228,16 +597,22 @@ export default function ProgramsPage() {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className={`h-full w-full ${getRandomColor(program.id)} flex items-center justify-center`}>
+                  <div
+                    className={`h-full w-full ${getRandomColor(
+                      program.id
+                    )} flex items-center justify-center`}
+                  >
                     <span className="text-white text-xl font-semibold">
                       {program.name.charAt(0).toUpperCase()}
                     </span>
                   </div>
                 )}
-                
+
                 {/* Published Badge */}
                 <div className="absolute top-3 right-3">
-                  <Badge variant={program.is_published ? "default" : "secondary"}>
+                  <Badge
+                    variant={program.is_published ? "default" : "secondary"}
+                  >
                     {program.is_published ? "Published" : "Draft"}
                   </Badge>
                 </div>
@@ -288,6 +663,670 @@ export default function ProgramsPage() {
           ))}
         </div>
       )}
+
+      {/* Create Program Dialog */}
+      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Program</DialogTitle>
+            <DialogDescription>
+              Create a new program for your customers to book.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...programForm}>
+            <form
+              onSubmit={programForm.handleSubmit(onSubmitProgram)}
+              className="space-y-6"
+            >
+              {/* Basic Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Basic Information</h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={programForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Program Name *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Yoga Workshop" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={programForm.control}
+                    name="banner_image_url"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Banner Image URL</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="https://example.com/banner.jpg"
+                            {...field}
+                            value={field.value || ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={programForm.control}
+                  name="about"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description *</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Describe your program..."
+                          className="min-h-[100px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Tell customers what this program is about (10-2000
+                        characters).
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Dates and Pricing */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Dates and Pricing</h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={programForm.control}
+                    name="start_date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Start Date *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="datetime-local"
+                            {...field}
+                            value={
+                              field.value
+                                ? dayjs(field.value).format("YYYY-MM-DDTHH:mm")
+                                : ""
+                            }
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value
+                                  ? new Date(e.target.value)
+                                  : undefined
+                              )
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={programForm.control}
+                    name="end_date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>End Date *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="datetime-local"
+                            {...field}
+                            value={
+                              field.value
+                                ? dayjs(field.value).format("YYYY-MM-DDTHH:mm")
+                                : ""
+                            }
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value
+                                  ? new Date(e.target.value)
+                                  : undefined
+                              )
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={programForm.control}
+                    name="price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Price (£) *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            placeholder="0.00"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={programForm.control}
+                    name="capacity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Capacity</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="1"
+                            placeholder="Leave empty for unlimited"
+                            {...field}
+                            value={field.value || ""}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Maximum number of participants (leave empty for
+                          unlimited).
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Booking Settings */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Booking Settings</h3>
+
+                <div className="space-y-4">
+                  <FormField
+                    control={programForm.control}
+                    name="start_booking_immediately"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">
+                            Start Booking Immediately
+                          </FormLabel>
+                          <FormDescription>
+                            Allow customers to book as soon as the program is
+                            published.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {!programForm.watch("start_booking_immediately") && (
+                    <FormField
+                      control={programForm.control}
+                      name="start_booking_date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Booking Start Date *</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="datetime-local"
+                              {...field}
+                              value={
+                                field.value
+                                  ? dayjs(field.value).format(
+                                      "YYYY-MM-DDTHH:mm"
+                                    )
+                                  : ""
+                              }
+                              onChange={(e) =>
+                                field.onChange(
+                                  e.target.value
+                                    ? new Date(e.target.value)
+                                    : null
+                                )
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
+                  <FormField
+                    control={programForm.control}
+                    name="end_booking_when_program_ends"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">
+                            End Booking When Program Ends
+                          </FormLabel>
+                          <FormDescription>
+                            Stop accepting bookings when the program ends.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {!programForm.watch("end_booking_when_program_ends") && (
+                    <FormField
+                      control={programForm.control}
+                      name="end_booking_date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Booking End Date *</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="datetime-local"
+                              {...field}
+                              value={
+                                field.value
+                                  ? dayjs(field.value).format(
+                                      "YYYY-MM-DDTHH:mm"
+                                    )
+                                  : ""
+                              }
+                              onChange={(e) =>
+                                field.onChange(
+                                  e.target.value
+                                    ? new Date(e.target.value)
+                                    : null
+                                )
+                              }
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Must be before the program start date.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Early Bird Offer */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Early Bird Offer</h3>
+
+                <FormField
+                  control={programForm.control}
+                  name="offer_early_bird"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">
+                          Offer Early Bird Discount
+                        </FormLabel>
+                        <FormDescription>
+                          Provide a discount for customers who book early.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {programForm.watch("offer_early_bird") && (
+                  <div className="space-y-4 ml-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={programForm.control}
+                        name="early_bird_discount_type"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Discount Type</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value || ""}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select discount type" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="percentage">
+                                  Percentage
+                                </SelectItem>
+                                <SelectItem value="fixed_amount">
+                                  Fixed Amount
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={programForm.control}
+                        name="early_bird_discount_value"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              Discount Value{" "}
+                              {programForm.watch("early_bird_discount_type") ===
+                              "percentage"
+                                ? "(%)"
+                                : "(£)"}
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                max={
+                                  programForm.watch(
+                                    "early_bird_discount_type"
+                                  ) === "percentage"
+                                    ? "100"
+                                    : undefined
+                                }
+                                placeholder="0"
+                                {...field}
+                                value={field.value || ""}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={programForm.control}
+                      name="early_bird_deadline"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Early Bird Deadline</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="datetime-local"
+                              {...field}
+                              value={
+                                field.value
+                                  ? dayjs(field.value).format(
+                                      "YYYY-MM-DDTHH:mm"
+                                    )
+                                  : ""
+                              }
+                              onChange={(e) =>
+                                field.onChange(
+                                  e.target.value
+                                    ? new Date(e.target.value)
+                                    : null
+                                )
+                              }
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Must be before the program start date.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Deposits */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Deposits</h3>
+
+                <FormField
+                  control={programForm.control}
+                  name="allow_deposits"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">
+                          Allow Deposits
+                        </FormLabel>
+                        <FormDescription>
+                          Allow customers to pay a deposit instead of the full
+                          amount.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {programForm.watch("allow_deposits") && (
+                  <FormField
+                    control={programForm.control}
+                    name="deposit_amount"
+                    render={({ field }) => (
+                      <FormItem className="ml-4">
+                        <FormLabel>Deposit Amount (£) *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="1"
+                            placeholder="0.00"
+                            {...field}
+                            value={field.value || ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+
+              {/* Refunds */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Refunds</h3>
+
+                <FormField
+                  control={programForm.control}
+                  name="allow_refunds"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">
+                          Allow Refunds
+                        </FormLabel>
+                        <FormDescription>
+                          Allow customers to request refunds for this program.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {programForm.watch("allow_refunds") && (
+                  <div className="space-y-4 ml-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={programForm.control}
+                        name="refund_deadline_in_hours"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Refund Deadline (Hours) *</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="0"
+                                placeholder="24"
+                                {...field}
+                                value={field.value || ""}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Hours before program start when refunds are no
+                              longer allowed.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={programForm.control}
+                        name="refund_percentage"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Refund Percentage (%) *</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="0"
+                                max="100"
+                                placeholder="100"
+                                {...field}
+                                value={field.value || ""}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Percentage of the payment to refund (0-100).
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Status Settings */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Status Settings</h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={programForm.control}
+                    name="is_active"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Active</FormLabel>
+                          <FormDescription>
+                            Program is currently active and can accept bookings.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={programForm.control}
+                    name="is_published"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Published</FormLabel>
+                          <FormDescription>
+                            Program is visible to customers on your booking
+                            page.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={programForm.control}
+                  name="absorb_service_charge"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">
+                          Absorb Service Charge
+                        </FormLabel>
+                        <FormDescription>
+                          You pay the service charges instead of passing them to
+                          customers.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="flex justify-end gap-4 pt-6">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowCreateModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">Create Program</Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
