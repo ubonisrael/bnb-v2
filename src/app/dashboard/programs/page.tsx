@@ -508,7 +508,7 @@ export default function ProgramsPage() {
   return (
     <div className="relative overflow-hidden h-full">
       {/* Main View */}
-      <div className={`transition-transform duration-300 ease-in-out ${showDetailsView ? '-translate-x-full' : 'translate-x-0'}`}>
+      <div className={`transition-transform duration-700 ease-in-out ${showDetailsView ? '-translate-x-full' : 'translate-x-0'}`}>
         <div className="space-y-6">
           {/* Header Section */}
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -702,7 +702,7 @@ export default function ProgramsPage() {
       </div>
 
       {/* Details View */}
-      <div className={`absolute top-0 left-0 w-full h-full transition-transform duration-300 ease-in-out ${showDetailsView ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`absolute top-0 left-0 w-full h-full overflow-y-auto transition-transform duration-300 ease-in-out ${showDetailsView ? 'translate-x-0' : 'translate-x-full'}`}>
         {selectedProgram && (
           <div className="space-y-6 h-full">
             {/* Header */}
@@ -742,46 +742,75 @@ export default function ProgramsPage() {
             </div>
 
             {/* Three Sections */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="flex flex-col gap-6">
               {/* Section 1: Overview */}
-              <Card>
+              <Card className="flex-1">
                 <CardHeader>
                   <CardTitle>Overview</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Description</label>
-                    <p className="mt-1">{selectedProgram.about || 'No description provided'}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Date Range</label>
-                    <p className="mt-1">{formatDateRange(selectedProgram.start_date, selectedProgram.end_date)}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Price</label>
-                    <p className="mt-1 text-lg font-semibold">£{selectedProgram.price}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Capacity</label>
-                    <p className="mt-1">{selectedProgram.capacity ? `${selectedProgram.capacity} participants` : 'Unlimited'}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Early Bird</label>
-                    <p className="mt-1">{selectedProgram.offer_early_bird ? 'Yes' : 'No'}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Status</label>
-                    <div className="mt-1">
-                      <Badge variant={selectedProgram.is_published ? "default" : "secondary"}>
-                        {selectedProgram.is_published ? "Published" : "Draft"}
-                      </Badge>
+                  {/* Banner Image Section */}
+                  <div className="flex flex-col md:flex-row gap-4">
+                    {/* Banner Image or Random Color - Top on mobile, Left on tablet+ */}
+                    <div className="w-full md:w-1/3 lg:w-1/4">
+                      <div className="relative h-32 md:h-24 lg:h-32 w-full rounded-lg overflow-hidden">
+                        {selectedProgram.banner_image_url ? (
+                          <img
+                            src={selectedProgram.banner_image_url}
+                            alt={selectedProgram.name}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div
+                            className={`h-full w-full ${getRandomColor(
+                              selectedProgram.id
+                            )} flex items-center justify-center`}
+                          >
+                            <span className="text-white text-sm font-semibold text-center px-2">
+                              {selectedProgram.name}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Program Details - Below on mobile, Right on tablet+ */}
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                      <div>
+                        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Description</label>
+                        <p className="mt-1 text-sm">{selectedProgram.about || 'No description provided'}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Date Range</label>
+                        <p className="mt-1 text-sm">{formatDateRange(selectedProgram.start_date, selectedProgram.end_date)}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Price</label>
+                        <p className="mt-1 text-lg font-semibold">£{selectedProgram.price}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Capacity</label>
+                        <p className="mt-1 text-sm">{selectedProgram.capacity ? `${selectedProgram.capacity} participants` : 'Unlimited'}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Early Bird</label>
+                        <p className="mt-1 text-sm">{selectedProgram.offer_early_bird ? 'Yes' : 'No'}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Status</label>
+                        <div className="mt-1">
+                          <Badge variant={selectedProgram.is_published ? "default" : "secondary"}>
+                            {selectedProgram.is_published ? "Published" : "Draft"}
+                          </Badge>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Section 2: Participants & Revenue */}
-              <Card>
+              <Card className="flex-1">
                 <CardHeader>
                   <CardTitle>Participants & Revenue</CardTitle>
                 </CardHeader>
@@ -810,7 +839,7 @@ export default function ProgramsPage() {
               </Card>
 
               {/* Section 3: Participant List */}
-              <Card>
+              <Card className="flex-1">
                 <CardHeader>
                   <CardTitle>Recent Participants</CardTitle>
                 </CardHeader>
