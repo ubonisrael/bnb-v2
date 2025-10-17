@@ -95,6 +95,7 @@ export default function ProgramsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingProgram, setEditingProgram] = useState<IProgram | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   // Get user's timezone
   const userTimezone = dayjs.tz.guess();
@@ -203,7 +204,7 @@ export default function ProgramsPage() {
       const signal = controller.signal;
 
       try {
-        const response = await api.put(
+        const response = await api.patch(
           `programs/${id}`,
           {
             ...values,
@@ -242,6 +243,22 @@ export default function ProgramsPage() {
   });
 
   const onSubmitProgram = async (data: ProgramFormValues) => {
+    // Convert dates from user's timezone to UTC
+    const convertToUTC = (date: Date | null | undefined) => {
+      if (!date) return null;
+      return dayjs(date).utc().toISOString();
+    };
+
+    const formatData = (val: any) => {
+      const result: { [key: string]: any } = {};
+      for (const [key, value] of Object.entries(val)) {
+        if (value !== null && value !== undefined) {
+          result[key] = value;
+        }
+      }
+      return result;
+    };
+
     const utcData = {
       ...data,
       start_date: convertToUTC(data.start_date),
@@ -262,6 +279,22 @@ export default function ProgramsPage() {
   const onSubmitEdit = async (data: ProgramFormValues) => {
     if (!editingProgram) return;
 
+    // Convert dates from user's timezone to UTC
+    const convertToUTC = (date: Date | null | undefined) => {
+      if (!date) return null;
+      return dayjs(date).utc().toISOString();
+    };
+
+    const formatData = (val: any) => {
+      const result: { [key: string]: any } = {};
+      for (const [key, value] of Object.entries(val)) {
+        if (value !== null && value !== undefined) {
+          result[key] = value;
+        }
+      }
+      return result;
+    };
+
     const utcData = {
       ...data,
       start_date: convertToUTC(data.start_date),
@@ -281,6 +314,26 @@ export default function ProgramsPage() {
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const handleCloseEditModal = () => {
+    if (editForm.formState.isDirty) {
+      setShowConfirmDialog(true);
+    } else {
+      setShowEditModal(false);
+      setEditingProgram(null);
+    }
+  };
+
+  const handleConfirmClose = () => {
+    setShowEditModal(false);
+    setEditingProgram(null);
+    setShowConfirmDialog(false);
+    editForm.reset();
+  };
+
+  const handleCancelClose = () => {
+    setShowConfirmDialog(false);
   };
 
   const handleEditProgram = (program: IProgram) => {
@@ -1242,7 +1295,13 @@ export default function ProgramsPage() {
       </Dialog>
 
       {/* Edit Program Dialog */}
-      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+      <Dialog open={showEditModal} onOpenChange={(open) => {
+        if (!open) {
+          handleCloseEditModal();
+        } else {
+          setShowEditModal(open);
+        }
+      }}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Program</DialogTitle>
@@ -1893,10 +1952,7 @@ export default function ProgramsPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => {
-                    setShowEditModal(false);
-                    setEditingProgram(null);
-                  }}
+                  onClick={handleCloseEditModal}
                 >
                   Cancel
                 </Button>
@@ -1904,6 +1960,32 @@ export default function ProgramsPage() {
               </div>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Unsaved Changes</DialogTitle>
+            <DialogDescription>
+              You have unsaved changes. Are you sure you want to discard them and close the form?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-3 mt-6">
+            <Button
+              variant="outline"
+              onClick={handleCancelClose}
+            >
+              Keep Editing
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmClose}
+            >
+              Discard Changes
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
