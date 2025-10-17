@@ -9,13 +9,8 @@ import {
 import { AvailableTimeSlotsResponse } from "@/types/response";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/services/api-service";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
+import dayjs from "@/utils/dayjsConfig";
 import { AxiosError } from "axios";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 interface TimeSlotsProps {
   selectedDate: string | null;

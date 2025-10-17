@@ -2,14 +2,7 @@
 
 import React, { createContext, useContext } from "react";
 import useLocalStorage from "use-local-storage";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
 import { ServiceFrontend } from "@/types/response";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
 
 export type AppStep = "home" | "services" | "datetime" | "confirmation";
 

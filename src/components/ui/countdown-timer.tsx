@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import dayjs from "dayjs";
+import dayjs from "@/utils/dayjsConfig";
 
 interface CountdownTimerProps {
   targetDate: dayjs.Dayjs;

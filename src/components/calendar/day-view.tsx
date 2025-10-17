@@ -1,15 +1,9 @@
 "use client";
 
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
 import { isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import CalendarCard from "./calendar-card";
 import { heightOfCalendarRow } from "@/utils/calendar";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 export function DayView({
   data,

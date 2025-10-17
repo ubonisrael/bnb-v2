@@ -5,15 +5,10 @@ import {
   convertTimeSlotsToUserLocalTime,
   minutesToTimeString,
 } from "@/utils/time";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
+import dayjs from "@/utils/dayjsConfig";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ConfirmationPageData } from "@/types/response";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 export const ConfirmationTab = ({
   status,

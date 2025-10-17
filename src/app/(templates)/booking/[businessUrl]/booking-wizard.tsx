@@ -14,16 +14,11 @@ import {
 } from "@/types/response";
 import toast from "react-hot-toast";
 import api from "@/services/api-service";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
+import dayjs from "@/utils/dayjsConfig";
 import { BusinessLanding } from "./tabs/landing";
 import { ServicesTab } from "./tabs/services";
 import { DateTimePickerTab } from "./tabs/pickdatetime";
 import { usePathname, useRouter } from "next/navigation";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 interface BookingFormValues {
   name: string;

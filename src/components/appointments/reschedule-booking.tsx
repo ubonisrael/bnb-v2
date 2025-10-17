@@ -36,10 +36,7 @@ import {
   convertTimeSlotsToUserLocalTime,
   minutesToTimeString,
 } from "@/utils/time";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
-import LocalizedFormat from "dayjs/plugin/localizedFormat";
+import dayjs from "@/utils/dayjsConfig";
 import { CountdownTimer } from "../ui/countdown-timer";
 import {
   emailFormSchema,
@@ -47,10 +44,6 @@ import {
   otpFormSchema,
   OtpFormValues,
 } from "./cancel-booking";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.extend(LocalizedFormat);
 
 interface RescheduleBookingClientProps {
   id: string;

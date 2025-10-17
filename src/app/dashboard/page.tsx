@@ -1,8 +1,6 @@
 "use client";
 
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
+import dayjs from "@/utils/dayjsConfig";
 import { useState } from "react";
 import {
   CalendarDays,
@@ -29,9 +27,6 @@ import { AnalyticsResponse } from "@/types/response";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api-service";
 import { useUserSettings } from "@/contexts/UserSettingsContext";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 const CopyTextComponent = ({ text }: { text: string }) => {
   const [copied, setCopied] = useState(false);

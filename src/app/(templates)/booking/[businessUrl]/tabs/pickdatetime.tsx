@@ -11,13 +11,8 @@ import {
 } from "@/utils/time";
 import { ArrowLeft, Home } from "lucide-react";
 import React from "react";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
+import dayjs from "@/utils/dayjsConfig";
 import { WaitlistTrigger } from "@/components/ui/waitlist-trigger";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 interface DateTimePickerTabProps {
   bUrl: string;

@@ -1,8 +1,6 @@
 "use client";
 
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
+import dayjs from "@/utils/dayjsConfig";
 import { useState, useEffect } from "react";
 import { format, startOfWeek, endOfWeek, eachDayOfInterval } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,9 +17,6 @@ import { WeekView } from "@/components/calendar/week-view";
 import { generateTimeSlots, getTimeSlotIndex, heightOfCalendarRow } from "@/utils/calendar";
 import { CancelAppointmentDialog } from "@/components/calendar/cancel-appointment-dialog";
 import { RescheduleAppointmentDialog } from "@/components/calendar/reschdedule-appointment-dialog";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 export default function CalendarPage() {
   const { settings } = useUserSettings();

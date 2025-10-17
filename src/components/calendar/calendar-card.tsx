@@ -1,8 +1,6 @@
 import { Dispatch, SetStateAction } from "react";
 import { BookingsResponse } from "@/types/response";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
+import dayjs from "@/utils/dayjsConfig";
 import { cn } from "@/lib/utils";
 import {
   getAppointmentColor,
@@ -22,8 +20,6 @@ import { Button } from "../ui/button";
 import { ClipboardList, Mail, MoreHorizontal, Phone } from "lucide-react";
 import { useUserSettings } from "@/contexts/UserSettingsContext";
 
-dayjs.extend(utc);
-dayjs.extend(timezone);
 export default function CalendarCard({
   appointment,
   setAppointment,

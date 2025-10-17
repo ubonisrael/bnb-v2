@@ -21,17 +21,10 @@ import toast from "react-hot-toast";
 import Link from "next/link";
 import { useState } from "react";
 import { BookingData, CancellationSettings } from "@/types/response";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
-import LocalizedFormat from "dayjs/plugin/localizedFormat";
+import dayjs from "@/utils/dayjsConfig";
 import { minutesToTimeString } from "@/utils/time";
 import { CountdownTimer } from "@/components/ui/countdown-timer";
 import { Textarea } from "../ui/textarea";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.extend(LocalizedFormat);
 
 export const emailFormSchema = z.object({
   email: z.string().email("Invalid email address"),

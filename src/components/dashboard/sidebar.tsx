@@ -15,6 +15,7 @@ import {
   BarChart3,
   Menu,
   X,
+  School,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -55,6 +56,11 @@ const sidebarItems = [
     title: "Templates",
     href: "/dashboard/templates",
     icon: FileText,
+  },
+  {
+    title: "Programs",
+    href: "/dashboard/programs",
+    icon: School,
   },
   {
     title: "Analytics",
@@ -240,7 +246,8 @@ export function Sidebar({
                     alt="User"
                   />
                   <AvatarFallback className="text-black">
-                    {settings?.profile.name[0]}{settings?.profile.name[1]}
+                    {settings?.profile.name[0]}
+                    {settings?.profile.name[1]}
                   </AvatarFallback>
                 </Avatar>
               )}
