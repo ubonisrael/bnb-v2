@@ -18,7 +18,17 @@ import {
   Plus,
   Minus,
   ShoppingCart,
+  Eye,
+  Clock,
+  AlertCircle,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface ProgramRegistrationFormValues {
   first_name?: string;
@@ -43,6 +53,9 @@ export function ProgramRegistrationWizard(
   const [selectedPrograms, setSelectedPrograms] = useState<IExtendedProgram[]>(
     []
   );
+  const [selectedProgramForModal, setSelectedProgramForModal] =
+    useState<IExtendedProgram | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const userTimezone = dayjs.tz.guess();
 
@@ -61,10 +74,111 @@ export function ProgramRegistrationWizard(
   };
 
   const getTotalPrice = () => {
-    return selectedPrograms.reduce(
-      (total, program) => total + parseFloat(program.price),
-      0
-    );
+    return selectedPrograms.reduce((total, program) => {
+      const price =
+        program.allow_deposits && program.deposit_amount
+          ? parseFloat(program.deposit_amount.toString())
+          : parseFloat(program.price);
+      return total + price;
+    }, 0);
+  };
+
+  const getProgramPrice = (program: IExtendedProgram) => {
+    return program.allow_deposits && program.deposit_amount
+      ? parseFloat(program.deposit_amount.toString())
+      : parseFloat(program.price);
+  };
+
+  const isProgramDeposit = (program: IExtendedProgram) => {
+    return program.allow_deposits && program.deposit_amount;
+  };
+
+  const canAddToCart = (program: IExtendedProgram) => {
+    const now = dayjs();
+
+    // Check available seats
+    if (program.availableSeats !== undefined && program.availableSeats < 1) {
+      return false;
+    }
+
+    // Check if booking hasn't started yet (only if not starting immediately)
+    if (
+      !program.start_booking_immediately &&
+      program.start_booking_date &&
+      now.isBefore(dayjs(program.start_booking_date))
+    ) {
+      return false;
+    }
+
+    // Check if booking has ended (custom end date or program end date)
+    if (
+      !program.end_booking_when_program_ends &&
+      program.end_booking_date &&
+      now.isAfter(dayjs(program.end_booking_date))
+    ) {
+      return false;
+    } else if (
+      program.end_booking_when_program_ends &&
+      now.isAfter(dayjs(program.end_date))
+    ) {
+      return false;
+    }
+
+    return true;
+  };
+
+  const getDisabledReason = (program: IExtendedProgram) => {
+    const now = dayjs();
+
+    if (program.availableSeats !== undefined && program.availableSeats < 1) {
+      return "No seats available";
+    }
+
+    if (
+      !program.start_booking_immediately &&
+      program.start_booking_date &&
+      now.isBefore(dayjs(program.start_booking_date))
+    ) {
+      return `Booking opens ${dayjs(program.start_booking_date).format(
+        "MMM D, YYYY"
+      )}`;
+    }
+
+    if (
+      !program.end_booking_when_program_ends &&
+      program.end_booking_date &&
+      now.isAfter(dayjs(program.end_booking_date))
+    ) {
+      return "Booking deadline has passed";
+    } else if (
+      program.end_booking_when_program_ends &&
+      now.isAfter(dayjs(program.end_date))
+    ) {
+      return "Booking deadline has passed";
+    }
+
+    return "";
+  };
+
+  const truncateText = (text: string, wordLimit: number = 20) => {
+    const words = text.split(" ");
+    if (words.length <= wordLimit) {
+      return { truncated: text, hasMore: false };
+    }
+    return {
+      truncated: words.slice(0, wordLimit).join(" ") + "...",
+      hasMore: true,
+    };
+  };
+
+  const openProgramModal = (program: IExtendedProgram) => {
+    setSelectedProgramForModal(program);
+    setIsModalOpen(true);
+  };
+
+  const closeProgramModal = () => {
+    setSelectedProgramForModal(null);
+    setIsModalOpen(false);
   };
 
   // const registrationMutation = useMutation({
@@ -122,9 +236,9 @@ export function ProgramRegistrationWizard(
                       key={program.id}
                       className="overflow-hidden hover:shadow-lg transition-shadow"
                     >
-                      <div className="flex flex-col md:flex-row md:h-80">
+                      <div className="flex flex-col md:flex-row">
                         {/* Banner Image or Random Color */}
-                        <div className="relative w-full md:w-64 h-48 md:h-full">
+                        <div className="relative w-full md:w-64 h-48 md:h-80">
                           {program.banner_image_url ? (
                             <img
                               src={program.banner_image_url}
@@ -156,9 +270,19 @@ export function ProgramRegistrationWizard(
                           </div>
 
                           {program.about && (
-                            <p className="text-gray-600 mb-4 line-clamp-3">
-                              {program.about}
-                            </p>
+                            <div className="mb-4">
+                              <p className="text-gray-600">
+                                {truncateText(program.about).truncated}
+                              </p>
+                              {truncateText(program.about).hasMore && (
+                                <button
+                                  onClick={() => openProgramModal(program)}
+                                  className="text-blue-600 hover:text-blue-800 text-sm mt-1"
+                                >
+                                  See more
+                                </button>
+                              )}
+                            </div>
                           )}
 
                           <div className="grid grid-cols-1 gap-4 mb-6">
@@ -186,10 +310,29 @@ export function ProgramRegistrationWizard(
                                 <div className="text-sm font-medium text-gray-700">
                                   Capacity
                                 </div>
-                                <div className="text-sm text-gray-600">
-                                  {program.capacity
-                                    ? `${program.capacity} participants`
-                                    : "Unlimited"}
+                                <div className="flex gap-1 text-sm text-gray-600">
+                                  <div>
+                                    {program.capacity
+                                      ? `${program.capacity} participants`
+                                      : "Unlimited"}
+                                  </div>
+                                  {program.availableSeats !== undefined && (
+                                    <div className="">
+                                      <span
+                                        className={`font-medium ${
+                                          program.availableSeats < 1
+                                            ? "text-red-600"
+                                            : program.availableSeats <= 5
+                                            ? "text-yellow-600"
+                                            : "text-green-600"
+                                        }`}
+                                      >
+                                        ({program.availableSeats < 1
+                                          ? "Sold out"
+                                          : `${program.availableSeats} seats available`})
+                                      </span>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -247,20 +390,47 @@ export function ProgramRegistrationWizard(
                             )}
                           </div>
 
-                          {/* Add to Cart Button */}
-                          <div className="flex justify-end">
+                          {/* Action Buttons */}
+                          <div className="flex justify-between items-center">
                             <Button
-                              onClick={() => addToCart(program)}
-                              disabled={selectedPrograms.some(
-                                (p) => p.id === program.id
-                              )}
+                              variant="outline"
+                              onClick={() => openProgramModal(program)}
                               className="flex items-center gap-2"
                             >
-                              <Plus className="h-4 w-4" />
-                              {selectedPrograms.some((p) => p.id === program.id)
-                                ? "Added to Cart"
-                                : "Add to Cart"}
+                              <Eye className="h-4 w-4" />
+                              View Details
                             </Button>
+
+                            <div className="flex flex-col items-end gap-2">
+                              {!canAddToCart(program) && (
+                                <div className="flex items-center gap-1 text-sm text-red-600">
+                                  <AlertCircle className="h-4 w-4" />
+                                  <span>{getDisabledReason(program)}</span>
+                                </div>
+                              )}
+
+                              {selectedPrograms.some(
+                                (p) => p.id === program.id
+                              ) ? (
+                                <Button
+                                  onClick={() => removeFromCart(program.id)}
+                                  variant="destructive"
+                                  className="flex items-center gap-2"
+                                >
+                                  <Minus className="h-4 w-4" />
+                                  Remove from Cart
+                                </Button>
+                              ) : (
+                                <Button
+                                  onClick={() => addToCart(program)}
+                                  disabled={!canAddToCart(program)}
+                                  className="flex items-center gap-2"
+                                >
+                                  <Plus className="h-4 w-4" />
+                                  Add to Cart
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -328,8 +498,18 @@ export function ProgramRegistrationWizard(
                                       "MMM D, YYYY"
                                     )}
                                   </div>
-                                  <div className="text-lg font-semibold text-green-600">
-                                    £{program.price}
+                                  <div className="flex items-center gap-2">
+                                    <div className="text-lg font-semibold text-green-600">
+                                      £{getProgramPrice(program).toFixed(2)}
+                                    </div>
+                                    {isProgramDeposit(program) && (
+                                      <Badge
+                                        variant="secondary"
+                                        className="text-xs"
+                                      >
+                                        Deposit
+                                      </Badge>
+                                    )}
                                   </div>
                                 </div>
                                 <Button
@@ -370,6 +550,259 @@ export function ProgramRegistrationWizard(
               </div>
             </div>
           </div>
+
+          {/* Program Details Modal */}
+          <Dialog open={isModalOpen} onOpenChange={closeProgramModal}>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              {selectedProgramForModal && (
+                <>
+                  <DialogHeader>
+                    <DialogTitle className="text-2xl">
+                      {selectedProgramForModal.name}
+                    </DialogTitle>
+                    <DialogDescription>
+                      Complete program details and information
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    {/* Left Section - Image and Basic Info */}
+                    <div className="space-y-4">
+                      {selectedProgramForModal.banner_image_url ? (
+                        <img
+                          src={selectedProgramForModal.banner_image_url}
+                          alt={selectedProgramForModal.name}
+                          className="w-full h-64 object-cover rounded-lg"
+                        />
+                      ) : (
+                        <div
+                          className={`w-full h-64 ${getRandomColor(
+                            selectedProgramForModal.id
+                          )} rounded-lg flex items-center justify-center`}
+                        >
+                          <span className="text-white text-2xl font-semibold text-center px-4">
+                            {selectedProgramForModal.name}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="text-3xl font-bold text-green-600">
+                        £{selectedProgramForModal.price}
+                        {isProgramDeposit(selectedProgramForModal) && (
+                          <span className="text-base ml-2 text-gray-600">
+                            (Full Price - £
+                            {getProgramPrice(selectedProgramForModal).toFixed(
+                              2
+                            )}{" "}
+                            deposit available)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right Section - Details */}
+                    <div className="space-y-6">
+                      {selectedProgramForModal.about && (
+                        <div>
+                          <h3 className="text-lg font-semibold mb-2">About</h3>
+                          <p className="text-gray-600 leading-relaxed">
+                            {selectedProgramForModal.about}
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="space-y-4">
+                        {/* Date Range */}
+                        <div className="flex items-start gap-3">
+                          <Calendar className="h-5 w-5 text-gray-500 mt-0.5" />
+                          <div>
+                            <div className="font-medium text-gray-700">
+                              Duration
+                            </div>
+                            <div className="text-gray-600">
+                              {formatDateRange(
+                                selectedProgramForModal.start_date,
+                                selectedProgramForModal.end_date,
+                                userTimezone
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Capacity and Available Seats */}
+                        <div className="flex items-start gap-3">
+                          <Users className="h-5 w-5 text-gray-500 mt-0.5" />
+                          <div>
+                            <div className="font-medium text-gray-700">
+                              Capacity
+                            </div>
+                            <div className="text-gray-600">
+                              {selectedProgramForModal.capacity
+                                ? `${selectedProgramForModal.capacity} participants`
+                                : "Unlimited capacity"}
+                              {selectedProgramForModal.availableSeats !==
+                                undefined && (
+                                <div className="mt-1">
+                                  <span
+                                    className={`font-medium ${
+                                      selectedProgramForModal.availableSeats < 1
+                                        ? "text-red-600"
+                                        : selectedProgramForModal.availableSeats <=
+                                          5
+                                        ? "text-yellow-600"
+                                        : "text-green-600"
+                                    }`}
+                                  >
+                                    {selectedProgramForModal.availableSeats < 1
+                                      ? "Sold out"
+                                      : `${selectedProgramForModal.availableSeats} seats available`}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Booking Timeline */}
+                        {(!selectedProgramForModal.start_booking_immediately ||
+                          !selectedProgramForModal.end_booking_when_program_ends) && (
+                          <div className="flex items-start gap-3">
+                            <Clock className="h-5 w-5 text-gray-500 mt-0.5" />
+                            <div>
+                              <div className="font-medium text-gray-700">
+                                Booking Window
+                              </div>
+                              <div className="text-gray-600">
+                                {!selectedProgramForModal.start_booking_immediately &&
+                                  selectedProgramForModal.start_booking_date && (
+                                    <div>
+                                      Opens:{" "}
+                                      {dayjs(
+                                        selectedProgramForModal.start_booking_date
+                                      ).format("MMM D, YYYY")}
+                                    </div>
+                                  )}
+                                {selectedProgramForModal.start_booking_immediately && (
+                                  <div>Opens: Immediately</div>
+                                )}
+                                {!selectedProgramForModal.end_booking_when_program_ends &&
+                                  selectedProgramForModal.end_booking_date && (
+                                    <div>
+                                      Closes:{" "}
+                                      {dayjs(
+                                        selectedProgramForModal.end_booking_date
+                                      ).format("MMM D, YYYY")}
+                                    </div>
+                                  )}
+                                {selectedProgramForModal.end_booking_when_program_ends && (
+                                  <div>
+                                    Closes: When program ends (
+                                    {dayjs(
+                                      selectedProgramForModal.end_date
+                                    ).format("MMM D, YYYY")}
+                                    )
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Early Bird */}
+                        {selectedProgramForModal.offer_early_bird && (
+                          <div className="p-3 bg-blue-50 rounded-lg">
+                            <Badge variant="secondary" className="mb-2">
+                              Early Bird Available
+                            </Badge>
+                            {selectedProgramForModal.early_bird_deadline && (
+                              <div className="text-sm text-gray-600">
+                                Available until{" "}
+                                {dayjs(
+                                  selectedProgramForModal.early_bird_deadline
+                                ).format("MMM D, YYYY")}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Deposits */}
+                        {selectedProgramForModal.allow_deposits &&
+                          selectedProgramForModal.deposit_amount && (
+                            <div className="p-3 bg-green-50 rounded-lg">
+                              <div className="flex items-center gap-2 mb-2">
+                                <PoundSterling className="h-4 w-4 text-green-600" />
+                                <span className="font-medium text-green-700">
+                                  Deposit Option Available
+                                </span>
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                Pay £{selectedProgramForModal.deposit_amount}{" "}
+                                now, balance due later
+                              </div>
+                            </div>
+                          )}
+
+                        {/* Refund Policy */}
+                        {selectedProgramForModal.allow_refunds && (
+                          <div className="p-3 bg-green-50 rounded-lg">
+                            <Badge
+                              variant="outline"
+                              className="text-green-600 border-green-600 mb-2"
+                            >
+                              Refundable
+                            </Badge>
+                            {selectedProgramForModal.refund_percentage && (
+                              <div className="text-sm text-gray-600">
+                                {selectedProgramForModal.refund_percentage}%
+                                refund available
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Action Button */}
+                      <div className="pt-4 border-t">
+                        {!canAddToCart(selectedProgramForModal) ? (
+                          <div className="flex items-center gap-2 text-red-600">
+                            <AlertCircle className="h-5 w-5" />
+                            <span>
+                              {getDisabledReason(selectedProgramForModal)}
+                            </span>
+                          </div>
+                        ) : selectedPrograms.some(
+                            (p) => p.id === selectedProgramForModal.id
+                          ) ? (
+                          <Button
+                            onClick={() => {
+                              removeFromCart(selectedProgramForModal.id);
+                              closeProgramModal();
+                            }}
+                            variant="destructive"
+                            className="w-full"
+                          >
+                            <Minus className="h-4 w-4 mr-2" />
+                            Remove from Cart
+                          </Button>
+                        ) : (
+                          <Button
+                            onClick={() => {
+                              addToCart(selectedProgramForModal);
+                              closeProgramModal();
+                            }}
+                            className="w-full"
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add to Cart
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </DialogContent>
+          </Dialog>
 
           {/* Loading Overlay */}
           {isRedirecting && (

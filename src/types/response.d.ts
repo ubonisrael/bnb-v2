@@ -419,6 +419,7 @@ interface ConfirmationPageData {
 }
 
 interface IExtendedProgram extends IProgram {
+  availableSeats: number;
   ServiceProvider: {
     id: number;
     name: string;
