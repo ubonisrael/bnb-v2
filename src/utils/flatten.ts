@@ -15,4 +15,13 @@ export function flattenObject(
     }
     return target;
   }
-  
+
+  export function removeNullish(val: any) {
+    const result: { [key: string]: any } = {};
+    for (const [key, value] of Object.entries(val)) {
+      if (value !== null && value !== undefined) {
+        result[key] = value;
+      }
+    }
+    return result;
+  };

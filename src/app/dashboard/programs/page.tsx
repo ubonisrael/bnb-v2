@@ -70,38 +70,11 @@ import { useMutation } from "@tanstack/react-query";
 import api from "@/services/api-service";
 import toast from "react-hot-toast";
 import { programSchema } from "@/schemas/schema";
+import { getRandomColor } from "@/utils/color";
+import { convertToUTC, formatDateRange } from "@/utils/time";
+import { removeNullish } from "@/utils/flatten";
 
 type ProgramFormValues = z.infer<typeof programSchema>;
-
-// Generate random colors for programs without banner images
-const getRandomColor = (id: string) => {
-  const colors = [
-    "bg-gradient-to-r from-purple-500 to-pink-500",
-    "bg-gradient-to-r from-blue-500 to-cyan-500",
-    "bg-gradient-to-r from-green-500 to-teal-500",
-    "bg-gradient-to-r from-orange-500 to-red-500",
-    "bg-gradient-to-r from-indigo-500 to-purple-500",
-    "bg-gradient-to-r from-yellow-500 to-orange-500",
-  ];
-  const index = parseInt(id) % colors.length;
-  return colors[index];
-};
-
-// Convert dates from user's timezone to UTC
-const convertToUTC = (date: Date | null | undefined) => {
-  if (!date) return null;
-  return dayjs(date).utc().toISOString();
-};
-
-const formatData = (val: any) => {
-  const result: { [key: string]: any } = {};
-  for (const [key, value] of Object.entries(val)) {
-    if (value !== null && value !== undefined) {
-      result[key] = value;
-    }
-  }
-  return result;
-};
 
 export default function ProgramsPage() {
   const [programs, setPrograms] = useState<IProgram[]>([]);
@@ -263,22 +236,6 @@ export default function ProgramsPage() {
   });
 
   const onSubmitProgram = async (data: ProgramFormValues) => {
-    // Convert dates from user's timezone to UTC
-    const convertToUTC = (date: Date | null | undefined) => {
-      if (!date) return null;
-      return dayjs(date).utc().toISOString();
-    };
-
-    const formatData = (val: any) => {
-      const result: { [key: string]: any } = {};
-      for (const [key, value] of Object.entries(val)) {
-        if (value !== null && value !== undefined) {
-          result[key] = value;
-        }
-      }
-      return result;
-    };
-
     const utcData = {
       ...data,
       start_date: convertToUTC(data.start_date),
@@ -289,7 +246,7 @@ export default function ProgramsPage() {
     };
 
     try {
-      await createProjectMutation.mutateAsync(formatData(utcData));
+      await createProjectMutation.mutateAsync(removeNullish(utcData));
       setShowCreateModal(false);
     } catch (e) {
       console.error(e);
@@ -298,22 +255,6 @@ export default function ProgramsPage() {
 
   const onSubmitEdit = async (data: ProgramFormValues) => {
     if (!editingProgram) return;
-
-    // Convert dates from user's timezone to UTC
-    const convertToUTC = (date: Date | null | undefined) => {
-      if (!date) return null;
-      return dayjs(date).utc().toISOString();
-    };
-
-    const formatData = (val: any) => {
-      const result: { [key: string]: any } = {};
-      for (const [key, value] of Object.entries(val)) {
-        if (value !== null && value !== undefined) {
-          result[key] = value;
-        }
-      }
-      return result;
-    };
 
     const utcData = {
       ...data,
@@ -327,7 +268,7 @@ export default function ProgramsPage() {
     try {
       await updateProjectMutation.mutateAsync({
         id: editingProgram.id,
-        values: formatData(utcData),
+        values: removeNullish(utcData),
       });
       setShowEditModal(false);
       setEditingProgram(null);
@@ -532,21 +473,6 @@ export default function ProgramsPage() {
     }
   });
 
-  const formatDateRange = (startDate: string, endDate: string) => {
-    const start = dayjs(startDate).tz(userTimezone);
-    const end = dayjs(endDate).tz(userTimezone);
-
-    if (start.isSame(end, "day")) {
-      return `${start.format("MMM D, YYYY")} • ${start.format(
-        "h:mm A"
-      )} - ${end.format("h:mm A")}`;
-    } else {
-      return `${start.format("MMM D, YYYY h:mm A")} - ${end.format(
-        "MMM D, YYYY h:mm A"
-      )}`;
-    }
-  };
-
   useEffect(() => {
     // Fetch programs data
     const fetchPrograms = async () => {
@@ -718,7 +644,7 @@ export default function ProgramsPage() {
                     <div className="flex items-start gap-2">
                       <Calendar className="h-4 w-4 text-[#6E6E73] mt-0.5 flex-shrink-0" />
                       <span className="text-sm text-[#6E6E73]">
-                        {formatDateRange(program.start_date, program.end_date)}
+                        {formatDateRange(program.start_date, program.end_date, userTimezone)}
                       </span>
                     </div>
 
@@ -857,7 +783,8 @@ export default function ProgramsPage() {
                         <p className="mt-1 text-sm">
                           {formatDateRange(
                             selectedProgram.start_date,
-                            selectedProgram.end_date
+                            selectedProgram.end_date,
+                            userTimezone
                           )}
                         </p>
                       </div>

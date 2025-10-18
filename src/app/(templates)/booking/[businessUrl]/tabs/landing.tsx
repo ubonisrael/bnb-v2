@@ -2,16 +2,18 @@
 
 import ImageCarousel from "./components/image-carousel";
 import BusinessInfo from "./components/business-info";
-import ReviewsSection from "./components/reviews-section";
 import BusinessDetails from "./components/business-details";
 import { BusinessDataResponse } from "@/types/response";
 import Link from "next/link";
-import { Button } from "@/components/templates/default/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { CardContent } from "@/components/templates/default/ui/card";
-import { ChevronRight } from "lucide-react";
 import { useEffect } from "react";
 import api from "@/services/api-service";
+import dayjs from "@/utils/dayjsConfig";
+import { getRandomColor } from "@/utils/color";
+import { formatDateRange } from "@/utils/time";
+
+const userTimezone = dayjs.tz.guess();
 
 export function BusinessLanding(props: BusinessDataResponse) {
   // get number of services
@@ -20,30 +22,30 @@ export function BusinessLanding(props: BusinessDataResponse) {
     0
   );
 
-    useEffect(() => {
-      const searchParams = new URLSearchParams(window.location.search);
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
 
-      // Check for cancellation status in URL
-      const status = searchParams.get("status");
-      const productId = searchParams.get("productId");
-      const productType = searchParams.get("productType");
-  
-      if (status === "canceled" && productId && productType) {
-        const handleCancellation = async () => {
-          try {
-            await api.post("/cancel-reservation", {
-              productId: parseInt(productId),
-              productType,
-            });
-          } catch (error) {
-            console.error("Failed to process cancellation:", error);
-          }
-        };
-  
-        handleCancellation();
-      }
-    }, []);
-  
+    // Check for cancellation status in URL
+    const status = searchParams.get("status");
+    const productId = searchParams.get("productId");
+    const productType = searchParams.get("productType");
+
+    if (status === "canceled" && productId && productType) {
+      const handleCancellation = async () => {
+        try {
+          await api.post("/cancel-reservation", {
+            productId: parseInt(productId),
+            productType,
+          });
+        } catch (error) {
+          console.error("Failed to process cancellation:", error);
+        }
+      };
+
+      handleCancellation();
+    }
+  }, []);
+
   return (
     <div className="w-full bg-slate-100 py-16 sm:pb-20 lg:pb-24">
       <div className="sm:px-6 pb-4 sm:py-6 lg:py-8 mx-auto max-w-7xl">
@@ -99,6 +101,106 @@ export function BusinessLanding(props: BusinessDataResponse) {
                 Book Now
               </Link>
               {/* <ReviewsSection reviews={props.reviews} /> */}
+
+              {/* Display Programs section */}
+              {props.programs && props.programs.length > 0 && (
+                <Card className="">
+                  <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <h2 className="text-2xl font-bold text-slate-800">
+                      Our Programs ({props.programs.length})
+                    </h2>
+                    <Link
+                      href="#"
+                      className="bg-green-500 text-white px-6 py-3 rounded-md inline-flex items-center justify-center font-medium hover:bg-green-600 transition-colors"
+                    >
+                      Register for Programs
+                    </Link>
+                  </CardHeader>
+                  <CardContent className="p-4 md:p-8 !pt-0">
+                    <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                      {props.programs
+                        .filter(
+                          (program) => program.is_published && program.is_active
+                        )
+                        .map((program) => (
+                          <div
+                            key={program.id}
+                            className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow bg-white"
+                          >
+                            {/* Banner Image or Random Color */}
+                            <div className="relative h-48 w-full">
+                              {program.banner_image_url ? (
+                                <img
+                                  src={program.banner_image_url}
+                                  alt={program.name}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div
+                                  className={`h-full w-full ${getRandomColor(
+                                    program.id
+                                  )} flex items-center justify-center`}
+                                >
+                                  <span className="text-white text-lg font-semibold text-center px-4">
+                                    {program.name}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Program Content */}
+                            <div className="p-4 space-y-3">
+                              <h3 className="text-xl font-semibold text-slate-800 line-clamp-2">
+                                {program.name}
+                              </h3>
+
+                              {/* Date Range */}
+                              <div className="text-sm text-gray-600">
+                                <span className="font-medium">Dates: </span>
+                                {formatDateRange(
+                                  program.start_date,
+                                  program.end_date,
+                                  userTimezone
+                                )}
+                              </div>
+
+                              {/* Capacity and Available Seats */}
+                              <div className="text-sm text-gray-600">
+                                <span className="font-medium">Capacity: </span>
+                                {program.capacity ? (
+                                  <>
+                                    {program.capacity} participants
+                                    {/* Note: Available seats would need participant count from API */}
+                                    <span className="text-green-600 ml-2">
+                                      ({program.capacity} seats available)
+                                    </span>
+                                  </>
+                                ) : (
+                                  <span className="text-blue-600">
+                                    Unlimited
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Price */}
+                              <div className="flex items-center justify-between">
+                                <div className="text-lg font-bold text-green-600">
+                                  £{program.price}
+                                </div>
+                                <Link
+                                  href="#"
+                                  className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-600 transition-colors"
+                                >
+                                  Register Now
+                                </Link>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
             {/* Second Section: Right on Desktop, Bottom on Mobile */}

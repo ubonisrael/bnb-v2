@@ -365,6 +365,7 @@ export interface Review {
 }
 
 interface BusinessDataResponse {
+  programs: IProgram[];
   cancellationAllowed: boolean;
   absorbServiceCharge: boolean;
   currencySymbol: string;
