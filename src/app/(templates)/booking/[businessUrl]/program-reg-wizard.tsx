@@ -80,36 +80,38 @@ export function ProgramRegistrationWizard(
         program.allow_deposits && program.deposit_amount
           ? parseFloat(program.deposit_amount.toString())
           : parseFloat(program.price);
-      
+
       // Add service fee if not absorbed
-      const serviceFee = program.absorb_service_charge 
-        ? 0 
+      const serviceFee = program.absorb_service_charge
+        ? 0
         : Math.max(1, basePrice * 0.1);
-      
+
       return total + basePrice + serviceFee;
     }, 0);
   };
 
   const getProgramPrice = (program: IExtendedProgram) => {
-    const basePrice = program.allow_deposits && program.deposit_amount
-      ? parseFloat(program.deposit_amount.toString())
-      : parseFloat(program.price);
-    
+    const basePrice =
+      program.allow_deposits && program.deposit_amount
+        ? parseFloat(program.deposit_amount.toString())
+        : parseFloat(program.price);
+
     // Add service fee if not absorbed
-    const serviceFee = program.absorb_service_charge 
-      ? 0 
+    const serviceFee = program.absorb_service_charge
+      ? 0
       : Math.max(1, basePrice * 0.1);
-    
+
     return basePrice + serviceFee;
   };
 
   const getServiceFee = (program: IExtendedProgram) => {
     if (program.absorb_service_charge) return 0;
-    
-    const basePrice = program.allow_deposits && program.deposit_amount
-      ? parseFloat(program.deposit_amount.toString())
-      : parseFloat(program.price);
-    
+
+    const basePrice =
+      program.allow_deposits && program.deposit_amount
+        ? parseFloat(program.deposit_amount.toString())
+        : parseFloat(program.price);
+
     return Math.max(1, basePrice * 0.1);
   };
 
@@ -284,19 +286,18 @@ export function ProgramRegistrationWizard(
 
                         {/* Program Details */}
                         <div className="flex-1 p-6">
-                          <div className="flex justify-between items-start mb-4">
+                          <div className="flex flex-col mb-4">
                             <h3 className="text-2xl font-bold text-gray-900">
                               {program.name}
                             </h3>
-                            <div className="text-right">
+                            <div className="">
                               <div className="text-2xl font-bold text-green-600">
                                 £{getProgramPrice(program).toFixed(2)}
                               </div>
-                              {!program.absorb_service_charge && (
-                                <div className="text-sm text-gray-500">
-                                  Base: £{program.price} + £{getServiceFee(program).toFixed(2)} fee
-                                </div>
-                              )}
+                              <div className="text-sm text-gray-500">
+                                Inclusive of a non-refundable service fee of £
+                                {getServiceFee(program).toFixed(2)}
+                              </div>
                             </div>
                           </div>
 
@@ -579,14 +580,10 @@ export function ProgramRegistrationWizard(
                                         </Badge>
                                       )}
                                     </div>
-                                    {!program.absorb_service_charge && (
-                                      <div className="text-xs text-gray-500">
-                                        Base: £{(program.allow_deposits && program.deposit_amount
-                                          ? parseFloat(program.deposit_amount.toString())
-                                          : parseFloat(program.price)
-                                        ).toFixed(2)} + Service fee: £{getServiceFee(program).toFixed(2)}
-                                      </div>
-                                    )}
+                                    <div className="text-xs text-gray-500">
+                                      Inclusive of a non-refundable service fee
+                                      of £{getServiceFee(program).toFixed(2)}
+                                    </div>
                                   </div>
                                 </div>
                                 <Button
@@ -663,33 +660,28 @@ export function ProgramRegistrationWizard(
                         </div>
                       )}
 
-                      <div className="text-3xl font-bold text-green-600">
-                        £{getProgramPrice(selectedProgramForModal).toFixed(2)}
-                        {isProgramDeposit(selectedProgramForModal) && (
-                          <span className="text-base ml-2 text-gray-600">
-                            (Total with deposit)
-                          </span>
-                        )}
+                      <div>
+                        <div className="text-3xl font-bold text-green-600">
+                          £{getProgramPrice(selectedProgramForModal).toFixed(2)}
+                          {isProgramDeposit(selectedProgramForModal) && (
+                            <span className="text-base ml-2 text-gray-600">
+                              (Deposit Amount)
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          Inclusive of a non-refundable service fee of £
+                          {getServiceFee(selectedProgramForModal).toFixed(2)}
+                        </div>
                       </div>
-                      
+
                       {/* Price Breakdown */}
                       <div className="text-sm text-gray-600 space-y-1">
-                        <div>
-                          Base price: £{selectedProgramForModal.price}
-                        </div>
+                        <div>Full price: £{selectedProgramForModal.price}</div>
                         {isProgramDeposit(selectedProgramForModal) && (
                           <div>
-                            Deposit amount: £{selectedProgramForModal.deposit_amount}
-                          </div>
-                        )}
-                        {!selectedProgramForModal.absorb_service_charge && (
-                          <div>
-                            Service fee: £{getServiceFee(selectedProgramForModal).toFixed(2)} (10% or £1 minimum)
-                          </div>
-                        )}
-                        {selectedProgramForModal.absorb_service_charge && (
-                          <div className="text-green-600">
-                            ✓ Service fees included
+                            Deposit amount: £
+                            {selectedProgramForModal.deposit_amount}
                           </div>
                         )}
                       </div>
@@ -731,13 +723,15 @@ export function ProgramRegistrationWizard(
                             <div className="font-medium text-gray-700">
                               Capacity
                             </div>
-                            <div className="text-gray-600">
-                              {selectedProgramForModal.capacity
-                                ? `${selectedProgramForModal.capacity} participants`
-                                : "Unlimited capacity"}
+                            <div className="flex gap-1 text-sm text-gray-600">
+                              <div>
+                                {selectedProgramForModal.capacity
+                                  ? `${selectedProgramForModal.capacity} participants`
+                                  : "Unlimited"}
+                              </div>
                               {selectedProgramForModal.availableSeats !==
                                 undefined && (
-                                <div className="mt-1">
+                                <div className="">
                                   <span
                                     className={`font-medium ${
                                       selectedProgramForModal.availableSeats < 1
@@ -748,9 +742,11 @@ export function ProgramRegistrationWizard(
                                         : "text-green-600"
                                     }`}
                                   >
+                                    (
                                     {selectedProgramForModal.availableSeats < 1
                                       ? "Sold out"
                                       : `${selectedProgramForModal.availableSeats} seats available`}
+                                    )
                                   </span>
                                 </div>
                               )}
@@ -831,7 +827,7 @@ export function ProgramRegistrationWizard(
                                 </span>
                               </div>
                               <div className="text-sm text-gray-600">
-                                Pay £{selectedProgramForModal.deposit_amount}{" "}
+                                Pay £{getProgramPrice(selectedProgramForModal)}{" "}
                                 now, balance due later
                               </div>
                             </div>
