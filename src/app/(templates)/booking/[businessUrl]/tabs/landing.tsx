@@ -68,7 +68,7 @@ export function BusinessLanding(props: BusinessDataResponse) {
                     Our Services ({totalServices})
                   </h2>
                   <Link
-                    href={`/booking/${props.bUrl}/bWizard`}
+                    href={`/booking/${props.bUrl}/booking-wizard`}
                     className="bg-blue-400 text-white px-6 py-3 rounded-md inline-flex items-center justify-center font-medium hover:bg-blue-500 transition-colors"
                   >
                     Book Now
@@ -95,7 +95,7 @@ export function BusinessLanding(props: BusinessDataResponse) {
                 </CardContent>
               </Card>
               <Link
-                href={`/booking/${props.bUrl}/bWizard`}
+                href={`/booking/${props.bUrl}/booking-wizard`}
                 className="w-full bg-blue-400 text-white px-6 py-3 rounded-md inline-flex items-center justify-center font-medium hover:bg-blue-500 transition-colors"
               >
                 Book Now
@@ -110,7 +110,7 @@ export function BusinessLanding(props: BusinessDataResponse) {
                       Our Programs ({props.programs.length})
                     </h2>
                     <Link
-                      href="#"
+                      href={`/booking/${props.bUrl}/program-reg-wizard`}
                       className="bg-green-500 text-white px-6 py-3 rounded-md inline-flex items-center justify-center font-medium hover:bg-green-600 transition-colors"
                     >
                       Register for Programs
@@ -188,7 +188,7 @@ export function BusinessLanding(props: BusinessDataResponse) {
                                   £{program.price}
                                 </div>
                                 <Link
-                                  href="#"
+                                  href={`/booking/${props.bUrl}/program-reg-wizard`}
                                   className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-600 transition-colors"
                                 >
                                   Register Now

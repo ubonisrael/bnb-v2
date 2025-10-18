@@ -417,3 +417,21 @@ interface ConfirmationPageData {
   businessUtcOffset?: number;
   url: string;
 }
+
+interface IExtendedProgram extends IProgram {
+  ServiceProvider: {
+    id: number;
+    name: string;
+    logo: string | null;
+  };
+}
+
+interface ProgramsWizardResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    programs: IExtendedProgram[];
+  };
+  error?: any;
+}
+
