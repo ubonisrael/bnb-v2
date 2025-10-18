@@ -22,6 +22,7 @@ import {
   Clock,
   AlertCircle,
   CirclePercent,
+  Home,
 } from "lucide-react";
 import {
   Dialog,
@@ -43,6 +44,7 @@ interface ProgramRegistrationFormValues {
 
 interface ProgramRegistrationWizardProps {
   programs: IExtendedProgram[];
+  businessUrl: string;
 }
 
 export function ProgramRegistrationWizard(
@@ -217,13 +219,25 @@ export function ProgramRegistrationWizard(
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Header */}
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Program Registration
-              </h1>
-              <p className="text-gray-600">
-                Select the programs you'd like to register for and proceed to
-                checkout.
-              </p>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                    Program Registration
+                  </h1>
+                  <p className="text-gray-600">
+                    Select the programs you'd like to register for and proceed to
+                    checkout.
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.href = `/booking/${props.businessUrl}`}
+                  className="flex items-center gap-2"
+                >
+                  <Home className="h-4 w-4" />
+                  Back to Home
+                </Button>
+              </div>
             </div>
 
             <div className="flex flex-col lg:flex-row gap-8">
