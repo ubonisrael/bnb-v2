@@ -1,10 +1,10 @@
 import React from "react";
 import Link from "next/link";
-import { BookingWizard } from "./booking-wizard";
 import api from "@/services/api-service";
-import DynamicComponentWrapper from "./dynamic-component-wrapper";
 import { BusinessDataResponse } from "@/types/response";
-import { BusinessLanding } from "./tabs/landing";
+import { BookingWizard } from "../booking-wizard";
+import DynamicComponentWrapper from "../dynamic-component-wrapper";
+
 
 export type Params = {
   params: Promise<{
@@ -507,7 +507,7 @@ async function getServiceProviderDetails(url: string) {
   }
 }
 
-export default async function LandingPage(props: Params) {
+export default async function BookingWizardPage(props: Params) {
   const { businessUrl } = await props.params;
   let { data, error } = (await getServiceProviderDetails(businessUrl)) as {
     data: BusinessDataResponse;
@@ -562,5 +562,5 @@ export default async function LandingPage(props: Params) {
       </div>
     );
   }
-  return <BusinessLanding {...data} />;
+  return <BookingWizard {...data} />;
 }

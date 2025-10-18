@@ -15,7 +15,6 @@ import {
 import toast from "react-hot-toast";
 import api from "@/services/api-service";
 import dayjs from "@/utils/dayjsConfig";
-import { BusinessLanding } from "./tabs/landing";
 import { ServicesTab } from "./tabs/services";
 import { DateTimePickerTab } from "./tabs/pickdatetime";
 import { usePathname, useRouter } from "next/navigation";
@@ -34,7 +33,6 @@ interface BookingFormValues {
 }
 
 const steps = [
-  { id: "landing", title: "Landing" },
   { id: "services", title: "Services" },
   { id: "datetime", title: "datetime" },
 ];
@@ -155,34 +153,11 @@ export function BookingWizard(props: BusinessDataResponse) {
       setCurrentStepIndex(step);
       if (step) router.replace(pathname);
     }
-
-    // Check for cancellation status in URL
-    const status = searchParams.get("status");
-    const productId = searchParams.get("productId");
-    const productType = searchParams.get("productType");
-
-    if (status === "canceled" && productId && productType) {
-      const handleCancellation = async () => {
-        try {
-          await api.post("/cancel-reservation", {
-            productId: parseInt(productId),
-            productType,
-          });
-        } catch (error) {
-          console.error("Failed to process cancellation:", error);
-        }
-      };
-
-      handleCancellation();
-    }
   }, []);
 
   return (
     <div className="w-full bg-slate-100 py-16 sm:pb-20 lg:pb-24">
       <div className="sm:px-6 pb-4 sm:py-6 lg:py-8 mx-auto max-w-7xl">
-        {currentStep.id === "landing" && (
-          <BusinessLanding gotoBooking={goToTab} {...props} />
-        )}
         {currentStep.id === "services" && (
           <ServicesTab
             gotoPrevTab={() => goToTab(0)}
