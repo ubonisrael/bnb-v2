@@ -30,6 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { getProgramPrice, getServiceFee } from "@/utils/programs";
 
 interface ProgramRegistrationFormValues {
   first_name?: string;
@@ -90,31 +91,6 @@ export function ProgramRegistrationWizard(
     }, 0);
   };
 
-  const getProgramPrice = (program: IExtendedProgram) => {
-    const basePrice =
-      program.allow_deposits && program.deposit_amount
-        ? parseFloat(program.deposit_amount.toString())
-        : parseFloat(program.price);
-
-    // Add service fee if not absorbed
-    const serviceFee = program.absorb_service_charge
-      ? 0
-      : Math.max(1, basePrice * 0.1);
-
-    return basePrice + serviceFee;
-  };
-
-  const getServiceFee = (program: IExtendedProgram) => {
-    if (program.absorb_service_charge) return 0;
-
-    const basePrice =
-      program.allow_deposits && program.deposit_amount
-        ? parseFloat(program.deposit_amount.toString())
-        : parseFloat(program.price);
-
-    return Math.max(1, basePrice * 0.1);
-  };
-
   const isProgramDeposit = (program: IExtendedProgram) => {
     return program.allow_deposits && program.deposit_amount;
   };
@@ -165,9 +141,9 @@ export function ProgramRegistrationWizard(
       program.start_booking_date &&
       now.isBefore(dayjs(program.start_booking_date))
     ) {
-      return `Booking opens ${dayjs(program.start_booking_date).format(
-        "MMM D, YYYY"
-      )}`;
+      return `Booking opens ${dayjs(program.start_booking_date)
+        .tz(userTimezone)
+        .format("LLL")}`;
     }
 
     if (
@@ -457,49 +433,46 @@ export function ProgramRegistrationWizard(
                               )}
                             </div>
                           </div>
+                        </div>
+                      </div>
+                      {/* Action Buttons */}
+                      <div className="flex justify-between items-center p-4">
+                        <Button
+                          variant="outline"
+                          onClick={() => openProgramModal(program)}
+                          className="flex items-center gap-2"
+                        >
+                          <Eye className="h-4 w-4" />
+                          View Details
+                        </Button>
 
-                          {/* Action Buttons */}
-                          <div className="flex justify-between items-center">
+                        <div className="flex flex-col items-end gap-2">
+                          {!canAddToCart(program) ? (
+                            <div className="flex items-center gap-1 text-sm text-red-600">
+                              <AlertCircle className="h-4 w-4" />
+                              <span>{getDisabledReason(program)}</span>
+                            </div>
+                          ) : selectedPrograms.some(
+                              (p) => p.id === program.id
+                            ) ? (
                             <Button
-                              variant="outline"
-                              onClick={() => openProgramModal(program)}
+                              onClick={() => removeFromCart(program.id)}
+                              variant="destructive"
                               className="flex items-center gap-2"
                             >
-                              <Eye className="h-4 w-4" />
-                              View Details
+                              <Minus className="h-4 w-4" />
+                              Remove from Cart
                             </Button>
-
-                            <div className="flex flex-col items-end gap-2">
-                              {!canAddToCart(program) && (
-                                <div className="flex items-center gap-1 text-sm text-red-600">
-                                  <AlertCircle className="h-4 w-4" />
-                                  <span>{getDisabledReason(program)}</span>
-                                </div>
-                              )}
-
-                              {selectedPrograms.some(
-                                (p) => p.id === program.id
-                              ) ? (
-                                <Button
-                                  onClick={() => removeFromCart(program.id)}
-                                  variant="destructive"
-                                  className="flex items-center gap-2"
-                                >
-                                  <Minus className="h-4 w-4" />
-                                  Remove from Cart
-                                </Button>
-                              ) : (
-                                <Button
-                                  onClick={() => addToCart(program)}
-                                  disabled={!canAddToCart(program)}
-                                  className="flex items-center gap-2"
-                                >
-                                  <Plus className="h-4 w-4" />
-                                  Add to Cart
-                                </Button>
-                              )}
-                            </div>
-                          </div>
+                          ) : (
+                            <Button
+                              onClick={() => addToCart(program)}
+                              disabled={!canAddToCart(program)}
+                              className="flex items-center gap-2"
+                            >
+                              <Plus className="h-4 w-4" />
+                              Add to Cart
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </Card>
@@ -562,9 +535,9 @@ export function ProgramRegistrationWizard(
                                   </h4>
                                   <div className="text-sm text-gray-600 mb-1">
                                     Starts:{" "}
-                                    {dayjs(program.start_date).format(
-                                      "MMM D, YYYY"
-                                    )}
+                                    {dayjs(program.start_date)
+                                      .tz(userTimezone)
+                                      .format("LLLL")}
                                   </div>
                                   <div className="space-y-1">
                                     <div className="flex items-center gap-2">
