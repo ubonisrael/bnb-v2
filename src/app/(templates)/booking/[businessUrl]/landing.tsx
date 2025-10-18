@@ -1,8 +1,8 @@
 "use client";
 
-import ImageCarousel from "./components/image-carousel";
-import BusinessInfo from "./components/business-info";
-import BusinessDetails from "./components/business-details";
+import ImageCarousel from "./tabs/components/image-carousel";
+import BusinessInfo from "./tabs/components/business-info";
+import BusinessDetails from "./tabs/components/business-details";
 import { BusinessDataResponse } from "@/types/response";
 import Link from "next/link";
 import { Card, CardHeader } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import api from "@/services/api-service";
 import dayjs from "@/utils/dayjsConfig";
 import { getRandomColor } from "@/utils/color";
 import { formatDateRange } from "@/utils/time";
+import { getProgramPrice } from "@/utils/programs";
 
 const userTimezone = dayjs.tz.guess();
 
@@ -185,7 +186,7 @@ export function BusinessLanding(props: BusinessDataResponse) {
                               {/* Price */}
                               <div className="flex items-center justify-between">
                                 <div className="text-lg font-bold text-green-600">
-                                  £{program.price}
+                                  £{getProgramPrice(program)}
                                 </div>
                                 <Link
                                   href={`/booking/${props.bUrl}/program-reg-wizard`}

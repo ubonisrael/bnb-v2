@@ -70,5 +70,5 @@ export default async function ProgramRegistrationWizardPage(props: Params) {
       </div>
     );
   }
-  return <ProgramRegistrationWizard programs={data.data?.programs} />;
+  return <ProgramRegistrationWizard programs={data.data?.programs} businessUrl={businessUrl} />;
 }

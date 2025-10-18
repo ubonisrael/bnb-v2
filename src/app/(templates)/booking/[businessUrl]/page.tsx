@@ -3,7 +3,7 @@ import Link from "next/link";
 import api from "@/services/api-service";
 import DynamicComponentWrapper from "./dynamic-component-wrapper";
 import { BusinessDataResponse } from "@/types/response";
-import { BusinessLanding } from "./tabs/landing";
+import { BusinessLanding } from "./landing";
 import { businessData } from "@/utils/examples";
 
 export type Params = {
