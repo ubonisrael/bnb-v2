@@ -73,6 +73,7 @@ import { programSchema } from "@/schemas/schema";
 import { getRandomColor } from "@/utils/color";
 import { convertToUTC, formatDateRange } from "@/utils/time";
 import { removeNullish } from "@/utils/flatten";
+import { getProgramPrice } from "@/utils/programs";
 
 type ProgramFormValues = z.infer<typeof programSchema>;
 
@@ -652,7 +653,7 @@ export default function ProgramsPage() {
                     <div className="flex items-center gap-1">
                       <PoundSterling className="h-4 w-4 text-[#6E6E73]" />
                       <span className="font-semibold text-[#121212]">
-                        {program.price}
+                        {getProgramPrice(program)}
                       </span>
                     </div>
 
@@ -1859,7 +1860,13 @@ export default function ProgramsPage() {
                         <FormControl>
                           <Switch
                             checked={field.value}
-                            onCheckedChange={field.onChange}
+                            onCheckedChange={(checked) => {
+                              field.onChange(checked);
+                              // Clear start_booking_date when enabling immediate booking
+                              if (checked) {
+                                editForm.setValue("start_booking_date", null);
+                              }
+                            }}
                           />
                         </FormControl>
                       </FormItem>
@@ -1915,7 +1922,13 @@ export default function ProgramsPage() {
                         <FormControl>
                           <Switch
                             checked={field.value}
-                            onCheckedChange={field.onChange}
+                            onCheckedChange={(checked) => {
+                              field.onChange(checked);
+                              // Clear end_booking_date when enabling program end booking
+                              if (checked) {
+                                editForm.setValue("end_booking_date", null);
+                              }
+                            }}
                           />
                         </FormControl>
                       </FormItem>
@@ -2111,7 +2124,13 @@ export default function ProgramsPage() {
                       <FormControl>
                         <Switch
                           checked={field.value}
-                          onCheckedChange={field.onChange}
+                          onCheckedChange={(checked) => {
+                            field.onChange(checked);
+                            // Clear deposit_amount when disabling deposits
+                            if (!checked) {
+                              editForm.setValue("deposit_amount", null);
+                            }
+                          }}
                         />
                       </FormControl>
                     </FormItem>
@@ -2162,7 +2181,14 @@ export default function ProgramsPage() {
                       <FormControl>
                         <Switch
                           checked={field.value}
-                          onCheckedChange={field.onChange}
+                          onCheckedChange={(checked) => {
+                            field.onChange(checked);
+                            // Clear refund fields when disabling refunds
+                            if (!checked) {
+                              editForm.setValue("refund_deadline_in_hours", null);
+                              editForm.setValue("refund_percentage", null);
+                            }
+                          }}
                         />
                       </FormControl>
                     </FormItem>
