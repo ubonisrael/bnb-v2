@@ -160,15 +160,14 @@ export function BookingWizard(props: BusinessDataResponse) {
       <div className="sm:px-6 pb-4 sm:py-6 lg:py-8 mx-auto max-w-7xl">
         {currentStep.id === "services" && (
           <ServicesTab
-            gotoPrevTab={() => goToTab(0)}
-            gotoNextTab={() => goToTab(2)}
+            businessUrl={props.bUrl}
+            gotoNextTab={() => goToTab(1)}
             {...props}
           />
         )}
         {currentStep.id === "datetime" && (
           <DateTimePickerTab
-            gotoHome={() => goToTab(0)}
-            gotoPrevTab={() => goToTab(1)}
+            gotoPrevTab={() => goToTab(0)}
             showBookingForm={() => {
               if (selectedDate && selectedTime) {
                 setShowBookingModal(true);

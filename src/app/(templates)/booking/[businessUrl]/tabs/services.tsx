@@ -7,13 +7,14 @@ import { useApp } from "@/contexts/AppContext";
 import { useEffect } from "react";
 import ServicesSection from "./components/services-section";
 import { ServicesTabPropsInterface } from "@/types/response";
+import Link from "next/link";
 
 export function ServicesTab({
   name,
   logo,
+  businessUrl,
   serviceCategories,
   gotoNextTab,
-  gotoPrevTab,
 }: ServicesTabPropsInterface) {
   const { resetBooking } = useApp();
 
@@ -24,12 +25,12 @@ export function ServicesTab({
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="px-4">
-          <Button
-            onClick={gotoPrevTab}
-            className="flex items-center justify-center mb-4"
+          <Link
+            href={businessUrl}
+            className="w-16 h-16 flex items-center justify-center rounded-md text-blue-500 hover:bg-blue-50 border border-transparent hover:border-blue-500"
           >
             <Home />
-          </Button>
+          </Link>
           <div className="lg:text-center mb-10">
             <h2 className="text-base text-primary-600 dark:text-primary-400 font-semibold tracking-wide uppercase">
               Our Services

@@ -397,9 +397,9 @@ interface BusinessDataResponse {
 export interface ServicesTabPropsInterface {
   name: string;
   logo: string;
+  businessUrl: string;
   serviceCategories: ServiceCategory[];
   gotoNextTab: () => void;
-  gotoPrevTab: () => void;
 }
 
 interface ConfirmationPageData {

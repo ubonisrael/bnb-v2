@@ -13,6 +13,7 @@ import { ArrowLeft, Home } from "lucide-react";
 import React from "react";
 import dayjs from "@/utils/dayjsConfig";
 import { WaitlistTrigger } from "@/components/ui/waitlist-trigger";
+import Link from "next/link";
 
 interface DateTimePickerTabProps {
   bUrl: string;
@@ -23,7 +24,6 @@ interface DateTimePickerTabProps {
   maxNotice: number;
   gotoPrevTab: () => void;
   showBookingForm: () => void;
-  gotoHome: () => void;
 }
 
 export const DateTimePickerTab = ({
@@ -35,7 +35,6 @@ export const DateTimePickerTab = ({
   maxNotice,
   showBookingForm,
   gotoPrevTab,
-  gotoHome,
 }: DateTimePickerTabProps) => {
   const {
     selectedDate,
@@ -51,16 +50,16 @@ export const DateTimePickerTab = ({
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="flex items-center gap-4 mb-4">
-          <Button
-            onClick={gotoHome}
-            className="flex items-center justify-center"
+        <div className="flex items-center gap-2 mb-4">
+          <Link
+            href={bUrl}
+            className="w-16 h-16 flex items-center justify-center rounded-md text-blue-500 hover:bg-blue-50 border border-transparent hover:border-blue-500"
           >
             <Home />
-          </Button>
+          </Link>
           <Button
             onClick={gotoPrevTab}
-            className="flex items-center justify-center"
+            className="w-16 h-16 flex items-center justify-center text-blue-500 bg-transparent hover:bg-blue-50 border border-transparent hover:border-blue-500"
           >
             <ArrowLeft />
           </Button>
