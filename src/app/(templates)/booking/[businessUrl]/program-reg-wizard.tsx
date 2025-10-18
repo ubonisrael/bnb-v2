@@ -21,6 +21,7 @@ import {
   Eye,
   Clock,
   AlertCircle,
+  CirclePercent,
 } from "lucide-react";
 import {
   Dialog,
@@ -238,7 +239,7 @@ export function ProgramRegistrationWizard(
                     >
                       <div className="flex flex-col md:flex-row">
                         {/* Banner Image or Random Color */}
-                        <div className="relative w-full md:w-64 h-48 md:h-80">
+                        <div className="relative w-full md:w-64 h-48 md:h-72">
                           {program.banner_image_url ? (
                             <img
                               src={program.banner_image_url}
@@ -327,9 +328,11 @@ export function ProgramRegistrationWizard(
                                             : "text-green-600"
                                         }`}
                                       >
-                                        ({program.availableSeats < 1
+                                        (
+                                        {program.availableSeats < 1
                                           ? "Sold out"
-                                          : `${program.availableSeats} seats available`})
+                                          : `${program.availableSeats} seats available`}
+                                        )
                                       </span>
                                     </div>
                                   )}
@@ -337,57 +340,91 @@ export function ProgramRegistrationWizard(
                               </div>
                             </div>
 
-                            {/* Early Bird */}
-                            {program.offer_early_bird && (
-                              <div className="flex items-center gap-2">
-                                <Badge variant="secondary">
-                                  Early Bird Available
-                                </Badge>
-                                {program.early_bird_deadline && (
+                            {/* Deposits */}
+                            <div className="flex items-center gap-2">
+                              <PoundSterling className="h-4 w-4 text-gray-500" />
+                              <div>
+                                <div className="text-sm font-medium text-gray-700">
+                                  Deposit Option
+                                </div>
+                                {program.allow_deposits &&
+                                program.deposit_amount ? (
                                   <div className="text-sm text-gray-600">
-                                    Until{" "}
-                                    {dayjs(program.early_bird_deadline).format(
-                                      "MMM D, YYYY"
-                                    )}
+                                    £{program.deposit_amount} deposit available
+                                  </div>
+                                ) : (
+                                  <div>
+                                    <span className="text-sm text-gray-600">
+                                      No deposit option available
+                                    </span>
                                   </div>
                                 )}
                               </div>
-                            )}
+                            </div>
 
-                            {/* Deposits */}
-                            {program.allow_deposits &&
-                              program.deposit_amount && (
-                                <div className="flex items-center gap-2">
-                                  <PoundSterling className="h-4 w-4 text-gray-500" />
-                                  <div>
-                                    <div className="text-sm font-medium text-gray-700">
-                                      Deposit Option
-                                    </div>
-                                    <div className="text-sm text-gray-600">
-                                      £{program.deposit_amount} deposit
-                                      available
-                                    </div>
-                                  </div>
+                            {/* Early Bird */}
+                            <div className="flex items-center gap-2">
+                              <CirclePercent className="h-4 w-4 text-gray-500" />
+                              <div>
+                                <div className="text-sm font-medium text-gray-700">
+                                  Early Bird Discount
                                 </div>
-                              )}
+                                {program.early_bird_deadline ? (
+                                  <div className="text-sm ">
+                                    <span className="font-medium text-green-600">
+                                      {program.early_bird_discount_type ===
+                                      "percentage"
+                                        ? `${program.early_bird_discount_value}% off`
+                                        : `£${program.early_bird_discount_value} off`}
+                                    </span>
+                                    {"  "}
+                                    Until{" "}
+                                    {dayjs(program.early_bird_deadline)
+                                      .tz(userTimezone)
+                                      .format("LLL")}
+                                  </div>
+                                ) : (
+                                  <span className="text-xs font-medium text-red-600">
+                                    No discount available
+                                  </span>
+                                )}
+                              </div>
+                            </div>
 
                             {/* Refund Policy */}
-                            {program.allow_refunds && (
-                              <div className="flex items-center gap-2">
+                            <div className="">
+                              {program.allow_refunds ? (
+                                <>
+                                  <Badge
+                                    variant="outline"
+                                    className="text-green-600 border-green-600"
+                                  >
+                                    Refundable
+                                  </Badge>
+                                  <div className="text-sm mt-1 text-gray-600">
+                                    {program.refund_percentage && (
+                                      <span>
+                                        {program.refund_percentage}% refund
+                                      </span>
+                                    )}
+                                    {program.refund_deadline_in_hours && (
+                                      <span className="ml-1">
+                                        (within{" "}
+                                        {program.refund_deadline_in_hours}{" "}
+                                        hours)
+                                      </span>
+                                    )}
+                                  </div>
+                                </>
+                              ) : (
                                 <Badge
                                   variant="outline"
-                                  className="text-green-600 border-green-600"
+                                  className="text-red-600 border-red-600"
                                 >
-                                  Refundable
+                                  Non-refundable
                                 </Badge>
-                                {program.refund_percentage && (
-                                  <div className="text-sm text-gray-600">
-                                    {program.refund_percentage}% refund
-                                    available
-                                  </div>
-                                )}
-                              </div>
-                            )}
+                              )}
+                            </div>
                           </div>
 
                           {/* Action Buttons */}
@@ -743,22 +780,47 @@ export function ProgramRegistrationWizard(
                           )}
 
                         {/* Refund Policy */}
-                        {selectedProgramForModal.allow_refunds && (
-                          <div className="p-3 bg-green-50 rounded-lg">
-                            <Badge
-                              variant="outline"
-                              className="text-green-600 border-green-600 mb-2"
-                            >
-                              Refundable
-                            </Badge>
-                            {selectedProgramForModal.refund_percentage && (
+                        <div className="p-3 bg-gray-50 rounded-lg">
+                          {selectedProgramForModal.allow_refunds ? (
+                            <>
+                              <Badge
+                                variant="outline"
+                                className="text-green-600 border-green-600 mb-2"
+                              >
+                                Refundable
+                              </Badge>
                               <div className="text-sm text-gray-600">
-                                {selectedProgramForModal.refund_percentage}%
-                                refund available
+                                {selectedProgramForModal.refund_percentage && (
+                                  <div>
+                                    {selectedProgramForModal.refund_percentage}%
+                                    refund available
+                                  </div>
+                                )}
+                                {selectedProgramForModal.refund_deadline_in_hours && (
+                                  <div>
+                                    Refund must be requested within{" "}
+                                    {
+                                      selectedProgramForModal.refund_deadline_in_hours
+                                    }{" "}
+                                    hours
+                                  </div>
+                                )}
                               </div>
-                            )}
-                          </div>
-                        )}
+                            </>
+                          ) : (
+                            <>
+                              <Badge
+                                variant="outline"
+                                className="text-red-600 border-red-600 mb-2"
+                              >
+                                Non-refundable
+                              </Badge>
+                              <div className="text-sm text-gray-600">
+                                This program does not offer refunds
+                              </div>
+                            </>
+                          )}
+                        </div>
                       </div>
 
                       {/* Action Button */}
