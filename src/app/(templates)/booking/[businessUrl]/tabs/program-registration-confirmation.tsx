@@ -4,23 +4,28 @@ import React from "react";
 import dayjs from "@/utils/dayjsConfig";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ProgramRegisterationResponse } from "@/types/response";
+import { ProgramRegistrationResultData } from "@/types/response";
 
-interface ProgramRegistrationConfirmationProps extends ProgramRegisterationResponse {
+interface ProgramRegistrationConfirmationProps
+  extends ProgramRegistrationResultData {
   url: string;
 }
 
-export const ProgramRegistrationConfirmation = (props: ProgramRegistrationConfirmationProps) => {
+export const ProgramRegistrationConfirmation = (
+  props: ProgramRegistrationConfirmationProps
+) => {
   const router = useRouter();
-  const { status, data, url } = props;
+
 
   const timezone = dayjs.tz.guess();
-  
+
   // Get the confirmation status from the nested data
-  const confirmationStatus = data.status;
-  
+  const confirmationStatus = props.status;
+
   // Handle program data (could be single program or array)
-  const program = Array.isArray(data.programs) ? data.programs[0] : data.programs;
+  const program = Array.isArray(props.programs)
+    ? props.programs[0]
+    : props.programs;
 
   const statusConfig = {
     success: {
@@ -85,7 +90,8 @@ export const ProgramRegistrationConfirmation = (props: ProgramRegistrationConfir
         </svg>
       ),
       title: "Registration Failed",
-      message: "Sorry, we couldn't process your program registration. Please try again.",
+      message:
+        "Sorry, we couldn't process your program registration. Please try again.",
       bgColor: "bg-red-100 dark:bg-red-900",
     },
     expired: {
@@ -106,7 +112,8 @@ export const ProgramRegistrationConfirmation = (props: ProgramRegistrationConfir
         </svg>
       ),
       title: "Registration Expired",
-      message: "This registration session has expired. Please start a new registration.",
+      message:
+        "This registration session has expired. Please start a new registration.",
       bgColor: "bg-gray-100 dark:bg-gray-900",
     },
   };
@@ -186,10 +193,15 @@ export const ProgramRegistrationConfirmation = (props: ProgramRegistrationConfir
                           Program Dates
                         </p>
                         <p className="font-medium text-gray-900 dark:text-white">
-                          {program?.start_date && program?.end_date ? 
-                            `${dayjs(program.start_date).tz(timezone).format("MMM D, YYYY")} - ${dayjs(program.end_date).tz(timezone).format("MMM D, YYYY")}` : 
-                            "Program Dates TBA"
-                          }
+                          {program?.start_date && program?.end_date
+                            ? `${dayjs(program.start_date)
+                                .tz(timezone)
+                                .format("MMM D, YYYY")} - ${dayjs(
+                                program.end_date
+                              )
+                                .tz(timezone)
+                                .format("MMM D, YYYY")}`
+                            : "Program Dates TBA"}
                         </p>
                       </div>
                     </div>
@@ -220,7 +232,7 @@ export const ProgramRegistrationConfirmation = (props: ProgramRegistrationConfir
                           Service Provider
                         </p>
                         <p className="font-medium text-gray-900 dark:text-white">
-                          {data.serviceProvider.name}
+                          {props.serviceProvider.name}
                         </p>
                       </div>
                     </div>
@@ -245,7 +257,10 @@ export const ProgramRegistrationConfirmation = (props: ProgramRegistrationConfir
                           Program Price
                         </p>
                         <p className="font-medium text-gray-900 dark:text-white">
-                          £{program?.price ? parseFloat(program.price).toFixed(2) : "0.00"}
+                          £
+                          {program?.price
+                            ? parseFloat(program.price).toFixed(2)
+                            : "0.00"}
                         </p>
                       </div>
                     </div>
@@ -262,7 +277,7 @@ export const ProgramRegistrationConfirmation = (props: ProgramRegistrationConfir
                     </div>
                   )}
 
-                  {data.total_discount > 0 && (
+                  {props.total_discount > 0 && (
                     <div className="mb-6 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                       <div className="flex items-center">
                         <svg
@@ -284,7 +299,8 @@ export const ProgramRegistrationConfirmation = (props: ProgramRegistrationConfir
                             Discount Applied
                           </p>
                           <p className="text-sm text-green-700 dark:text-green-300">
-                            You saved £{data.total_discount.toFixed(2)} on this registration!
+                            You saved £{props.total_discount.toFixed(2)} on this
+                            registration!
                           </p>
                         </div>
                       </div>
@@ -295,8 +311,10 @@ export const ProgramRegistrationConfirmation = (props: ProgramRegistrationConfir
             )}
 
             <div className="mt-8 flex justify-center">
-              <Button onClick={() => router.push(`/booking/${url}`)}>
-                {confirmationStatus === "success" ? "Return to Home" : "Try Again"}
+              <Button onClick={() => router.push(`/booking/${props.url}`)}>
+                {confirmationStatus === "success"
+                  ? "Return to Home"
+                  : "Try Again"}
               </Button>
             </div>
           </div>

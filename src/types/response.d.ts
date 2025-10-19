@@ -405,18 +405,21 @@ export interface ServicesTabPropsInterface {
 
 type ConfirmationStatus = "success" | "failed" | "expired" | "pending";
 
-interface ProgramRegisterationResponse {
-  status: boolean;
-  data: {
-    status: ConfirmationStatus;
-    programs: IProgram;
-    total_discount: number;
-    serviceProvider: {
-      id: number;
-      name: string;
-    };
+interface ProgramRegistrationResultData {
+  status: ConfirmationStatus;
+  programs: IProgram;
+  total_discount: number;
+  serviceProvider: {
+    id: number;
+    name: string;
   };
 }
+
+interface ProgramRegisterationResponse {
+  status: boolean;
+  data: ProgramRegistrationResultData;
+}
+
 interface BookingConfirmationResponse {
   status: ConfirmationStatus;
   selectedServices?: {
@@ -435,7 +438,7 @@ interface BookingConfirmationResponse {
 interface ConfirmationPageData {
   status: boolean;
   type: "program" | "booking";
-  data: ProgramRegisterationResponse | BookingConfirmationResponse;
+  data: ProgramRegistrationResultData | BookingConfirmationResponse;
 }
 
 interface IExtendedProgram extends IProgram {

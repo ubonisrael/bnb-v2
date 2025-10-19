@@ -2,7 +2,7 @@ import api from "@/services/api-service";
 import { BookingConfirmation } from "../../tabs/booking-confirmation";
 import { ProgramRegistrationConfirmation } from "../../tabs/program-registration-confirmation";
 import Link from "next/link";
-import { ConfirmationPageData, BookingConfirmationResponse, ProgramRegisterationResponse } from "@/types/response";
+import { ConfirmationPageData, BookingConfirmationResponse, ProgramRegisterationResponse, ProgramRegistrationResultData } from "@/types/response";
 
 interface ConfirmationBookingPageProps {
   params: {
@@ -25,7 +25,7 @@ export default async function ConfirmationPage({
     }
     
     if (sessionResult.type === 'program') {
-      const programData = sessionResult.data as ProgramRegisterationResponse;
+      const programData = sessionResult.data as ProgramRegistrationResultData;
       return <ProgramRegistrationConfirmation {...programData} url={businessUrl} />;
     }
     
