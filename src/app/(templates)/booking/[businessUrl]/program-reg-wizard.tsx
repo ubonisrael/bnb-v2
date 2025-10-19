@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -51,9 +52,9 @@ const registrationFormSchema = z.object({
   last_name: z.string().min(1, "Last name is required"),
   email: z.string().email("Please enter a valid email address"),
   phone: z.string().min(1, "Phone number is required"),
-  program_ids: z
-    .array(z.string())
-    .min(1, "At least one program must be selected"),
+  agree_to_terms: z.boolean().refine((val) => val === true, {
+    message: "You must agree to the terms and conditions",
+  }),
 });
 
 type ProgramRegistrationFormValues = z.infer<typeof registrationFormSchema>;
@@ -98,22 +99,12 @@ export function ProgramRegistrationWizard(
     if (!selectedPrograms.find((p) => p.id === program.id)) {
       const updatedPrograms = [...selectedPrograms, program];
       setSelectedPrograms(updatedPrograms);
-      // Update form with new program IDs
-      form.setValue(
-        "program_ids",
-        updatedPrograms.map((p) => p.id)
-      );
     }
   };
 
   const removeFromCart = (programId: string) => {
     const updatedPrograms = selectedPrograms.filter((p) => p.id !== programId);
     setSelectedPrograms(updatedPrograms);
-    // Update form with new program IDs
-    form.setValue(
-      "program_ids",
-      updatedPrograms.map((p) => p.id)
-    );
   };
 
   const getTotalPrice = () => {
@@ -231,7 +222,7 @@ export function ProgramRegistrationWizard(
       last_name: "",
       email: "",
       phone: "",
-      program_ids: [],
+      agree_to_terms: false
     },
   });
 
@@ -1064,6 +1055,36 @@ export function ProgramRegistrationWizard(
                           />
                         </FormControl>
                         <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="agree_to_terms"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm font-normal">
+                            I agree to the{" "}
+                            <a
+                              href="/terms_and_conditions"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline"
+                            >
+                              Terms and Conditions
+                            </a>{" "}
+                            *
+                          </FormLabel>
+                          <FormMessage />
+                        </div>
                       </FormItem>
                     )}
                   />
