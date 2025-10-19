@@ -1557,7 +1557,7 @@ export default function ProgramsPage() {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Status Settings</h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <FormField
                     control={programForm.control}
                     name="is_active"
@@ -1588,7 +1588,7 @@ export default function ProgramsPage() {
                           <FormLabel className="text-base">Published</FormLabel>
                           <FormDescription>
                             Program is visible to customers on your booking page. 
-                            Note: Once published, programs cannot be unpublished but can be deactivated.
+                            <strong className="text-amber-600"> Warning:</strong> Once published, start/end dates cannot be changed and program cannot be unpublished.
                           </FormDescription>
                         </div>
                         <FormControl>
@@ -1600,7 +1600,24 @@ export default function ProgramsPage() {
                       </FormItem>
                     )}
                   />
-                </div>
+
+                {programForm.watch("is_published") && (
+                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <div className="w-4 h-4 mt-0.5 rounded-full bg-blue-400 flex items-center justify-center flex-shrink-0">
+                        <span className="text-xs text-blue-900">i</span>
+                      </div>
+                      <div className="text-sm text-blue-800 dark:text-blue-200">
+                        <strong>Publishing this program will:</strong>
+                        <ul className="list-disc list-inside mt-1 space-y-0.5 ml-2">
+                          <li>Make it visible to customers on your booking page</li>
+                          <li>Lock the start and end dates (cannot be changed later)</li>
+                          <li>Prevent the program from being unpublished</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <FormField
                   control={programForm.control}
@@ -1625,6 +1642,7 @@ export default function ProgramsPage() {
                     </FormItem>
                   )}
                 />
+              </div>
               </div>
 
               <div className="flex justify-end gap-4 pt-6">
@@ -1666,6 +1684,30 @@ export default function ProgramsPage() {
               onSubmit={editForm.handleSubmit(onSubmitEdit)}
               className="space-y-6"
             >
+              {/* Published Program Notice */}
+              {editingProgram?.is_published && (
+                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 mt-0.5 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0">
+                      <span className="text-xs text-amber-900 font-bold">!</span>
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                        Published Program Restrictions
+                      </h4>
+                      <p className="text-sm text-amber-700 dark:text-amber-300">
+                        This program is published and visible to customers. Some fields cannot be modified:
+                      </p>
+                      <ul className="text-sm text-amber-700 dark:text-amber-300 list-disc list-inside space-y-0.5 ml-2">
+                        <li>Start and end dates are locked to maintain booking integrity</li>
+                        <li>Program cannot be unpublished (can be deactivated instead)</li>
+                        <li>Other settings can still be updated as needed</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Basic Information */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Basic Information</h3>
@@ -1742,6 +1784,7 @@ export default function ProgramsPage() {
                           <Input
                             type="datetime-local"
                             {...field}
+                            disabled={editingProgram?.is_published}
                             value={
                               field.value
                                 ? dayjs(field.value).format("YYYY-MM-DDTHH:mm")
@@ -1756,6 +1799,11 @@ export default function ProgramsPage() {
                             }
                           />
                         </FormControl>
+                        {editingProgram?.is_published && (
+                          <FormDescription className="text-amber-600">
+                            Start date cannot be changed for published programs
+                          </FormDescription>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
@@ -1771,6 +1819,7 @@ export default function ProgramsPage() {
                           <Input
                             type="datetime-local"
                             {...field}
+                            disabled={editingProgram?.is_published}
                             value={
                               field.value
                                 ? dayjs(field.value).format("YYYY-MM-DDTHH:mm")
@@ -1785,6 +1834,11 @@ export default function ProgramsPage() {
                             }
                           />
                         </FormControl>
+                        {editingProgram?.is_published && (
+                          <FormDescription className="text-amber-600">
+                            End date cannot be changed for published programs
+                          </FormDescription>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
