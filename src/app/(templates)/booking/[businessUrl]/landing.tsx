@@ -173,7 +173,7 @@ export function BusinessLanding(props: BusinessDataResponse) {
                                     {program.capacity} participants
                                     {/* Note: Available seats would need participant count from API */}
                                     <span className="text-green-600 ml-2">
-                                      ({program.capacity} seats available)
+                                      ({program.availableSeats} seats available)
                                     </span>
                                   </>
                                 ) : (
