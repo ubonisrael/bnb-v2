@@ -158,34 +158,95 @@ export const ProgramRegistrationConfirmation = (
 
                   {/* Service Provider - moved to top */}
                   <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                    <div className="flex items-start">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-primary-600 dark:text-primary-400 mt-1 mr-3"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                      </svg>
-                      <div>
+                    <div className="flex items-start space-x-4">
+                      {/* Logo */}
+                      {props.serviceProvider.logo ? (
+                        <div className="flex-shrink-0">
+                          <img
+                            src={props.serviceProvider.logo}
+                            alt={props.serviceProvider.name}
+                            className="h-12 w-12 rounded-lg object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex-shrink-0">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-12 w-12 text-primary-600 dark:text-primary-400 p-2 bg-white dark:bg-gray-700 rounded-lg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                            />
+                          </svg>
+                        </div>
+                      )}
+                      
+                      {/* Provider Details */}
+                      <div className="flex-1 min-w-0">
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                           Service Provider
                         </p>
-                        <p className="font-medium text-gray-900 dark:text-white">
+                        <p className="font-medium text-gray-900 dark:text-white text-lg">
                           {props.serviceProvider.name}
                         </p>
+                        
+                        {/* Email */}
+                        {props.serviceProvider.email && (
+                          <div className="mt-2 flex items-center">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4 text-gray-400 mr-2"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                              />
+                            </svg>
+                            <span className="text-sm text-gray-600 dark:text-gray-300">
+                              {props.serviceProvider.email}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Location */}
+                        {props.serviceProvider.location && (
+                          <div className="mt-1 flex items-center">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4 text-gray-400 mr-2"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                              />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                              />
+                            </svg>
+                            <span className="text-sm text-gray-600 dark:text-gray-300">
+                              {props.serviceProvider.location}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
