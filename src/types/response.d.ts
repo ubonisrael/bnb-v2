@@ -407,11 +407,14 @@ type ConfirmationStatus = "success" | "failed" | "expired" | "pending";
 
 interface ProgramRegistrationResultData {
   status: ConfirmationStatus;
-  programs: IProgram;
+  programs: IProgram[];
   total_discount: number;
   serviceProvider: {
     id: number;
     name: string;
+    email: string;
+    logo: string | null;
+    location: string;
   };
 }
 

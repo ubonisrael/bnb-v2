@@ -5,6 +5,7 @@ import dayjs from "@/utils/dayjsConfig";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ProgramRegistrationResultData } from "@/types/response";
+import { getProgramPrice } from "@/utils/programs";
 
 interface ProgramRegistrationConfirmationProps
   extends ProgramRegistrationResultData {
@@ -22,10 +23,18 @@ export const ProgramRegistrationConfirmation = (
   // Get the confirmation status from the nested data
   const confirmationStatus = props.status;
 
-  // Handle program data (could be single program or array)
-  const program = Array.isArray(props.programs)
-    ? props.programs[0]
-    : props.programs;
+  // Handle program data (ensure it's always an array)
+  const programs = Array.isArray(props.programs)
+    ? props.programs
+    : [props.programs];
+
+  // Calculate total price including service charges
+  const calculateTotalPrice = () => {
+    return programs.reduce((total, program) => total + getProgramPrice(program), 0);
+  };
+
+  const totalPrice = calculateTotalPrice();
+  const finalPrice = totalPrice - props.total_discount;
 
   const statusConfig = {
     success: {
@@ -147,65 +156,8 @@ export const ProgramRegistrationConfirmation = (
                     Registration Details
                   </h4>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div className="flex items-start">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-primary-600 dark:text-primary-400 mt-1 mr-3"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                        />
-                      </svg>
-                      <div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Program Name
-                        </p>
-                        <p className="font-medium text-gray-900 dark:text-white">
-                          {program?.name || "Program Name"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-primary-600 dark:text-primary-400 mt-1 mr-3"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
-                      <div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Program Dates
-                        </p>
-                        <p className="font-medium text-gray-900 dark:text-white">
-                          {program?.start_date && program?.end_date
-                            ? `${dayjs(program.start_date)
-                                .tz(timezone)
-                                .format("MMM D, YYYY")} - ${dayjs(
-                                program.end_date
-                              )
-                                .tz(timezone)
-                                .format("MMM D, YYYY")}`
-                            : "Program Dates TBA"}
-                        </p>
-                      </div>
-                    </div>
-
+                  {/* Service Provider - moved to top */}
+                  <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                     <div className="flex items-start">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -236,46 +188,122 @@ export const ProgramRegistrationConfirmation = (
                         </p>
                       </div>
                     </div>
+                  </div>
 
-                    <div className="flex items-start">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-primary-600 dark:text-primary-400 mt-1 mr-3"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
-                        />
-                      </svg>
-                      <div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Program Price
-                        </p>
-                        <p className="font-medium text-gray-900 dark:text-white">
-                          £
-                          {program?.price
-                            ? parseFloat(program.price).toFixed(2)
-                            : "0.00"}
-                        </p>
-                      </div>
+                  {/* Programs List */}
+                  <div className="mb-6">
+                    <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+                      Registered Programs ({programs.length})
+                    </h5>
+                    <div className="space-y-4">
+                      {programs.map((program, index) => (
+                        <div
+                          key={index}
+                          className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+                        >
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                Program Name
+                              </p>
+                              <p className="font-medium text-gray-900 dark:text-white">
+                                {program?.name || "Program Name"}
+                              </p>
+                            </div>
+
+                            <div>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                Start Date
+                              </p>
+                              <p className="font-medium text-gray-900 dark:text-white">
+                                {program?.start_date
+                                  ? dayjs(program.start_date)
+                                      .tz(timezone)
+                                      .format("MMM D, YYYY")
+                                  : "TBA"}
+                              </p>
+                            </div>
+
+                            <div>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                End Date
+                              </p>
+                              <p className="font-medium text-gray-900 dark:text-white">
+                                {program?.end_date
+                                  ? dayjs(program.end_date)
+                                      .tz(timezone)
+                                      .format("MMM D, YYYY")
+                                  : "TBA"}
+                              </p>
+                            </div>
+
+                            <div>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                Price (inc. service charge)
+                              </p>
+                              <p className="font-medium text-gray-900 dark:text-white">
+                                £
+                                {program?.price
+                                  ? (
+                                      parseFloat(program.price) +
+                                      parseFloat(program.price) * 0.1
+                                    ).toFixed(2)
+                                  : "0.00"}
+                              </p>
+                            </div>
+                          </div>
+
+                          {program?.about && (
+                            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                                Description
+                              </p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                {program.about}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </div>
 
-                  {program?.about && (
-                    <div className="mb-6">
-                      <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Program Description
-                      </h5>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {program.about}
-                      </p>
+                  {/* Pricing Summary */}
+                  <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                      Pricing Summary
+                    </h5>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          Subtotal ({programs.length} program{programs.length !== 1 ? 's' : ''})
+                        </span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">
+                          £{totalPrice.toFixed(2)}
+                        </span>
+                      </div>
+                      {props.total_discount > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-green-600 dark:text-green-400">
+                            Discount Applied
+                          </span>
+                          <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                            -£{props.total_discount.toFixed(2)}
+                          </span>
+                        </div>
+                      )}
+                      <div className="pt-2 border-t border-gray-200 dark:border-gray-600">
+                        <div className="flex justify-between">
+                          <span className="text-base font-medium text-gray-900 dark:text-white">
+                            Total Paid
+                          </span>
+                          <span className="text-base font-bold text-gray-900 dark:text-white">
+                            £{finalPrice.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  )}
+                  </div>
 
                   {props.total_discount > 0 && (
                     <div className="mb-6 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
@@ -296,7 +324,7 @@ export const ProgramRegistrationConfirmation = (
                         </svg>
                         <div>
                           <p className="text-sm font-medium text-green-800 dark:text-green-200">
-                            Discount Applied
+                            Great Savings!
                           </p>
                           <p className="text-sm text-green-700 dark:text-green-300">
                             You saved £{props.total_discount.toFixed(2)} on this
