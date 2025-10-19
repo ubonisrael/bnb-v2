@@ -263,7 +263,7 @@ export function ProgramRegistrationWizard(
       // Add selected program IDs to the form data
       const formDataWithPrograms = {
         ...data,
-        program_ids: selectedPrograms.map((p) => p.id),
+        programIds: selectedPrograms.map((p) => p.id),
       };
 
       await registrationMutation.mutateAsync(formDataWithPrograms);

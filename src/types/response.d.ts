@@ -403,8 +403,22 @@ export interface ServicesTabPropsInterface {
   gotoNextTab: () => void;
 }
 
-interface ConfirmationPageData {
-  status: "success" | "failed" | "expired" | "pending";
+type ConfirmationStatus = "success" | "failed" | "expired" | "pending";
+
+interface ProgramRegisterationResponse {
+  status: boolean;
+  data: {
+    status: ConfirmationStatus;
+    programs: IProgram;
+    total_discount: number;
+    serviceProvider: {
+      id: number;
+      name: string;
+    };
+  };
+}
+interface BookingConfirmationResponse {
+  status: ConfirmationStatus;
   selectedServices?: {
     id: number;
     name: string;
@@ -416,6 +430,12 @@ interface ConfirmationPageData {
   businessLocation?: string;
   businessUtcOffset?: number;
   url: string;
+}
+
+interface ConfirmationPageData {
+  status: boolean;
+  type: "program" | "booking";
+  data: ProgramRegisterationResponse | BookingConfirmationResponse;
 }
 
 interface IExtendedProgram extends IProgram {
@@ -435,4 +455,3 @@ interface ProgramsWizardResponse {
   };
   error?: any;
 }
-

@@ -1,7 +1,8 @@
 import api from "@/services/api-service";
-import { ConfirmationTab } from "../../tabs/confirmation";
+import { BookingConfirmation } from "../../tabs/booking-confirmation";
+import { ProgramRegistrationConfirmation } from "../../tabs/program-registration-confirmation";
 import Link from "next/link";
-import { ConfirmationPageData } from "@/types/response";
+import { ConfirmationPageData, BookingConfirmationResponse, ProgramRegisterationResponse } from "@/types/response";
 
 interface ConfirmationBookingPageProps {
   params: {
@@ -16,12 +17,19 @@ export default async function ConfirmationPage({
   try {
     const { sessionId, businessUrl } = await params;
     // fetch booking payment status and booking details using sessionId
-    const sessionResult = await api.get<{
-      status: boolean;
-      data: Omit<ConfirmationPageData, "url">;
-    }>(`stripe/session/${sessionId}`);
+    const sessionResult = await api.get<ConfirmationPageData>(`stripe/session/${sessionId}`);
 
-    return <ConfirmationTab {...sessionResult.data} url={businessUrl} />;
+    if (sessionResult.type === 'booking') {
+      const bookingData = sessionResult.data as BookingConfirmationResponse;
+      return <BookingConfirmation {...bookingData} url={businessUrl} />; 
+    }
+    
+    if (sessionResult.type === 'program') {
+      const programData = sessionResult.data as ProgramRegisterationResponse;
+      return <ProgramRegistrationConfirmation {...programData} url={businessUrl} />;
+    }
+    
+    return null
   } catch (error: any) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center">

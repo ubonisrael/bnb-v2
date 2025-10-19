@@ -8,9 +8,9 @@ import {
 import dayjs from "@/utils/dayjsConfig";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ConfirmationPageData } from "@/types/response";
+import { BookingConfirmationResponse } from "@/types/response";
 
-export const ConfirmationTab = ({
+export const BookingConfirmation = ({
   status,
   selectedServices,
   selectedDate,
@@ -18,7 +18,7 @@ export const ConfirmationTab = ({
   businessLocation,
   businessUtcOffset,
   url,
-}: ConfirmationPageData) => {
+}: BookingConfirmationResponse) => {
   const router = useRouter();
 
   const timezone = dayjs.tz.guess();
