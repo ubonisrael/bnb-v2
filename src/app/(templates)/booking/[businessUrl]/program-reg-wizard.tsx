@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import toast from "react-hot-toast";
 import api from "@/services/api-service";
 import dayjs from "@/utils/dayjsConfig";
@@ -9,6 +12,16 @@ import { IExtendedProgram } from "@/types/response";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { getRandomColor } from "@/utils/color";
 import { formatDateRange } from "@/utils/time";
 import {
@@ -33,13 +46,28 @@ import {
 } from "@/components/ui/dialog";
 import { getProgramPrice, getServiceFee } from "@/utils/programs";
 
-interface ProgramRegistrationFormValues {
-  first_name?: string;
-  last_name?: string;
-  email?: string;
-  phone?: string;
-  student_id?: string;
-  program_ids: string[];
+const registrationFormSchema = z.object({
+  first_name: z.string().min(1, "First name is required"),
+  last_name: z.string().min(1, "Last name is required"),
+  email: z.string().email("Please enter a valid email address"),
+  phone: z.string().min(1, "Phone number is required"),
+  program_ids: z
+    .array(z.string())
+    .min(1, "At least one program must be selected"),
+});
+
+type ProgramRegistrationFormValues = z.infer<typeof registrationFormSchema>;
+
+interface IProgramRegistrationResponse {
+  success: boolean;
+  message: string;
+  data: {
+    studentId: string;
+    customerId: string;
+    totalAmount: number;
+    programsRegistered: number;
+    paymentUrl: string;
+  };
 }
 
 interface ProgramRegistrationWizardProps {
@@ -50,7 +78,6 @@ interface ProgramRegistrationWizardProps {
 export function ProgramRegistrationWizard(
   props: ProgramRegistrationWizardProps
 ) {
-  console.log("programs", props.programs);
   const [showProgRegistrationModal, setShowProgRegistrationModal] =
     useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -69,12 +96,24 @@ export function ProgramRegistrationWizard(
 
   const addToCart = (program: IExtendedProgram) => {
     if (!selectedPrograms.find((p) => p.id === program.id)) {
-      setSelectedPrograms([...selectedPrograms, program]);
+      const updatedPrograms = [...selectedPrograms, program];
+      setSelectedPrograms(updatedPrograms);
+      // Update form with new program IDs
+      form.setValue(
+        "program_ids",
+        updatedPrograms.map((p) => p.id)
+      );
     }
   };
 
   const removeFromCart = (programId: string) => {
-    setSelectedPrograms(selectedPrograms.filter((p) => p.id !== programId));
+    const updatedPrograms = selectedPrograms.filter((p) => p.id !== programId);
+    setSelectedPrograms(updatedPrograms);
+    // Update form with new program IDs
+    form.setValue(
+      "program_ids",
+      updatedPrograms.map((p) => p.id)
+    );
   };
 
   const getTotalPrice = () => {
@@ -185,32 +224,62 @@ export function ProgramRegistrationWizard(
     setIsModalOpen(false);
   };
 
-  // const registrationMutation = useMutation({
-  //   mutationFn: (data: ProgramRegistrationFormValues) => {
-  //     toast.loading("Scheduling appointment...", { id: "booking" });
-  //     return api.post(`programs/register`, data);
-  //   },
-  //   onSuccess: async (data) => {
-  //     toast.dismiss("booking");
-  //     setIsRedirecting(true); // Show loading overlay
-  //     window.location.href = data.url;
-  //   },
-  //   onError: (error) => {
-  //     toast.dismiss("booking");
-  //     toast.remove("booking");
-  //     toast.error(error.errors[0].message || "Error while registering for program(s)", {
-  //       id: "prog-registration-error",
-  //     });
-  //   },
-  // });
+  const form = useForm<ProgramRegistrationFormValues>({
+    resolver: zodResolver(registrationFormSchema),
+    defaultValues: {
+      first_name: "",
+      last_name: "",
+      email: "",
+      phone: "",
+      program_ids: [],
+    },
+  });
 
-  // async function onSubmit(data) {
-  //     try {
-  //       await registrationMutation.mutateAsync(data);
-  //     } catch (error) {
-  //       console.error("Registration failed:", error);
-  //     }
-  //   }
+  const registrationMutation = useMutation<IProgramRegistrationResponse, Error, ProgramRegistrationFormValues>({
+    mutationFn: async (data: ProgramRegistrationFormValues): Promise<IProgramRegistrationResponse> => {
+      toast.loading("Processing registration...", { id: "prog-registration" });
+      return api.post(`programs/register`, data) as Promise<IProgramRegistrationResponse>;
+    },
+    onSuccess: async (data: IProgramRegistrationResponse) => {
+      toast.dismiss("prog-registration");
+      toast.success("Registration successful! Redirecting to payment...");
+      setIsRedirecting(true); // Show loading overlay
+
+      if (data?.data.paymentUrl) {
+        window.location.href = data.data.paymentUrl;
+      } else {
+        // Fallback - close modal and reset form
+        setShowProgRegistrationModal(false);
+        form.reset();
+        setSelectedPrograms([]);
+      }
+    },
+    onError: (error: any) => {
+      toast.dismiss("prog-registration");
+      toast.remove("prog-registration");
+      const errorMessage =
+        error?.response?.data?.errors?.[0]?.message ||
+        error?.message ||
+        "Error while registering for program(s)";
+      toast.error(errorMessage, {
+        id: "prog-registration-error",
+      });
+    },
+  });
+
+  async function onSubmit(data: ProgramRegistrationFormValues) {
+    try {
+      // Add selected program IDs to the form data
+      const formDataWithPrograms = {
+        ...data,
+        program_ids: selectedPrograms.map((p) => p.id),
+      };
+
+      await registrationMutation.mutateAsync(formDataWithPrograms);
+    } catch (error) {
+      console.error("Registration failed:", error);
+    }
+  }
 
   return (
     <div className="w-full bg-slate-100 py-16 sm:pb-20 lg:pb-24">
@@ -225,13 +294,15 @@ export function ProgramRegistrationWizard(
                     Program Registration
                   </h1>
                   <p className="text-gray-600">
-                    Select the programs you'd like to register for and proceed to
-                    checkout.
+                    Select the programs you'd like to register for and proceed
+                    to checkout.
                   </p>
                 </div>
                 <Button
                   variant="outline"
-                  onClick={() => window.location.href = `/booking/${props.businessUrl}`}
+                  onClick={() =>
+                    (window.location.href = `/booking/${props.businessUrl}`)
+                  }
                   className="flex items-center gap-2"
                 >
                   <Home className="h-4 w-4" />
@@ -599,6 +670,7 @@ export function ProgramRegistrationWizard(
                               onClick={() => setShowProgRegistrationModal(true)}
                               className="w-full"
                               size="lg"
+                              disabled={selectedPrograms.length === 0}
                             >
                               Proceed to Registration
                             </Button>
@@ -904,6 +976,145 @@ export function ProgramRegistrationWizard(
                   </div>
                 </>
               )}
+            </DialogContent>
+          </Dialog>
+
+          {/* Registration Form Modal */}
+          <Dialog
+            open={showProgRegistrationModal}
+            onOpenChange={(open) => {
+              setShowProgRegistrationModal(open);
+              if (!open) {
+                form.reset();
+              }
+            }}
+          >
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Complete Your Registration</DialogTitle>
+                <DialogDescription>
+                  Please provide your details to proceed with the registration.
+                </DialogDescription>
+              </DialogHeader>
+
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-4"
+                >
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="first_name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>First Name *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter first name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="last_name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Last Name *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter last name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email Address *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            placeholder="Enter email address"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone Number *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="tel"
+                            placeholder="Enter phone number"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Selected Programs Summary */}
+                  <div className="border-t pt-4">
+                    <h4 className="font-medium text-gray-900 mb-2">
+                      Selected Programs ({selectedPrograms.length})
+                    </h4>
+                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                      {selectedPrograms.map((program) => (
+                        <div
+                          key={program.id}
+                          className="text-sm text-gray-600 flex justify-between"
+                        >
+                          <span>{program.name}</span>
+                          <span className="font-medium">
+                            £{getProgramPrice(program).toFixed(2)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="border-t mt-2 pt-2 flex justify-between font-medium">
+                      <span>Total:</span>
+                      <span className="text-green-600">
+                        £{getTotalPrice().toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowProgRegistrationModal(false)}
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="flex-1"
+                      disabled={registrationMutation.isPending}
+                    >
+                      {registrationMutation.isPending
+                        ? "Processing..."
+                        : "Complete Registration"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
             </DialogContent>
           </Dialog>
 
