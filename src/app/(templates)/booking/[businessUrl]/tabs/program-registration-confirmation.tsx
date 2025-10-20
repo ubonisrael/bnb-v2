@@ -305,11 +305,14 @@ export const ProgramRegistrationConfirmation = (
                               <p className="font-medium text-gray-900 dark:text-white">
                                 £
                                 {program?.price
-                                  ? (
-                                      parseFloat(program.price) +
-                                      parseFloat(program.price) * 0.1
-                                    ).toFixed(2)
+                                  ? getProgramPrice(program).toFixed(2)
                                   : "0.00"}
+                                {program.allow_deposits && program.deposit_amount && (
+                                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                                    {" "}
+                                    (Deposit)
+                                  </span>
+                                )}
                               </p>
                             </div>
                           </div>
