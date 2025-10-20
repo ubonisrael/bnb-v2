@@ -222,14 +222,23 @@ export function ProgramRegistrationWizard(
       last_name: "",
       email: "",
       phone: "",
-      agree_to_terms: false
+      agree_to_terms: false,
     },
   });
 
-  const registrationMutation = useMutation<IProgramRegistrationResponse, Error, ProgramRegistrationFormValues>({
-    mutationFn: async (data: ProgramRegistrationFormValues): Promise<IProgramRegistrationResponse> => {
+  const registrationMutation = useMutation<
+    IProgramRegistrationResponse,
+    Error,
+    ProgramRegistrationFormValues
+  >({
+    mutationFn: async (
+      data: ProgramRegistrationFormValues
+    ): Promise<IProgramRegistrationResponse> => {
       toast.loading("Processing registration...", { id: "prog-registration" });
-      return api.post(`programs/register`, data) as Promise<IProgramRegistrationResponse>;
+      return api.post(
+        `programs/register`,
+        data
+      ) as Promise<IProgramRegistrationResponse>;
     },
     onSuccess: async (data: IProgramRegistrationResponse) => {
       toast.dismiss("prog-registration");
@@ -343,9 +352,30 @@ export function ProgramRegistrationWizard(
                               {program.name}
                             </h3>
                             <div className="">
-                              <div className="text-2xl font-bold text-green-600">
-                                £{getProgramPrice(program).toFixed(2)}
-                              </div>
+                              {program.allow_deposits &&
+                              program.deposit_amount ? (
+                                <>
+                                  <div className="text-2xl font-bold text-green-600">
+                                    £{getProgramPrice(program)}
+                                    <span className="text-sm font-normal text-gray-600 ml-1">
+                                      (Deposit)
+                                    </span>
+                                  </div>
+                                  <div className="text-sm font-bold text-gray-500">
+                                    Balance: £
+                                    {(
+                                      parseFloat(program.price) -
+                                      parseFloat(
+                                        program.deposit_amount.toString() || "0"
+                                      )
+                                    ).toFixed(2)}
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="text-2xl font-bold text-green-600">
+                                  £{getProgramPrice(program)}
+                                </div>
+                              )}
                               <div className="text-sm text-gray-500">
                                 Inclusive of a non-refundable service fee of £
                                 {getServiceFee(program).toFixed(2)}
