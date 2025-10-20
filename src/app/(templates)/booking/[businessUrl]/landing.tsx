@@ -35,7 +35,7 @@ export function BusinessLanding(props: BusinessDataResponse) {
       const handleCancellation = async () => {
         try {
           await api.post("/cancel-reservation", {
-            productId: parseInt(productId),
+            productId,
             productType,
           });
         } catch (error) {
