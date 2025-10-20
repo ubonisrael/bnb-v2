@@ -26,7 +26,7 @@ export function ServicesTab({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="px-4">
           <Link
-            href={businessUrl}
+            href={`/booking/${businessUrl}`}
             className="w-16 h-16 flex items-center justify-center rounded-md text-blue-500 hover:bg-blue-50 border border-transparent hover:border-blue-500"
           >
             <Home />

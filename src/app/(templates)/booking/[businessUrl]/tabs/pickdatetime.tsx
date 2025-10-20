@@ -52,7 +52,7 @@ export const DateTimePickerTab = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="flex items-center gap-2 mb-4">
           <Link
-            href={bUrl}
+            href={`/booking/${bUrl}`}
             className="w-16 h-16 flex items-center justify-center rounded-md text-blue-500 hover:bg-blue-50 border border-transparent hover:border-blue-500"
           >
             <Home />
