@@ -45,7 +45,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { getProgramPrice, getServiceFee } from "@/utils/programs";
+import {
+  getProgramPrice,
+  getServiceFee,
+  calculateProgramDiscount,
+  getProgramPriceWithDiscount,
+  getProgramBasePrice,
+} from "@/utils/programs";
 
 const registrationFormSchema = z.object({
   first_name: z.string().min(1, "First name is required"),
@@ -109,17 +115,7 @@ export function ProgramRegistrationWizard(
 
   const getTotalPrice = () => {
     return selectedPrograms.reduce((total, program) => {
-      const basePrice =
-        program.allow_deposits && program.deposit_amount
-          ? parseFloat(program.deposit_amount.toString())
-          : parseFloat(program.price);
-
-      // Add service fee if not absorbed
-      const serviceFee = program.absorb_service_charge
-        ? 0
-        : Math.max(1, basePrice * 0.1);
-
-      return total + basePrice + serviceFee;
+      return total + getProgramPriceWithDiscount(program);
     }, 0);
   };
 
@@ -630,51 +626,99 @@ export function ProgramRegistrationWizard(
                       ) : (
                         <>
                           <div className="space-y-4 mb-6">
-                            {selectedPrograms.map((program) => (
-                              <div
-                                key={program.id}
-                                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-                              >
-                                <div className="flex-1">
-                                  <h4 className="font-medium text-gray-900 mb-1">
-                                    {program.name}
-                                  </h4>
-                                  <div className="text-sm text-gray-600 mb-1">
+                            {selectedPrograms.map((program) => {
+                              const basePrice = getProgramBasePrice(program);
+                              const discount =
+                                calculateProgramDiscount(program);
+                              const serviceFee = getServiceFee(program);
+                              const finalPrice =
+                                getProgramPriceWithDiscount(program);
+
+                              return (
+                                <div
+                                  key={program.id}
+                                  className="p-4 bg-gray-50 rounded-lg"
+                                >
+                                  <div className="flex items-center justify-between mb-2">
+                                    <h4 className="font-medium text-gray-900">
+                                      {program.name}
+                                    </h4>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => removeFromCart(program.id)}
+                                    >
+                                      <Minus className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+
+                                  <div className="text-sm text-gray-600 mb-3">
                                     Starts:{" "}
                                     {dayjs(program.start_date)
                                       .tz(userTimezone)
                                       .format("LLLL")}
                                   </div>
-                                  <div className="space-y-1">
-                                    <div className="flex items-center gap-2">
-                                      <div className="text-lg font-semibold text-green-600">
-                                        £{getProgramPrice(program).toFixed(2)}
-                                      </div>
-                                      {isProgramDeposit(program) && (
-                                        <Badge
-                                          variant="secondary"
-                                          className="text-xs"
-                                        >
-                                          Deposit
-                                        </Badge>
-                                      )}
+
+                                  {/* Price Breakdown */}
+                                  <div className="space-y-1 text-sm">
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-600">
+                                        {isProgramDeposit(program)
+                                          ? "Deposit"
+                                          : "Program"}{" "}
+                                        Price
+                                      </span>
+                                      <span className="text-gray-900">
+                                        £{basePrice.toFixed(2)}
+                                      </span>
                                     </div>
-                                    <div className="text-xs text-gray-500">
-                                      Inclusive of a non-refundable service fee
-                                      of £{getServiceFee(program).toFixed(2)}
+
+                                    {discount > 0 && (
+                                      <div className="flex justify-between">
+                                        <span className="text-green-600">
+                                          Early Bird Discount
+                                        </span>
+                                        <span className="text-green-600">
+                                          -£{discount.toFixed(2)}
+                                        </span>
+                                      </div>
+                                    )}
+
+                                    {serviceFee > 0 && (
+                                      <div className="flex justify-between">
+                                        <span className="text-gray-600">
+                                          Service Fee
+                                        </span>
+                                        <span className="text-gray-900">
+                                          £{serviceFee.toFixed(2)}
+                                        </span>
+                                      </div>
+                                    )}
+
+                                    <div className="pt-1 border-t border-gray-300">
+                                      <div className="flex justify-between items-center">
+                                        <span className="font-semibold text-gray-900">
+                                          Total
+                                        </span>
+                                        <div className="flex items-center gap-2">
+                                          {isProgramDeposit(program) && (
+                                            <Badge
+                                              variant="secondary"
+                                              className="text-xs"
+                                            >
+                                              Deposit
+                                            </Badge>
+                                          )}
+                                          <span className="text-lg font-semibold text-green-600">
+                                            £{finalPrice.toFixed(2)}
+                                          </span>
+                                        </div>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => removeFromCart(program.id)}
-                                  className="ml-4"
-                                >
-                                  <Minus className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
 
                           {/* Total and Checkout */}
@@ -1124,18 +1168,27 @@ export function ProgramRegistrationWizard(
                     <h4 className="font-medium text-gray-900 mb-2">
                       Selected Programs ({selectedPrograms.length})
                     </h4>
-                    <div className="space-y-2 max-h-32 overflow-y-auto">
-                      {selectedPrograms.map((program) => (
-                        <div
-                          key={program.id}
-                          className="text-sm text-gray-600 flex justify-between"
-                        >
-                          <span>{program.name}</span>
-                          <span className="font-medium">
-                            £{getProgramPrice(program).toFixed(2)}
-                          </span>
-                        </div>
-                      ))}
+                    <div className="space-y-3 max-h-40 overflow-y-auto">
+                      {selectedPrograms.map((program) => {
+                        const basePrice = getProgramBasePrice(program);
+                        const discount = calculateProgramDiscount(program);
+                        const finalPrice = getProgramPriceWithDiscount(program);
+
+                        return (
+                          <div key={program.id} className="text-sm">
+                            <div className="flex justify-between font-medium text-gray-900">
+                              <span>{program.name}</span>
+                              <span>£{finalPrice.toFixed(2)}</span>
+                            </div>
+                            {discount > 0 && (
+                              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                                <span> Base: £{basePrice.toFixed(2)}</span>
+                                <span>Discount: -£{discount.toFixed(2)}</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                     <div className="border-t mt-2 pt-2 flex justify-between font-medium">
                       <span>Total:</span>

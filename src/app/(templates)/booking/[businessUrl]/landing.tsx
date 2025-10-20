@@ -12,7 +12,7 @@ import api from "@/services/api-service";
 import dayjs from "@/utils/dayjsConfig";
 import { getRandomColor } from "@/utils/color";
 import { formatDateRange } from "@/utils/time";
-import { getProgramPrice } from "@/utils/programs";
+import { getProgramPrice, getProgramPriceWithDiscount, calculateProgramDiscount, getProgramBasePrice } from "@/utils/programs";
 
 const userTimezone = dayjs.tz.guess();
 
@@ -186,23 +186,52 @@ export function BusinessLanding(props: BusinessDataResponse) {
                               {/* Price */}
                               <div className="flex items-center justify-between">
                                 <div className="flex flex-col">
-                                  {program.allow_deposits && program.deposit_amount ? (
-                                    <>
-                                      <div className="text-lg font-bold text-green-600">
-                                        £{getProgramPrice(program)} 
-                                        <span className="text-sm font-normal text-gray-600 ml-1">
-                                          (Deposit)
-                                        </span>
-                                      </div>
-                                      <div className="text-sm font-bold text-gray-500">
-                                        Balance: £{(parseFloat(program.price) - parseFloat(program.deposit_amount.toString() || '0')).toFixed(2)}
-                                      </div>
-                                    </>
-                                  ) : (
-                                    <div className="text-lg font-bold text-green-600">
-                                      £{getProgramPrice(program)}
-                                    </div>
-                                  )}
+                                  {(() => {
+                                    const basePrice = getProgramBasePrice(program);
+                                    const discount = calculateProgramDiscount(program);
+                                    const finalPrice = getProgramPriceWithDiscount(program);
+                                    const isDeposit = program.allow_deposits && program.deposit_amount;
+                                    
+                                    return (
+                                      <>
+                                        {discount > 0 ? (
+                                          <>
+                                            <div className="text-sm text-gray-500 line-through">
+                                              £{getProgramPrice(program).toFixed(2)}
+                                              {isDeposit && (
+                                                <span className="ml-1">(Deposit)</span>
+                                              )}
+                                            </div>
+                                            <div className="text-lg font-bold text-green-600">
+                                              £{finalPrice.toFixed(2)}
+                                              {isDeposit && (
+                                                <span className="text-sm font-normal text-gray-600 ml-1">
+                                                  (Deposit)
+                                                </span>
+                                              )}
+                                            </div>
+                                            <div className="text-xs text-green-600">
+                                              Save £{discount.toFixed(2)} - Early Bird!
+                                            </div>
+                                          </>
+                                        ) : (
+                                          <div className="text-lg font-bold text-green-600">
+                                            £{finalPrice.toFixed(2)}
+                                            {isDeposit && (
+                                              <span className="text-sm font-normal text-gray-600 ml-1">
+                                                (Deposit)
+                                              </span>
+                                            )}
+                                          </div>
+                                        )}
+                                        {isDeposit && program.deposit_amount && (
+                                          <div className="text-sm font-bold text-gray-500">
+                                            Balance: £{(parseFloat(program.price) - parseFloat(program.deposit_amount.toString())).toFixed(2)}
+                                          </div>
+                                        )}
+                                      </>
+                                    );
+                                  })()}
                                 </div>
                                 <Link
                                   href={`/booking/${props.bUrl}/program-reg-wizard`}
