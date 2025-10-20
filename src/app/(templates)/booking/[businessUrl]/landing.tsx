@@ -185,8 +185,24 @@ export function BusinessLanding(props: BusinessDataResponse) {
 
                               {/* Price */}
                               <div className="flex items-center justify-between">
-                                <div className="text-lg font-bold text-green-600">
-                                  £{getProgramPrice(program)}
+                                <div className="flex flex-col">
+                                  {program.allow_deposits && program.deposit_amount ? (
+                                    <>
+                                      <div className="text-lg font-bold text-green-600">
+                                        £{getProgramPrice(program)} 
+                                        <span className="text-sm font-normal text-gray-600 ml-1">
+                                          (Deposit)
+                                        </span>
+                                      </div>
+                                      <div className="text-sm font-bold text-gray-500">
+                                        Balance: £{(parseFloat(program.price) - parseFloat(program.deposit_amount.toString() || '0')).toFixed(2)}
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <div className="text-lg font-bold text-green-600">
+                                      £{getProgramPrice(program)}
+                                    </div>
+                                  )}
                                 </div>
                                 <Link
                                   href={`/booking/${props.bUrl}/program-reg-wizard`}
