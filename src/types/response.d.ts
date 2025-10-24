@@ -461,3 +461,222 @@ interface ProgramsWizardResponse {
   };
   error?: any;
 }
+
+// New Program Types for the updated backend structure
+interface INewProgram {
+  id: number;
+  name: string;
+  about: string;
+  start_date: string;
+  end_date: string;
+  capacity: number | null;
+  set_capacity_per_class: boolean;
+  banner_image_url: string | null;
+  is_active: boolean;
+  is_published: boolean;
+  set_deposit_instructions_per_class: boolean;
+  allow_deposits: boolean;
+  deposit_amount: number | null;
+  absorb_service_charge: boolean;
+  allow_refunds: boolean;
+  refund_deadline_in_hours: number | null;
+  refund_percentage: number | null;
+  ServiceProviderId: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  classes?: IProgramClass[];
+  class_count?: number;
+  capacity_info?: {
+    type: 'per_class' | 'program_level';
+    total_capacity: number | null;
+    program_capacity: number | null;
+  };
+  available_seats?: number | null;
+  ServiceProvider?: {
+    id: number;
+    name: string;
+    logo: string | null;
+  };
+  availableSeats?: number | null;
+}
+
+interface IProgramClass {
+  id: number;
+  name: string;
+  description: string;
+  start_date: string;
+  end_date: string;
+  price: number;
+  capacity: number | null;
+  is_active: boolean;
+  is_published: boolean;
+  start_booking_immediately: boolean;
+  start_booking_date: string | null;
+  end_booking_when_class_ends: boolean;
+  end_booking_date: string | null;
+  offer_early_bird: boolean;
+  early_bird_discount_type: 'percentage' | 'fixed_amount' | null;
+  early_bird_discount_value: number | null;
+  early_bird_deadline: string | null;
+  allow_deposits: boolean;
+  deposit_amount: number | null;
+  ProgramId: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  enrollmentCount?: number;
+  revenue?: number;
+  availableSeatsInRedis?: number | null;
+}
+
+interface IProgramStudent {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  createdAt: string;
+  updatedAt: string;
+  Enrollments: Array<{
+    id: number;
+    payment_status: string;
+    amount_paid: number;
+    amount_due: number;
+    is_active: boolean;
+    is_approved: boolean;
+    notes: string | null;
+    enrollment_date: string;
+    completion_date: string | null;
+    attended_class: boolean;
+    ProgramClassId: number;
+    ProgramStudentId: number;
+    createdAt: string;
+    updatedAt: string;
+    ProgramClass: {
+      id: number;
+      name: string;
+    };
+  }>;
+}
+
+// API Response Interfaces
+interface GetAllProgramsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    programs: INewProgram[];
+    pagination: {
+      currentPage: number;
+      totalPages: number;
+      totalItems: number;
+      itemsPerPage: number;
+      hasNextPage: boolean;
+      hasPreviousPage: boolean;
+    };
+  };
+}
+
+interface GetProgramByIdResponse {
+  success: boolean;
+  message: string;
+  data: {
+    program: INewProgram;
+    classes: IProgramClass[];
+    students: IProgramStudent[];
+    stats: {
+      totalClasses: number;
+      totalEnrollments: number;
+      uniqueStudents: number;
+      totalRevenue: number;
+      averageRevenuePerClass: number;
+      averageEnrollmentsPerClass: number;
+    };
+  };
+}
+
+interface GetProgramClassByIdResponse {
+  success: boolean;
+  message: string;
+  data: {
+    programClass: IProgramClass;
+    program: {
+      id: number;
+      name: string;
+      set_capacity_per_class: boolean;
+    };
+    students: IProgramStudent[];
+    stats: {
+      activeEnrollments: number;
+      totalEnrollments: number;
+      totalRevenue: number;
+      pendingRevenue: number;
+      totalPotentialRevenue: number;
+      capacity: number | null;
+      availableSeats: number | null;
+      occupancyRate: number | null;
+      averageRevenuePerStudent: number;
+      enrollmentsByStatus: Array<{
+        payment_status: string;
+        count: number;
+        total_paid: number;
+        total_due: number;
+      }>;
+    };
+  };
+}
+
+interface CreateProgramResponse {
+  success: boolean;
+  message: string;
+  data: {
+    program: INewProgram;
+  };
+}
+
+interface CreateProgramClassResponse {
+  success: boolean;
+  message: string;
+  data: {
+    class: IProgramClass;
+  };
+}
+
+interface UpdateProgramResponse {
+  success: boolean;
+  message: string;
+  data: {
+    program: INewProgram;
+  };
+}
+
+interface UpdateProgramClassResponse {
+  success: boolean;
+  message: string;
+  data: {
+    programClass: IProgramClass;
+  };
+}
+
+interface DeleteProgramResponse {
+  success: boolean;
+  message: string;
+  data: {
+    deletedProgram: {
+      id: number;
+      name: string;
+    };
+  };
+}
+
+interface DeleteProgramClassResponse {
+  success: boolean;
+  message: string;
+  data: {
+    deletedClass: {
+      id: number;
+      name: string;
+      programId: number;
+    };
+  };
+}

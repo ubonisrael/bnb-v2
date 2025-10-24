@@ -629,3 +629,219 @@ export const programSchema = z
       path: ["refund_percentage"],
     }
   );
+
+// New Program Schema (simplified for parent programs)
+export const newProgramSchema = z.object({
+  name: z
+    .string()
+    .min(2, { message: "Program name must be at least 2 characters" })
+    .max(255, { message: "Program name must not exceed 255 characters" })
+    .trim(),
+  about: z
+    .string()
+    .min(10, {
+      message: "Program description must be at least 10 characters",
+    })
+    .max(2000, {
+      message: "Program description must not exceed 2000 characters",
+    })
+    .trim(),
+  capacity: z.coerce
+    .number()
+    .int()
+    .min(1, { message: "Capacity must be a positive integer" })
+    .optional()
+    .nullable(),
+  set_capacity_per_class: z.boolean().default(false),
+  banner_image_url: z
+    .string()
+    .url({ message: "Banner image URL must be a valid URL" })
+    .optional()
+    .nullable(),
+  is_active: z.boolean().default(true),
+  is_published: z.boolean().default(false),
+  set_deposit_instructions_per_class: z.boolean().default(false),
+  allow_deposits: z.boolean().default(false),
+  deposit_amount: z.coerce
+    .number()
+    .int()
+    .min(1, { message: "Deposit amount must be a positive integer" })
+    .optional()
+    .nullable(),
+  absorb_service_charge: z.boolean().default(false),
+  allow_refunds: z.boolean().default(false),
+  refund_deadline_in_hours: z.coerce
+    .number()
+    .int()
+    .min(0, { message: "Refund deadline must be a non-negative integer" })
+    .optional()
+    .nullable(),
+  refund_percentage: z.coerce
+    .number()
+    .int()
+    .min(0, { message: "Refund percentage must be between 0 and 100" })
+    .max(100, { message: "Refund percentage must be between 0 and 100" })
+    .optional()
+    .nullable(),
+});
+
+// Program Class Schema
+export const programClassSchema = z
+  .object({
+    name: z
+      .string()
+      .min(2, { message: "Class name must be at least 2 characters" })
+      .max(255, { message: "Class name must not exceed 255 characters" })
+      .trim(),
+    description: z
+      .string()
+      .min(10, {
+        message: "Class description must be at least 10 characters",
+      })
+      .max(2000, {
+        message: "Class description must not exceed 2000 characters",
+      })
+      .trim(),
+    start_date: z
+      .date({ required_error: "Start date is required" })
+      .refine((date) => date > new Date(), {
+        message: "Start date must be in the future",
+      }),
+    end_date: z.date({ required_error: "End date is required" }),
+    price: z.coerce
+      .number({ required_error: "Price is required" })
+      .min(0, { message: "Price cannot be negative" }),
+    capacity: z.coerce
+      .number()
+      .int()
+      .min(1, { message: "Capacity must be a positive integer" })
+      .optional()
+      .nullable(),
+    is_active: z.boolean().default(true),
+    is_published: z.boolean().default(false),
+    start_booking_immediately: z.boolean().default(true),
+    start_booking_date: z.date().optional().nullable(),
+    end_booking_when_class_ends: z.boolean().default(true),
+    end_booking_date: z.date().optional().nullable(),
+    offer_early_bird: z.boolean().default(false),
+    early_bird_discount_type: z
+      .enum(["percentage", "fixed_amount"])
+      .optional()
+      .nullable(),
+    early_bird_discount_value: z.coerce
+      .number()
+      .min(0, { message: "Early bird discount value cannot be negative" })
+      .optional()
+      .nullable(),
+    early_bird_deadline: z.date().optional().nullable(),
+    allow_deposits: z.boolean().default(false),
+    deposit_amount: z.coerce
+      .number()
+      .int()
+      .min(1, { message: "Deposit amount must be a positive integer" })
+      .optional()
+      .nullable(),
+  })
+  .refine((data) => data.end_date > data.start_date, {
+    message: "End date must be after start date",
+    path: ["end_date"],
+  })
+  .refine(
+    (data) => {
+      if (!data.start_booking_immediately && !data.start_booking_date) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Start booking date is required when not starting immediately",
+      path: ["start_booking_date"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.start_booking_date && data.start_booking_immediately) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Cannot set start booking date when starting immediately",
+      path: ["start_booking_date"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (
+        !data.end_booking_when_class_ends &&
+        !data.end_booking_date
+      ) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "End booking date is required when not ending with class",
+      path: ["end_booking_date"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.end_booking_date && data.end_booking_when_class_ends) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Cannot set end booking date when ending with class",
+      path: ["end_booking_date"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.offer_early_bird && !data.early_bird_discount_type) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Early bird discount type is required when offering early bird",
+      path: ["early_bird_discount_type"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.offer_early_bird && !data.early_bird_discount_value) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Early bird discount value is required when offering early bird",
+      path: ["early_bird_discount_value"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.offer_early_bird && !data.early_bird_deadline) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Early bird deadline is required when offering early bird",
+      path: ["early_bird_deadline"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.allow_deposits && !data.deposit_amount) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Deposit amount is required when allowing deposits",
+      path: ["deposit_amount"],
+    }
+  );
