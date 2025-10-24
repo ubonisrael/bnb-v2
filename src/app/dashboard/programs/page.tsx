@@ -146,7 +146,7 @@ export default function ProgramsPage() {
   });
 
   // Edit form
-  const editForm = useForm<NewProgramFormValues>({
+  const editProgramForm = useForm<NewProgramFormValues>({
     resolver: zodResolver(newProgramSchema),
     defaultValues: {
       name: "",
@@ -278,7 +278,7 @@ export default function ProgramsPage() {
     },
     onSuccess: (response: UpdateProgramResponse) => {
       toast.success(response.message, { id: "update-program" });
-      editForm.reset();
+      editProgramForm.reset();
       setPrograms((prev) =>
         prev.map((program) =>
           program.id === response.data.program.id
@@ -318,7 +318,7 @@ export default function ProgramsPage() {
   };
 
   const handleCloseEditModal = () => {
-    if (editForm.formState.isDirty) {
+    if (editProgramForm.formState.isDirty) {
       setShowConfirmDialog(true);
     } else {
       setShowEditModal(false);
@@ -330,7 +330,7 @@ export default function ProgramsPage() {
     setShowEditModal(false);
     setEditingProgram(null);
     setShowConfirmDialog(false);
-    editForm.reset();
+    editProgramForm.reset();
   };
 
   const handleCancelClose = () => {
@@ -610,7 +610,7 @@ export default function ProgramsPage() {
 
   const handleEditProgram = (program: INewProgram) => {
     setEditingProgram(program);
-    editForm.reset({
+    editProgramForm.reset({
       name: program.name,
       about: program.about,
       capacity: program.capacity,
@@ -895,19 +895,19 @@ export default function ProgramsPage() {
                       </span>
                     </div>
 
-                    {/* Duration */}
-                    <div className="flex items-start gap-2">
-                      <Calendar className="h-4 w-4 text-[#6E6E73] mt-0.5 flex-shrink-0" />
-                      <span className="text-sm text-[#6E6E73]">
-                        {formatDateRange(program.start_date, program.end_date, userTimezone)}
-                      </span>
-                    </div>
-
                     {/* Total Enrolled Students */}
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-[#6E6E73]" />
                       <span className="text-sm text-[#6E6E73]">
-                        {program.classes?.reduce((total, cls) => total + (cls.students?.length || 0), 0) || 0} students enrolled
+                        {program.classes?.reduce((total: number, cls: any) => total + (cls.students?.length || 0), 0) || 0} students enrolled
+                      </span>
+                    </div>
+
+                    {/* Program Status */}
+                    <div className="flex items-center gap-2">
+                      <div className={`h-2 w-2 rounded-full ${program.is_active ? 'bg-green-500' : 'bg-gray-400'}`} />
+                      <span className="text-sm text-[#6E6E73]">
+                        {program.is_active ? 'Active' : 'Inactive'} • {program.is_published ? 'Published' : 'Draft'}
                       </span>
                     </div>
 
@@ -1023,14 +1023,10 @@ export default function ProgramsPage() {
                     <div className="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                       <div>
                         <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                          Date Range
+                          Created
                         </label>
                         <p className="mt-1 text-sm">
-                          {formatDateRange(
-                            selectedProgram.start_date,
-                            selectedProgram.end_date,
-                            userTimezone
-                          )}
+                          {dayjs(selectedProgram.createdAt).format("MMM D, YYYY")}
                         </p>
                       </div>
                       <div>
@@ -1046,7 +1042,7 @@ export default function ProgramsPage() {
                           Total Students
                         </label>
                         <p className="mt-1 text-sm">
-                          {selectedProgram.classes?.reduce((total, cls) => total + (cls.students?.length || 0), 0) || 0}
+                          {selectedProgram.classes?.reduce((total: number, cls: any) => total + (cls.students?.length || 0), 0) || 0}
                         </p>
                       </div>
                       <div>
@@ -1204,7 +1200,7 @@ export default function ProgramsPage() {
                     </div>
                     <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                       <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                        {selectedProgram.classes?.reduce((total, cls) => total + (cls.students?.length || 0), 0) || 0}
+                        {selectedProgram.classes?.reduce((total: number, cls: any) => total + (cls.students?.length || 0), 0) || 0}
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">
                         Total Students
@@ -1212,7 +1208,7 @@ export default function ProgramsPage() {
                     </div>
                     <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                       <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                        £{selectedProgram.classes?.reduce((total, cls) => total + (cls.price * (cls.students?.length || 0)), 0).toFixed(2) || '0.00'}
+                        £{selectedProgram.classes?.reduce((total: number, cls: any) => total + (cls.price * (cls.students?.length || 0)), 0).toFixed(2) || '0.00'}
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">
                         Total Revenue
@@ -1220,7 +1216,7 @@ export default function ProgramsPage() {
                     </div>
                     <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
                       <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-                        {selectedProgram.classes?.reduce((total, cls) => total + (cls.capacity || 0), 0) || 0}
+                        {selectedProgram.classes?.reduce((total: number, cls: any) => total + (cls.capacity || 0), 0) || 0}
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">
                         Total Capacity
@@ -1364,144 +1360,21 @@ export default function ProgramsPage() {
                 )}
               </div>
 
-              {/* Booking Settings */}
+              {/* Deposit Instructions */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Booking Settings</h3>
-
-                <div className="space-y-4">
-                  <FormField
-                    control={programForm.control}
-                    name="start_booking_immediately"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">
-                            Start Booking Immediately
-                          </FormLabel>
-                          <FormDescription>
-                            Allow customers to book as soon as the program is
-                            published.
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-
-                  {!programForm.watch("start_booking_immediately") && (
-                    <FormField
-                      control={programForm.control}
-                      name="start_booking_date"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Booking Start Date *</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="datetime-local"
-                              {...field}
-                              value={
-                                field.value
-                                  ? dayjs(field.value).format(
-                                      "YYYY-MM-DDTHH:mm"
-                                    )
-                                  : ""
-                              }
-                              onChange={(e) =>
-                                field.onChange(
-                                  e.target.value
-                                    ? new Date(e.target.value)
-                                    : null
-                                )
-                              }
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-
-                  <FormField
-                    control={programForm.control}
-                    name="end_booking_when_program_ends"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">
-                            End Booking When Program Ends
-                          </FormLabel>
-                          <FormDescription>
-                            Stop accepting bookings when the program ends.
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-
-                  {!programForm.watch("end_booking_when_program_ends") && (
-                    <FormField
-                      control={programForm.control}
-                      name="end_booking_date"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Booking End Date *</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="datetime-local"
-                              {...field}
-                              value={
-                                field.value
-                                  ? dayjs(field.value).format(
-                                      "YYYY-MM-DDTHH:mm"
-                                    )
-                                  : ""
-                              }
-                              onChange={(e) =>
-                                field.onChange(
-                                  e.target.value
-                                    ? new Date(e.target.value)
-                                    : null
-                                )
-                              }
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Must be before the program start date.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-                </div>
-              </div>
-
-              {/* Early Bird Offer */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Early Bird Offer</h3>
+                <h3 className="text-lg font-semibold">Deposit Instructions</h3>
 
                 <FormField
                   control={programForm.control}
-                  name="offer_early_bird"
+                  name="set_deposit_instructions_per_class"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
                         <FormLabel className="text-base">
-                          Offer Early Bird Discount
+                          Set Deposit Instructions Per Class
                         </FormLabel>
                         <FormDescription>
-                          Provide a discount for customers who book early.
+                          Each class will have its own deposit settings instead of program-wide settings.
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -1513,109 +1386,6 @@ export default function ProgramsPage() {
                     </FormItem>
                   )}
                 />
-
-                {programForm.watch("offer_early_bird") && (
-                  <div className="space-y-4 ml-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={programForm.control}
-                        name="early_bird_discount_type"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Discount Type</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value || ""}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select discount type" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="percentage">
-                                  Percentage
-                                </SelectItem>
-                                <SelectItem value="fixed_amount">
-                                  Fixed Amount
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={programForm.control}
-                        name="early_bird_discount_value"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>
-                              Discount Value{" "}
-                              {programForm.watch("early_bird_discount_type") ===
-                              "percentage"
-                                ? "(%)"
-                                : "(£)"}
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                max={
-                                  programForm.watch(
-                                    "early_bird_discount_type"
-                                  ) === "percentage"
-                                    ? "100"
-                                    : undefined
-                                }
-                                placeholder="0"
-                                {...field}
-                                value={field.value || ""}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <FormField
-                      control={programForm.control}
-                      name="early_bird_deadline"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Early Bird Deadline</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="datetime-local"
-                              {...field}
-                              value={
-                                field.value
-                                  ? dayjs(field.value).format(
-                                      "YYYY-MM-DDTHH:mm"
-                                    )
-                                  : ""
-                              }
-                              onChange={(e) =>
-                                field.onChange(
-                                  e.target.value
-                                    ? new Date(e.target.value)
-                                    : null
-                                )
-                              }
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Must be before the program start date.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
               </div>
 
               {/* Deposits */}
@@ -1661,6 +1431,7 @@ export default function ProgramsPage() {
                             placeholder="0.00"
                             {...field}
                             value={field.value || ""}
+                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1713,6 +1484,7 @@ export default function ProgramsPage() {
                                 placeholder="24"
                                 {...field}
                                 value={field.value || ""}
+                                onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
                               />
                             </FormControl>
                             <FormDescription>
@@ -1738,6 +1510,7 @@ export default function ProgramsPage() {
                                 placeholder="100"
                                 {...field}
                                 value={field.value || ""}
+                                onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
                               />
                             </FormControl>
                             <FormDescription>
@@ -1878,9 +1651,9 @@ export default function ProgramsPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <Form {...editForm}>
+          <Form {...editProgramForm}>
             <form
-              onSubmit={editForm.handleSubmit(onSubmitEdit)}
+              onSubmit={editProgramForm.handleSubmit(onSubmitEdit)}
               className="space-y-6"
             >
               {/* Published Program Notice */}
@@ -1913,7 +1686,7 @@ export default function ProgramsPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
-                    control={editForm.control}
+                    control={editProgramForm.control}
                     name="name"
                     render={({ field }) => (
                       <FormItem>
@@ -1927,7 +1700,7 @@ export default function ProgramsPage() {
                   />
 
                   <FormField
-                    control={editForm.control}
+                    control={editProgramForm.control}
                     name="banner_image_url"
                     render={({ field }) => (
                       <FormItem>
@@ -1946,7 +1719,7 @@ export default function ProgramsPage() {
                 </div>
 
                 <FormField
-                  control={editForm.control}
+                  control={editProgramForm.control}
                   name="about"
                   render={({ field }) => (
                     <FormItem>
@@ -1968,279 +1741,21 @@ export default function ProgramsPage() {
                 />
               </div>
 
-              {/* Dates and Pricing */}
+              {/* Capacity & Settings */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Dates and Pricing</h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={editForm.control}
-                    name="start_date"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Start Date *</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="datetime-local"
-                            {...field}
-                            disabled={editingProgram?.is_published}
-                            value={
-                              field.value
-                                ? dayjs(field.value).format("YYYY-MM-DDTHH:mm")
-                                : ""
-                            }
-                            onChange={(e) =>
-                              field.onChange(
-                                e.target.value
-                                  ? new Date(e.target.value)
-                                  : undefined
-                              )
-                            }
-                          />
-                        </FormControl>
-                        {editingProgram?.is_published && (
-                          <FormDescription className="text-amber-600">
-                            Start date cannot be changed for published programs
-                          </FormDescription>
-                        )}
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={editForm.control}
-                    name="end_date"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>End Date *</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="datetime-local"
-                            {...field}
-                            disabled={editingProgram?.is_published}
-                            value={
-                              field.value
-                                ? dayjs(field.value).format("YYYY-MM-DDTHH:mm")
-                                : ""
-                            }
-                            onChange={(e) =>
-                              field.onChange(
-                                e.target.value
-                                  ? new Date(e.target.value)
-                                  : undefined
-                              )
-                            }
-                          />
-                        </FormControl>
-                        {editingProgram?.is_published && (
-                          <FormDescription className="text-amber-600">
-                            End date cannot be changed for published programs
-                          </FormDescription>
-                        )}
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={editForm.control}
-                    name="price"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Price (£) *</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            placeholder="0.00"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={editForm.control}
-                    name="capacity"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Capacity</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="1"
-                            placeholder="Leave empty for unlimited"
-                            {...field}
-                            value={field.value || ""}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Maximum number of participants (leave empty for
-                          unlimited).
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              {/* Booking Settings */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Booking Settings</h3>
-
-                <div className="space-y-4">
-                  <FormField
-                    control={editForm.control}
-                    name="start_booking_immediately"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">
-                            Start Booking Immediately
-                          </FormLabel>
-                          <FormDescription>
-                            Allow customers to book as soon as the program is
-                            published.
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={(checked) => {
-                              field.onChange(checked);
-                              // Clear start_booking_date when enabling immediate booking
-                              if (checked) {
-                                editForm.setValue("start_booking_date", null);
-                              }
-                            }}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-
-                  {!editForm.watch("start_booking_immediately") && (
-                    <FormField
-                      control={editForm.control}
-                      name="start_booking_date"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Booking Start Date *</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="datetime-local"
-                              {...field}
-                              value={
-                                field.value
-                                  ? dayjs(field.value).format(
-                                      "YYYY-MM-DDTHH:mm"
-                                    )
-                                  : ""
-                              }
-                              onChange={(e) =>
-                                field.onChange(
-                                  e.target.value
-                                    ? new Date(e.target.value)
-                                    : null
-                                )
-                              }
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-
-                  <FormField
-                    control={editForm.control}
-                    name="end_booking_when_program_ends"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">
-                            End Booking When Program Ends
-                          </FormLabel>
-                          <FormDescription>
-                            Stop accepting bookings when the program ends.
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={(checked) => {
-                              field.onChange(checked);
-                              // Clear end_booking_date when enabling program end booking
-                              if (checked) {
-                                editForm.setValue("end_booking_date", null);
-                              }
-                            }}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-
-                  {!editForm.watch("end_booking_when_program_ends") && (
-                    <FormField
-                      control={editForm.control}
-                      name="end_booking_date"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Booking End Date *</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="datetime-local"
-                              {...field}
-                              value={
-                                field.value
-                                  ? dayjs(field.value).format(
-                                      "YYYY-MM-DDTHH:mm"
-                                    )
-                                  : ""
-                              }
-                              onChange={(e) =>
-                                field.onChange(
-                                  e.target.value
-                                    ? new Date(e.target.value)
-                                    : null
-                                )
-                              }
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Must be before the program start date.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-                </div>
-              </div>
-
-              {/* Early Bird Offer */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Early Bird Offer</h3>
+                <h3 className="text-lg font-semibold">Capacity & Settings</h3>
 
                 <FormField
-                  control={editForm.control}
-                  name="offer_early_bird"
+                  control={editProgramForm.control}
+                  name="set_capacity_per_class"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
                         <FormLabel className="text-base">
-                          Offer Early Bird Discount
+                          Set Capacity Per Class
                         </FormLabel>
                         <FormDescription>
-                          Provide a discount for customers who book early.
+                          Each class will have its own capacity limit instead of a program-wide limit.
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -2253,106 +1768,30 @@ export default function ProgramsPage() {
                   )}
                 />
 
-                {editForm.watch("offer_early_bird") && (
-                  <div className="space-y-4 ml-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={editForm.control}
-                        name="early_bird_discount_type"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Discount Type</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value || ""}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select discount type" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="percentage">
-                                  Percentage
-                                </SelectItem>
-                                <SelectItem value="fixed_amount">
-                                  Fixed Amount
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={editForm.control}
-                        name="early_bird_discount_value"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>
-                              Discount Value{" "}
-                              {editForm.watch("early_bird_discount_type") ===
-                              "percentage"
-                                ? "(%)"
-                                : "(£)"}
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                max={
-                                  editForm.watch("early_bird_discount_type") ===
-                                  "percentage"
-                                    ? "100"
-                                    : undefined
-                                }
-                                placeholder="0"
-                                {...field}
-                                value={field.value || ""}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <FormField
-                      control={editForm.control}
-                      name="early_bird_deadline"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Early Bird Deadline</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="datetime-local"
-                              {...field}
-                              value={
-                                field.value
-                                  ? dayjs(field.value).format(
-                                      "YYYY-MM-DDTHH:mm"
-                                    )
-                                  : ""
-                              }
-                              onChange={(e) =>
-                                field.onChange(
-                                  e.target.value
-                                    ? new Date(e.target.value)
-                                    : null
-                                )
-                              }
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Must be before the program start date.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                {!editProgramForm.watch("set_capacity_per_class") && (
+                  <FormField
+                    control={editProgramForm.control}
+                    name="capacity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Program Capacity</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="1"
+                            placeholder="Leave empty for unlimited"
+                            {...field}
+                            value={field.value || ""}
+                            onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Maximum number of participants across all classes (leave empty for unlimited).
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 )}
               </div>
 
@@ -2361,7 +1800,7 @@ export default function ProgramsPage() {
                 <h3 className="text-lg font-semibold">Deposits</h3>
 
                 <FormField
-                  control={editForm.control}
+                  control={editProgramForm.control}
                   name="allow_deposits"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
@@ -2381,7 +1820,7 @@ export default function ProgramsPage() {
                             field.onChange(checked);
                             // Clear deposit_amount when disabling deposits
                             if (!checked) {
-                              editForm.setValue("deposit_amount", null);
+                              editProgramForm.setValue("deposit_amount", null);
                             }
                           }}
                         />
@@ -2390,9 +1829,9 @@ export default function ProgramsPage() {
                   )}
                 />
 
-                {editForm.watch("allow_deposits") && (
+                {editProgramForm.watch("allow_deposits") && (
                   <FormField
-                    control={editForm.control}
+                    control={editProgramForm.control}
                     name="deposit_amount"
                     render={({ field }) => (
                       <FormItem className="ml-4">
@@ -2419,7 +1858,7 @@ export default function ProgramsPage() {
                 <h3 className="text-lg font-semibold">Refunds</h3>
 
                 <FormField
-                  control={editForm.control}
+                  control={editProgramForm.control}
                   name="allow_refunds"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
@@ -2438,8 +1877,8 @@ export default function ProgramsPage() {
                             field.onChange(checked);
                             // Clear refund fields when disabling refunds
                             if (!checked) {
-                              editForm.setValue("refund_deadline_in_hours", null);
-                              editForm.setValue("refund_percentage", null);
+                              editProgramForm.setValue("refund_deadline_in_hours", null);
+                              editProgramForm.setValue("refund_percentage", null);
                             }
                           }}
                         />
@@ -2448,11 +1887,11 @@ export default function ProgramsPage() {
                   )}
                 />
 
-                {editForm.watch("allow_refunds") && (
+                {editProgramForm.watch("allow_refunds") && (
                   <div className="space-y-4 ml-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
-                        control={editForm.control}
+                        control={editProgramForm.control}
                         name="refund_deadline_in_hours"
                         render={({ field }) => (
                           <FormItem>
@@ -2476,7 +1915,7 @@ export default function ProgramsPage() {
                       />
 
                       <FormField
-                        control={editForm.control}
+                        control={editProgramForm.control}
                         name="refund_percentage"
                         render={({ field }) => (
                           <FormItem>
@@ -2509,7 +1948,7 @@ export default function ProgramsPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
-                    control={editForm.control}
+                    control={editProgramForm.control}
                     name="is_active"
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
@@ -2530,7 +1969,7 @@ export default function ProgramsPage() {
                   />
 
                   <FormField
-                    control={editForm.control}
+                    control={editProgramForm.control}
                     name="is_published"
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
@@ -2561,7 +2000,7 @@ export default function ProgramsPage() {
                 </div>
 
                 <FormField
-                  control={editForm.control}
+                  control={editProgramForm.control}
                   name="absorb_service_charge"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">

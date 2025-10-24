@@ -512,13 +512,13 @@ interface IProgramClass {
   is_active: boolean;
   is_published: boolean;
   start_booking_immediately: boolean;
-  start_booking_date: string | null;
+  start_booking_date?: string;
   end_booking_when_class_ends: boolean;
-  end_booking_date: string | null;
+  end_booking_date?: string;
   offer_early_bird: boolean;
   early_bird_discount_type: 'percentage' | 'fixed_amount' | null;
   early_bird_discount_value: number | null;
-  early_bird_deadline: string | null;
+  early_bird_deadline?: string;
   allow_deposits: boolean;
   deposit_amount: number | null;
   ProgramId: number;
@@ -528,6 +528,7 @@ interface IProgramClass {
   enrollmentCount?: number;
   revenue?: number;
   availableSeatsInRedis?: number | null;
+  students?: IProgramStudent[];
 }
 
 interface IProgramStudent {
