@@ -415,7 +415,7 @@ export default function ProgramsPage() {
 
       try {
         const response = await api.post<CreateProgramClassResponse>(
-          `programs/${programId}/classes`,
+          `programs/${programId}`,
           removeNullish(utcData),
           { signal }
         );
@@ -468,7 +468,7 @@ export default function ProgramsPage() {
 
       try {
         const response = await api.put<UpdateProgramClassResponse>(
-          `program-classes/${id}`,
+          `programs/classes/${id}`,
           removeNullish(utcData),
           { signal }
         );
@@ -508,7 +508,7 @@ export default function ProgramsPage() {
       const signal = controller.signal;
 
       try {
-        const response = await api.delete(`program-classes/${id}`, { signal });
+        const response = await api.delete(`programs/classes/${id}`, { signal });
         return response;
       } catch (error: unknown) {
         if (error instanceof Error && error.name === "AbortError") {
@@ -570,7 +570,7 @@ export default function ProgramsPage() {
     setIsLoadingClassDetails(true);
     try {
       const response = await api.get<GetProgramClassByIdResponse>(
-        `program-classes/${classId}`
+        `programs/classes/${classId}`
       );
       setClassDetails({
         students: response.data.students,
@@ -2323,7 +2323,7 @@ export default function ProgramsPage() {
                             }
                             onChange={(e) => {
                               const date = e.target.value
-                                ? dayjs(e.target.value).toISOString()
+                                ? dayjs(e.target.value).toDate()
                                 : undefined;
                               field.onChange(date);
                             }}
@@ -2351,7 +2351,7 @@ export default function ProgramsPage() {
                             }
                             onChange={(e) => {
                               const date = e.target.value
-                                ? dayjs(e.target.value).toISOString()
+                                ? dayjs(e.target.value).toDate()
                                 : undefined;
                               field.onChange(date);
                             }}
@@ -2363,6 +2363,8 @@ export default function ProgramsPage() {
                   />
                 </div>
 
+              {/* Capacity - Only show if program allows per-class capacity settings */}
+              {selectedProgram?.set_capacity_per_class && (
                 <FormField
                   control={classForm.control}
                   name="capacity"
@@ -2391,7 +2393,314 @@ export default function ProgramsPage() {
                     </FormItem>
                   )}
                 />
+              )}
               </div>
+
+              {/* Booking Settings */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Booking Settings</h3>
+
+                <div className="space-y-4">
+                  <FormField
+                    control={classForm.control}
+                    name="start_booking_immediately"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">
+                            Start Booking Immediately
+                          </FormLabel>
+                          <FormDescription>
+                            Allow customers to book as soon as the class is published.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {!classForm.watch("start_booking_immediately") && (
+                    <FormField
+                      control={classForm.control}
+                      name="start_booking_date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Booking Start Date *</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="datetime-local"
+                              {...field}
+                              value={
+                                field.value
+                                  ? dayjs(field.value).format("YYYY-MM-DDTHH:mm")
+                                  : ""
+                              }
+                              onChange={(e) => {
+                                const date = e.target.value
+                                  ? dayjs(e.target.value).toDate()
+                                  : null;
+                                field.onChange(date);
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
+                  <FormField
+                    control={classForm.control}
+                    name="end_booking_when_class_ends"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">
+                            End Booking When Class Ends
+                          </FormLabel>
+                          <FormDescription>
+                            Stop accepting bookings when the class ends.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {!classForm.watch("end_booking_when_class_ends") && (
+                    <FormField
+                      control={classForm.control}
+                      name="end_booking_date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Booking End Date *</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="datetime-local"
+                              {...field}
+                              value={
+                                field.value
+                                  ? dayjs(field.value).format("YYYY-MM-DDTHH:mm")
+                                  : ""
+                              }
+                              onChange={(e) => {
+                                const date = e.target.value
+                                  ? dayjs(e.target.value).toDate()
+                                  : null;
+                                field.onChange(date);
+                              }}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Must be before the class start date.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Early Bird Offer */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Early Bird Offer</h3>
+
+                <FormField
+                  control={classForm.control}
+                  name="offer_early_bird"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">
+                          Offer Early Bird Discount
+                        </FormLabel>
+                        <FormDescription>
+                          Provide a discount for customers who book early.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {classForm.watch("offer_early_bird") && (
+                  <div className="space-y-4 ml-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={classForm.control}
+                        name="early_bird_discount_type"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Discount Type</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value || ""}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select discount type" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="percentage">
+                                  Percentage
+                                </SelectItem>
+                                <SelectItem value="fixed_amount">
+                                  Fixed Amount
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={classForm.control}
+                        name="early_bird_discount_value"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              Discount Value{" "}
+                              {classForm.watch("early_bird_discount_type") ===
+                              "percentage"
+                                ? "(%)"
+                                : "(£)"}
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                max={
+                                  classForm.watch("early_bird_discount_type") ===
+                                  "percentage"
+                                    ? "100"
+                                    : undefined
+                                }
+                                placeholder="0"
+                                {...field}
+                                value={field.value || ""}
+                                onChange={(e) =>
+                                  field.onChange(
+                                    e.target.value ? parseFloat(e.target.value) : null
+                                  )
+                                }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={classForm.control}
+                      name="early_bird_deadline"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Early Bird Deadline</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="datetime-local"
+                              {...field}
+                              value={
+                                field.value
+                                  ? dayjs(field.value).format("YYYY-MM-DDTHH:mm")
+                                  : ""
+                              }
+                              onChange={(e) => {
+                                const date = e.target.value
+                                  ? dayjs(e.target.value).toDate()
+                                  : null;
+                                field.onChange(date);
+                              }}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Must be before the class start date.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Deposits - Only show if program allows per-class deposit settings */}
+              {selectedProgram?.set_deposit_instructions_per_class && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Deposits</h3>
+
+                  <FormField
+                    control={classForm.control}
+                    name="allow_deposits"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">
+                            Allow Deposits
+                          </FormLabel>
+                          <FormDescription>
+                            Allow customers to pay a deposit instead of the full amount.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {classForm.watch("allow_deposits") && (
+                    <FormField
+                      control={classForm.control}
+                      name="deposit_amount"
+                      render={({ field }) => (
+                        <FormItem className="ml-4">
+                          <FormLabel>Deposit Amount (£) *</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="1"
+                              placeholder="0.00"
+                              {...field}
+                              value={field.value || ""}
+                              onChange={(e) =>
+                                field.onChange(
+                                  e.target.value ? parseFloat(e.target.value) : null
+                                )
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
+              )}
 
               {/* Publishing & Status */}
               <div className="space-y-4">
@@ -2556,7 +2865,7 @@ export default function ProgramsPage() {
                             }
                             onChange={(e) => {
                               const date = e.target.value
-                                ? dayjs(e.target.value).toISOString()
+                                ? dayjs(e.target.value).toDate()
                                 : undefined;
                               field.onChange(date);
                             }}
@@ -2584,7 +2893,7 @@ export default function ProgramsPage() {
                             }
                             onChange={(e) => {
                               const date = e.target.value
-                                ? dayjs(e.target.value).toISOString()
+                                ? dayjs(e.target.value).toDate()
                                 : undefined;
                               field.onChange(date);
                             }}
@@ -2596,6 +2905,8 @@ export default function ProgramsPage() {
                   />
                 </div>
 
+              {/* Capacity - Only show if program allows per-class capacity settings */}
+              {selectedProgram?.set_capacity_per_class && (
                 <FormField
                   control={editClassForm.control}
                   name="capacity"
@@ -2624,7 +2935,314 @@ export default function ProgramsPage() {
                     </FormItem>
                   )}
                 />
+              )}
               </div>
+
+              {/* Booking Settings */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Booking Settings</h3>
+
+                <div className="space-y-4">
+                  <FormField
+                    control={editClassForm.control}
+                    name="start_booking_immediately"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">
+                            Start Booking Immediately
+                          </FormLabel>
+                          <FormDescription>
+                            Allow customers to book as soon as the class is published.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {!editClassForm.watch("start_booking_immediately") && (
+                    <FormField
+                      control={editClassForm.control}
+                      name="start_booking_date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Booking Start Date *</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="datetime-local"
+                              {...field}
+                              value={
+                                field.value
+                                  ? dayjs(field.value).format("YYYY-MM-DDTHH:mm")
+                                  : ""
+                              }
+                              onChange={(e) => {
+                                const date = e.target.value
+                                  ? dayjs(e.target.value).toDate()
+                                  : null;
+                                field.onChange(date);
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
+                  <FormField
+                    control={editClassForm.control}
+                    name="end_booking_when_class_ends"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">
+                            End Booking When Class Ends
+                          </FormLabel>
+                          <FormDescription>
+                            Stop accepting bookings when the class ends.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {!editClassForm.watch("end_booking_when_class_ends") && (
+                    <FormField
+                      control={editClassForm.control}
+                      name="end_booking_date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Booking End Date *</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="datetime-local"
+                              {...field}
+                              value={
+                                field.value
+                                  ? dayjs(field.value).format("YYYY-MM-DDTHH:mm")
+                                  : ""
+                              }
+                              onChange={(e) => {
+                                const date = e.target.value
+                                  ? dayjs(e.target.value).toISOString()
+                                  : null;
+                                field.onChange(date);
+                              }}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Must be before the class start date.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Early Bird Offer */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Early Bird Offer</h3>
+
+                <FormField
+                  control={editClassForm.control}
+                  name="offer_early_bird"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">
+                          Offer Early Bird Discount
+                        </FormLabel>
+                        <FormDescription>
+                          Provide a discount for customers who book early.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {editClassForm.watch("offer_early_bird") && (
+                  <div className="space-y-4 ml-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={editClassForm.control}
+                        name="early_bird_discount_type"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Discount Type</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value || ""}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select discount type" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="percentage">
+                                  Percentage
+                                </SelectItem>
+                                <SelectItem value="fixed_amount">
+                                  Fixed Amount
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={editClassForm.control}
+                        name="early_bird_discount_value"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              Discount Value{" "}
+                              {editClassForm.watch("early_bird_discount_type") ===
+                              "percentage"
+                                ? "(%)"
+                                : "(£)"}
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                max={
+                                  editClassForm.watch("early_bird_discount_type") ===
+                                  "percentage"
+                                    ? "100"
+                                    : undefined
+                                }
+                                placeholder="0"
+                                {...field}
+                                value={field.value || ""}
+                                onChange={(e) =>
+                                  field.onChange(
+                                    e.target.value ? parseFloat(e.target.value) : null
+                                  )
+                                }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={editClassForm.control}
+                      name="early_bird_deadline"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Early Bird Deadline</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="datetime-local"
+                              {...field}
+                              value={
+                                field.value
+                                  ? dayjs(field.value).format("YYYY-MM-DDTHH:mm")
+                                  : ""
+                              }
+                              onChange={(e) => {
+                                const date = e.target.value
+                                  ? dayjs(e.target.value).toDate()
+                                  : null;
+                                field.onChange(date);
+                              }}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Must be before the class start date.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Deposits - Only show if program allows per-class deposit settings */}
+              {selectedProgram?.set_deposit_instructions_per_class && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Deposits</h3>
+
+                  <FormField
+                    control={editClassForm.control}
+                    name="allow_deposits"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">
+                            Allow Deposits
+                          </FormLabel>
+                          <FormDescription>
+                            Allow customers to pay a deposit instead of the full amount.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {editClassForm.watch("allow_deposits") && (
+                    <FormField
+                      control={editClassForm.control}
+                      name="deposit_amount"
+                      render={({ field }) => (
+                        <FormItem className="ml-4">
+                          <FormLabel>Deposit Amount (£) *</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="1"
+                              placeholder="0.00"
+                              {...field}
+                              value={field.value || ""}
+                              onChange={(e) =>
+                                field.onChange(
+                                  e.target.value ? parseFloat(e.target.value) : null
+                                )
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
+              )}
 
               {/* Publishing & Status */}
               <div className="space-y-4">
