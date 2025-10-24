@@ -487,6 +487,7 @@ interface INewProgram {
   deletedAt: string | null;
   classes?: IProgramClass[];
   class_count?: number;
+  enrolled_students_count?: number;
   capacity_info?: {
     type: 'per_class' | 'program_level';
     total_capacity: number | null;
@@ -578,6 +579,15 @@ interface GetAllProgramsResponse {
   };
 }
 
+interface IProgramStat {
+  totalClasses: number;
+  totalEnrollments: number;
+  uniqueStudents: number;
+  totalRevenue: number;
+  averageRevenuePerClass: number;
+  averageEnrollmentsPerClass: number;
+}
+
 interface GetProgramByIdResponse {
   success: boolean;
   message: string;
@@ -585,14 +595,7 @@ interface GetProgramByIdResponse {
     program: INewProgram;
     classes: IProgramClass[];
     students: IProgramStudent[];
-    stats: {
-      totalClasses: number;
-      totalEnrollments: number;
-      uniqueStudents: number;
-      totalRevenue: number;
-      averageRevenuePerClass: number;
-      averageEnrollmentsPerClass: number;
-    };
+    stats: IProgramStat;
   };
 }
 
