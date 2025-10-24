@@ -75,17 +75,17 @@ import { newProgramSchema, programClassSchema } from "@/schemas/schema";
 import { getRandomColor } from "@/utils/color";
 import { convertToUTC, formatDateRange } from "@/utils/time";
 import { removeNullish } from "@/utils/flatten";
-import { 
-  INewProgram, 
+import {
+  INewProgram,
   IProgramClass,
   IProgramStudent,
-  GetAllProgramsResponse, 
+  GetAllProgramsResponse,
   GetProgramByIdResponse,
   GetProgramClassByIdResponse,
   CreateProgramResponse,
   CreateProgramClassResponse,
   UpdateProgramResponse,
-  UpdateProgramClassResponse
+  UpdateProgramClassResponse,
 } from "@/types/response";
 
 type NewProgramFormValues = z.infer<typeof newProgramSchema>;
@@ -97,10 +97,14 @@ export default function ProgramsPage() {
   const [filterBy, setFilterBy] = useState<string>("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editingProgram, setEditingProgram] = useState<INewProgram | null>(null);
+  const [editingProgram, setEditingProgram] = useState<INewProgram | null>(
+    null
+  );
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showDetailsView, setShowDetailsView] = useState(false);
-  const [selectedProgram, setSelectedProgram] = useState<INewProgram | null>(null);
+  const [selectedProgram, setSelectedProgram] = useState<INewProgram | null>(
+    null
+  );
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [programDetails, setProgramDetails] = useState<{
     classes: IProgramClass[];
@@ -111,7 +115,9 @@ export default function ProgramsPage() {
 
   // Class management states
   const [showClassView, setShowClassView] = useState(false);
-  const [selectedClass, setSelectedClass] = useState<IProgramClass | null>(null);
+  const [selectedClass, setSelectedClass] = useState<IProgramClass | null>(
+    null
+  );
   const [showCreateClassModal, setShowCreateClassModal] = useState(false);
   const [showEditClassModal, setShowEditClassModal] = useState(false);
   const [editingClass, setEditingClass] = useState<IProgramClass | null>(null);
@@ -215,7 +221,11 @@ export default function ProgramsPage() {
     },
   });
 
-  const createProgramMutation = useMutation<CreateProgramResponse, Error, NewProgramFormValues>({
+  const createProgramMutation = useMutation<
+    CreateProgramResponse,
+    Error,
+    NewProgramFormValues
+  >({
     mutationFn: async (values: NewProgramFormValues) => {
       const controller = new AbortController();
       const signal = controller.signal;
@@ -252,8 +262,18 @@ export default function ProgramsPage() {
     },
   });
 
-  const updateProgramMutation = useMutation<UpdateProgramResponse, Error, { id: number; values: NewProgramFormValues }>({
-    mutationFn: async ({ id, values }: { id: number; values: NewProgramFormValues }) => {
+  const updateProgramMutation = useMutation<
+    UpdateProgramResponse,
+    Error,
+    { id: number; values: NewProgramFormValues }
+  >({
+    mutationFn: async ({
+      id,
+      values,
+    }: {
+      id: number;
+      values: NewProgramFormValues;
+    }) => {
       const controller = new AbortController();
       const signal = controller.signal;
 
@@ -375,7 +395,11 @@ export default function ProgramsPage() {
   });
 
   // Class mutations
-  const createClassMutation = useMutation<CreateProgramClassResponse, Error, { programId: number; values: ProgramClassFormValues }>({
+  const createClassMutation = useMutation<
+    CreateProgramClassResponse,
+    Error,
+    { programId: number; values: ProgramClassFormValues }
+  >({
     mutationFn: async ({ programId, values }) => {
       const controller = new AbortController();
       const signal = controller.signal;
@@ -424,7 +448,11 @@ export default function ProgramsPage() {
     },
   });
 
-  const updateClassMutation = useMutation<UpdateProgramClassResponse, Error, { id: number; values: ProgramClassFormValues }>({
+  const updateClassMutation = useMutation<
+    UpdateProgramClassResponse,
+    Error,
+    { id: number; values: ProgramClassFormValues }
+  >({
     mutationFn: async ({ id, values }) => {
       const controller = new AbortController();
       const signal = controller.signal;
@@ -517,7 +545,9 @@ export default function ProgramsPage() {
   const fetchProgramDetails = async (programId: number) => {
     setIsLoadingDetails(true);
     try {
-      const response = await api.get<GetProgramByIdResponse>(`programs/${programId}`);
+      const response = await api.get<GetProgramByIdResponse>(
+        `programs/${programId}`
+      );
       setProgramDetails({
         classes: response.data.classes,
         students: response.data.students,
@@ -539,7 +569,9 @@ export default function ProgramsPage() {
   const fetchClassDetails = async (classId: number) => {
     setIsLoadingClassDetails(true);
     try {
-      const response = await api.get<GetProgramClassByIdResponse>(`program-classes/${classId}`);
+      const response = await api.get<GetProgramClassByIdResponse>(
+        `program-classes/${classId}`
+      );
       setClassDetails({
         students: response.data.students,
         stats: response.data.stats,
@@ -589,15 +621,18 @@ export default function ProgramsPage() {
 
   const handleDeleteProgram = () => {
     if (!selectedProgram) return;
-    
+
     // Check if program is published
     if (selectedProgram.is_published) {
-      toast.error("Cannot delete a published program. Please deactivate it instead.", {
-        duration: 4000,
-      });
+      toast.error(
+        "Cannot delete a published program. Please deactivate it instead.",
+        {
+          duration: 4000,
+        }
+      );
       return;
     }
-    
+
     setShowDeleteAlert(true);
   };
 
@@ -618,7 +653,8 @@ export default function ProgramsPage() {
       banner_image_url: program.banner_image_url,
       is_active: program.is_active,
       is_published: program.is_published,
-      set_deposit_instructions_per_class: program.set_deposit_instructions_per_class,
+      set_deposit_instructions_per_class:
+        program.set_deposit_instructions_per_class,
       allow_deposits: program.allow_deposits,
       deposit_amount: program.deposit_amount,
       absorb_service_charge: program.absorb_service_charge,
@@ -668,13 +704,18 @@ export default function ProgramsPage() {
 
   const handleDeleteClass = (programClass: IProgramClass) => {
     if (programClass.is_published) {
-      toast.error("Cannot delete a published class. Please deactivate it instead.", {
-        duration: 4000,
-      });
+      toast.error(
+        "Cannot delete a published class. Please deactivate it instead.",
+        {
+          duration: 4000,
+        }
+      );
       return;
     }
-    
-    if (window.confirm(`Are you sure you want to delete "${programClass.name}"?`)) {
+
+    if (
+      window.confirm(`Are you sure you want to delete "${programClass.name}"?`)
+    ) {
       deleteClassMutation.mutate(programClass.id);
     }
   };
@@ -797,7 +838,9 @@ export default function ProgramsPage() {
                   <DropdownMenuItem onClick={() => setFilterBy("with_classes")}>
                     With Classes
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setFilterBy("without_classes")}>
+                  <DropdownMenuItem
+                    onClick={() => setFilterBy("without_classes")}
+                  >
                     Without Classes
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -899,15 +942,25 @@ export default function ProgramsPage() {
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-[#6E6E73]" />
                       <span className="text-sm text-[#6E6E73]">
-                        {program.classes?.reduce((total: number, cls: any) => total + (cls.students?.length || 0), 0) || 0} students enrolled
+                        {program.classes?.reduce(
+                          (total: number, cls: any) =>
+                            total + (cls.students?.length || 0),
+                          0
+                        ) || 0}{" "}
+                        students enrolled
                       </span>
                     </div>
 
                     {/* Program Status */}
                     <div className="flex items-center gap-2">
-                      <div className={`h-2 w-2 rounded-full ${program.is_active ? 'bg-green-500' : 'bg-gray-400'}`} />
+                      <div
+                        className={`h-2 w-2 rounded-full ${
+                          program.is_active ? "bg-green-500" : "bg-gray-400"
+                        }`}
+                      />
                       <span className="text-sm text-[#6E6E73]">
-                        {program.is_active ? 'Active' : 'Inactive'} • {program.is_published ? 'Published' : 'Draft'}
+                        {program.is_active ? "Active" : "Inactive"} •{" "}
+                        {program.is_published ? "Published" : "Draft"}
                       </span>
                     </div>
 
@@ -978,7 +1031,11 @@ export default function ProgramsPage() {
                   size="sm"
                   onClick={handleDeleteProgram}
                   disabled={selectedProgram.is_published}
-                  title={selectedProgram.is_published ? "Cannot delete published programs. Deactivate instead." : "Delete program"}
+                  title={
+                    selectedProgram.is_published
+                      ? "Cannot delete published programs. Deactivate instead."
+                      : "Delete program"
+                  }
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   Delete
@@ -1026,7 +1083,9 @@ export default function ProgramsPage() {
                           Created
                         </label>
                         <p className="mt-1 text-sm">
-                          {dayjs(selectedProgram.createdAt).format("MMM D, YYYY")}
+                          {dayjs(selectedProgram.createdAt).format(
+                            "MMM D, YYYY"
+                          )}
                         </p>
                       </div>
                       <div>
@@ -1042,7 +1101,11 @@ export default function ProgramsPage() {
                           Total Students
                         </label>
                         <p className="mt-1 text-sm">
-                          {selectedProgram.classes?.reduce((total: number, cls: any) => total + (cls.students?.length || 0), 0) || 0}
+                          {selectedProgram.classes?.reduce(
+                            (total: number, cls: any) =>
+                              total + (cls.students?.length || 0),
+                            0
+                          ) || 0}
                         </p>
                       </div>
                       <div>
@@ -1071,7 +1134,7 @@ export default function ProgramsPage() {
                           {selectedProgram.about || "No description provided"}
                         </p>
                       </div>
-                      
+
                       {/* Program Rules Notice */}
                       {selectedProgram.is_published && (
                         <div className="md:col-span-3 mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
@@ -1080,8 +1143,10 @@ export default function ProgramsPage() {
                               <span className="text-xs text-amber-900">!</span>
                             </div>
                             <div className="text-sm text-amber-800 dark:text-amber-200">
-                              <strong>Published Program:</strong> This program cannot be deleted or unpublished. 
-                              You can deactivate it to stop new bookings while keeping existing data.
+                              <strong>Published Program:</strong> This program
+                              cannot be deleted or unpublished. You can
+                              deactivate it to stop new bookings while keeping
+                              existing data.
                             </div>
                           </div>
                         </div>
@@ -1091,13 +1156,71 @@ export default function ProgramsPage() {
                 </CardContent>
               </Card>
 
-              {/* Section 2: Classes Management */}
+              {/* Section 2: Statistics & Analytics */}
+              <Card className="flex-1">
+                <CardHeader>
+                  <CardTitle>Statistics</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                        {selectedProgram.classes?.length || 0}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        Total Classes
+                      </div>
+                    </div>
+                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                        {selectedProgram.classes?.reduce(
+                          (total: number, cls: any) =>
+                            total + (cls.students?.length || 0),
+                          0
+                        ) || 0}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        Total Students
+                      </div>
+                    </div>
+                    <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                        £
+                        {selectedProgram.classes
+                          ?.reduce(
+                            (total: number, cls: any) =>
+                              total + cls.price * (cls.students?.length || 0),
+                            0
+                          )
+                          .toFixed(2) || "0.00"}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        Total Revenue
+                      </div>
+                    </div>
+                    <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                        {selectedProgram.classes?.reduce(
+                          (total: number, cls: any) =>
+                            total + (cls.capacity || 0),
+                          0
+                        ) || 0}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        Total Capacity
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Section 3: Classes Management */}
               <Card className="flex-1">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle>Classes</CardTitle>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       onClick={() => setShowCreateClassModal(true)}
                       className="flex items-center gap-2"
                     >
@@ -1107,7 +1230,8 @@ export default function ProgramsPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {selectedProgram.classes && selectedProgram.classes.length > 0 ? (
+                  {selectedProgram.classes &&
+                  selectedProgram.classes.length > 0 ? (
                     <div className="space-y-3">
                       {selectedProgram.classes.map((cls) => (
                         <div
@@ -1121,15 +1245,19 @@ export default function ProgramsPage() {
                             <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                               <span className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
-                                {formatDateRange(cls.start_date, cls.end_date, userTimezone)}
+                                {formatDateRange(
+                                  cls.start_date,
+                                  cls.end_date,
+                                  userTimezone
+                                )}
                               </span>
                               <span className="flex items-center gap-1">
                                 <Users className="h-3 w-3" />
                                 {cls.students?.length || 0} students
                               </span>
                               <span className="flex items-center gap-1">
-                                <PoundSterling className="h-3 w-3" />
-                                £{cls.price}
+                                <PoundSterling className="h-3 w-3" />£
+                                {cls.price}
                               </span>
                             </div>
                           </div>
@@ -1163,15 +1291,15 @@ export default function ProgramsPage() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8">
+                    <div className="flex flex-col items-center justify-center gap-4 py-8">
                       <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                         <BookOpen className="w-6 h-6 text-gray-400" />
                       </div>
-                      <p className="text-gray-500 dark:text-gray-400 text-sm mb-3">
+                      <p className="text-center text-gray-500 dark:text-gray-400 text-sm mb-3">
                         No classes added yet
                       </p>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         onClick={() => setShowCreateClassModal(true)}
                         className="flex items-center gap-2"
                       >
@@ -1180,49 +1308,6 @@ export default function ProgramsPage() {
                       </Button>
                     </div>
                   )}
-                </CardContent>
-              </Card>
-
-              {/* Section 3: Statistics & Analytics */}
-              <Card className="flex-1">
-                <CardHeader>
-                  <CardTitle>Statistics</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                        {selectedProgram.classes?.length || 0}
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        Total Classes
-                      </div>
-                    </div>
-                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                        {selectedProgram.classes?.reduce((total: number, cls: any) => total + (cls.students?.length || 0), 0) || 0}
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        Total Students
-                      </div>
-                    </div>
-                    <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                        £{selectedProgram.classes?.reduce((total: number, cls: any) => total + (cls.price * (cls.students?.length || 0)), 0).toFixed(2) || '0.00'}
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        Total Revenue
-                      </div>
-                    </div>
-                    <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                      <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-                        {selectedProgram.classes?.reduce((total: number, cls: any) => total + (cls.capacity || 0), 0) || 0}
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        Total Capacity
-                      </div>
-                    </div>
-                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -1320,7 +1405,8 @@ export default function ProgramsPage() {
                           Set Capacity Per Class
                         </FormLabel>
                         <FormDescription>
-                          Each class will have its own capacity limit instead of a program-wide limit.
+                          Each class will have its own capacity limit instead of
+                          a program-wide limit.
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -1347,11 +1433,16 @@ export default function ProgramsPage() {
                             placeholder="Leave empty for unlimited"
                             {...field}
                             value={field.value || ""}
-                            onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value ? parseInt(e.target.value) : null
+                              )
+                            }
                           />
                         </FormControl>
                         <FormDescription>
-                          Maximum number of participants across all classes (leave empty for unlimited).
+                          Maximum number of participants across all classes
+                          (leave empty for unlimited).
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -1374,7 +1465,8 @@ export default function ProgramsPage() {
                           Set Deposit Instructions Per Class
                         </FormLabel>
                         <FormDescription>
-                          Each class will have its own deposit settings instead of program-wide settings.
+                          Each class will have its own deposit settings instead
+                          of program-wide settings.
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -1431,7 +1523,13 @@ export default function ProgramsPage() {
                             placeholder="0.00"
                             {...field}
                             value={field.value || ""}
-                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value
+                                  ? parseFloat(e.target.value)
+                                  : null
+                              )
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -1484,7 +1582,13 @@ export default function ProgramsPage() {
                                 placeholder="24"
                                 {...field}
                                 value={field.value || ""}
-                                onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
+                                onChange={(e) =>
+                                  field.onChange(
+                                    e.target.value
+                                      ? parseInt(e.target.value)
+                                      : null
+                                  )
+                                }
                               />
                             </FormControl>
                             <FormDescription>
@@ -1510,7 +1614,13 @@ export default function ProgramsPage() {
                                 placeholder="100"
                                 {...field}
                                 value={field.value || ""}
-                                onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
+                                onChange={(e) =>
+                                  field.onChange(
+                                    e.target.value
+                                      ? parseInt(e.target.value)
+                                      : null
+                                  )
+                                }
                               />
                             </FormControl>
                             <FormDescription>
@@ -1559,8 +1669,14 @@ export default function ProgramsPage() {
                         <div className="space-y-0.5">
                           <FormLabel className="text-base">Published</FormLabel>
                           <FormDescription>
-                            Program is visible to customers on your booking page. 
-                            <strong className="text-amber-600"> Warning:</strong> Once published, start/end dates cannot be changed and program cannot be unpublished.
+                            Program is visible to customers on your booking
+                            page.
+                            <strong className="text-amber-600">
+                              {" "}
+                              Warning:
+                            </strong>{" "}
+                            Once published, start/end dates cannot be changed
+                            and program cannot be unpublished.
                           </FormDescription>
                         </div>
                         <FormControl>
@@ -1573,48 +1689,53 @@ export default function ProgramsPage() {
                     )}
                   />
 
-                {programForm.watch("is_published") && (
-                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                    <div className="flex items-start gap-2">
-                      <div className="w-4 h-4 mt-0.5 rounded-full bg-blue-400 flex items-center justify-center flex-shrink-0">
-                        <span className="text-xs text-blue-900">i</span>
-                      </div>
-                      <div className="text-sm text-blue-800 dark:text-blue-200">
-                        <strong>Publishing this program will:</strong>
-                        <ul className="list-disc list-inside mt-1 space-y-0.5 ml-2">
-                          <li>Make it visible to customers on your booking page</li>
-                          <li>Lock the start and end dates (cannot be changed later)</li>
-                          <li>Prevent the program from being unpublished</li>
-                        </ul>
+                  {programForm.watch("is_published") && (
+                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <div className="w-4 h-4 mt-0.5 rounded-full bg-blue-400 flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs text-blue-900">i</span>
+                        </div>
+                        <div className="text-sm text-blue-800 dark:text-blue-200">
+                          <strong>Publishing this program will:</strong>
+                          <ul className="list-disc list-inside mt-1 space-y-0.5 ml-2">
+                            <li>
+                              Make it visible to customers on your booking page
+                            </li>
+                            <li>
+                              Lock the start and end dates (cannot be changed
+                              later)
+                            </li>
+                            <li>Prevent the program from being unpublished</li>
+                          </ul>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-
-                <FormField
-                  control={programForm.control}
-                  name="absorb_service_charge"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">
-                          Absorb Service Charge
-                        </FormLabel>
-                        <FormDescription>
-                          You pay the service charges instead of passing them to
-                          customers.
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
                   )}
-                />
-              </div>
+
+                  <FormField
+                    control={programForm.control}
+                    name="absorb_service_charge"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">
+                            Absorb Service Charge
+                          </FormLabel>
+                          <FormDescription>
+                            You pay the service charges instead of passing them
+                            to customers.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end gap-4 pt-6">
@@ -1661,18 +1782,27 @@ export default function ProgramsPage() {
                 <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
                   <div className="flex items-start gap-3">
                     <div className="w-5 h-5 mt-0.5 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs text-amber-900 font-bold">!</span>
+                      <span className="text-xs text-amber-900 font-bold">
+                        !
+                      </span>
                     </div>
                     <div className="space-y-1">
                       <h4 className="text-sm font-medium text-amber-800 dark:text-amber-200">
                         Published Program Restrictions
                       </h4>
                       <p className="text-sm text-amber-700 dark:text-amber-300">
-                        This program is published and visible to customers. Some fields cannot be modified:
+                        This program is published and visible to customers. Some
+                        fields cannot be modified:
                       </p>
                       <ul className="text-sm text-amber-700 dark:text-amber-300 list-disc list-inside space-y-0.5 ml-2">
-                        <li>Start and end dates are locked to maintain booking integrity</li>
-                        <li>Program cannot be unpublished (can be deactivated instead)</li>
+                        <li>
+                          Start and end dates are locked to maintain booking
+                          integrity
+                        </li>
+                        <li>
+                          Program cannot be unpublished (can be deactivated
+                          instead)
+                        </li>
                         <li>Other settings can still be updated as needed</li>
                       </ul>
                     </div>
@@ -1755,7 +1885,8 @@ export default function ProgramsPage() {
                           Set Capacity Per Class
                         </FormLabel>
                         <FormDescription>
-                          Each class will have its own capacity limit instead of a program-wide limit.
+                          Each class will have its own capacity limit instead of
+                          a program-wide limit.
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -1782,11 +1913,16 @@ export default function ProgramsPage() {
                             placeholder="Leave empty for unlimited"
                             {...field}
                             value={field.value || ""}
-                            onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value ? parseInt(e.target.value) : null
+                              )
+                            }
                           />
                         </FormControl>
                         <FormDescription>
-                          Maximum number of participants across all classes (leave empty for unlimited).
+                          Maximum number of participants across all classes
+                          (leave empty for unlimited).
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -1877,8 +2013,14 @@ export default function ProgramsPage() {
                             field.onChange(checked);
                             // Clear refund fields when disabling refunds
                             if (!checked) {
-                              editProgramForm.setValue("refund_deadline_in_hours", null);
-                              editProgramForm.setValue("refund_percentage", null);
+                              editProgramForm.setValue(
+                                "refund_deadline_in_hours",
+                                null
+                              );
+                              editProgramForm.setValue(
+                                "refund_percentage",
+                                null
+                              );
                             }
                           }}
                         />
@@ -1976,10 +2118,9 @@ export default function ProgramsPage() {
                         <div className="space-y-0.5">
                           <FormLabel className="text-base">Published</FormLabel>
                           <FormDescription>
-                            {field.value 
+                            {field.value
                               ? "Program is published and visible to customers. Cannot be unpublished but can be deactivated."
-                              : "Program is visible to customers on your booking page."
-                            }
+                              : "Program is visible to customers on your booking page."}
                           </FormDescription>
                         </div>
                         <FormControl>
@@ -2066,15 +2207,16 @@ export default function ProgramsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Program</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{selectedProgram?.name}"? This action cannot be undone.
-              All program data will be permanently removed.
+              Are you sure you want to delete "{selectedProgram?.name}"? This
+              action cannot be undone. All program data will be permanently
+              removed.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setShowDeleteAlert(false)}>
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={confirmDeleteProgram}
               className="bg-red-600 hover:bg-red-700"
             >
@@ -2085,7 +2227,10 @@ export default function ProgramsPage() {
       </AlertDialog>
 
       {/* Create Class Dialog */}
-      <Dialog open={showCreateClassModal} onOpenChange={setShowCreateClassModal}>
+      <Dialog
+        open={showCreateClassModal}
+        onOpenChange={setShowCreateClassModal}
+      >
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New Class</DialogTitle>
@@ -2131,7 +2276,9 @@ export default function ProgramsPage() {
                             min="0"
                             placeholder="0.00"
                             {...field}
-                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                            onChange={(e) =>
+                              field.onChange(parseFloat(e.target.value) || 0)
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -2169,9 +2316,15 @@ export default function ProgramsPage() {
                           <Input
                             type="datetime-local"
                             {...field}
-                            value={field.value ? dayjs(field.value).format("YYYY-MM-DDTHH:mm") : ""}
+                            value={
+                              field.value
+                                ? dayjs(field.value).format("YYYY-MM-DDTHH:mm")
+                                : ""
+                            }
                             onChange={(e) => {
-                              const date = e.target.value ? dayjs(e.target.value).toISOString() : undefined;
+                              const date = e.target.value
+                                ? dayjs(e.target.value).toISOString()
+                                : undefined;
                               field.onChange(date);
                             }}
                           />
@@ -2191,9 +2344,15 @@ export default function ProgramsPage() {
                           <Input
                             type="datetime-local"
                             {...field}
-                            value={field.value ? dayjs(field.value).format("YYYY-MM-DDTHH:mm") : ""}
+                            value={
+                              field.value
+                                ? dayjs(field.value).format("YYYY-MM-DDTHH:mm")
+                                : ""
+                            }
                             onChange={(e) => {
-                              const date = e.target.value ? dayjs(e.target.value).toISOString() : undefined;
+                              const date = e.target.value
+                                ? dayjs(e.target.value).toISOString()
+                                : undefined;
                               field.onChange(date);
                             }}
                           />
@@ -2217,11 +2376,16 @@ export default function ProgramsPage() {
                           placeholder="Leave empty for unlimited"
                           {...field}
                           value={field.value || ""}
-                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value ? parseInt(e.target.value) : null
+                            )
+                          }
                         />
                       </FormControl>
                       <FormDescription>
-                        Maximum number of students for this class. Leave empty for unlimited capacity.
+                        Maximum number of students for this class. Leave empty
+                        for unlimited capacity.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -2345,7 +2509,9 @@ export default function ProgramsPage() {
                             min="0"
                             placeholder="0.00"
                             {...field}
-                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                            onChange={(e) =>
+                              field.onChange(parseFloat(e.target.value) || 0)
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -2383,9 +2549,15 @@ export default function ProgramsPage() {
                           <Input
                             type="datetime-local"
                             {...field}
-                            value={field.value ? dayjs(field.value).format("YYYY-MM-DDTHH:mm") : ""}
+                            value={
+                              field.value
+                                ? dayjs(field.value).format("YYYY-MM-DDTHH:mm")
+                                : ""
+                            }
                             onChange={(e) => {
-                              const date = e.target.value ? dayjs(e.target.value).toISOString() : undefined;
+                              const date = e.target.value
+                                ? dayjs(e.target.value).toISOString()
+                                : undefined;
                               field.onChange(date);
                             }}
                           />
@@ -2405,9 +2577,15 @@ export default function ProgramsPage() {
                           <Input
                             type="datetime-local"
                             {...field}
-                            value={field.value ? dayjs(field.value).format("YYYY-MM-DDTHH:mm") : ""}
+                            value={
+                              field.value
+                                ? dayjs(field.value).format("YYYY-MM-DDTHH:mm")
+                                : ""
+                            }
                             onChange={(e) => {
-                              const date = e.target.value ? dayjs(e.target.value).toISOString() : undefined;
+                              const date = e.target.value
+                                ? dayjs(e.target.value).toISOString()
+                                : undefined;
                               field.onChange(date);
                             }}
                           />
@@ -2431,11 +2609,16 @@ export default function ProgramsPage() {
                           placeholder="Leave empty for unlimited"
                           {...field}
                           value={field.value || ""}
-                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value ? parseInt(e.target.value) : null
+                            )
+                          }
                         />
                       </FormControl>
                       <FormDescription>
-                        Maximum number of students for this class. Leave empty for unlimited capacity.
+                        Maximum number of students for this class. Leave empty
+                        for unlimited capacity.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
