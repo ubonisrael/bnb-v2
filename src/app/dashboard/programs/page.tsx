@@ -279,7 +279,7 @@ export default function ProgramsPage() {
       const signal = controller.signal;
 
       try {
-        const response = await api.put<UpdateProgramResponse>(
+        const response = await api.patch<UpdateProgramResponse>(
           `programs/${id}`,
           removeNullish(values),
           { signal }

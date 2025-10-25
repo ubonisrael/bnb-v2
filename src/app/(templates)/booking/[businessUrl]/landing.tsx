@@ -12,11 +12,15 @@ import api from "@/services/api-service";
 import dayjs from "@/utils/dayjsConfig";
 import { getRandomColor } from "@/utils/color";
 import { formatDateRange } from "@/utils/time";
-import { getProgramPrice, getProgramPriceWithDiscount, calculateProgramDiscount, getProgramBasePrice } from "@/utils/programs";
+import {
+  getProgramClassPriceWithDiscount,
+  getProgramPriceRange,
+} from "@/utils/programs";
 
 const userTimezone = dayjs.tz.guess();
 
 export function BusinessLanding(props: BusinessDataResponse) {
+  console.log("Business Landing Props:", props);
   // get number of services
   const totalServices = props.serviceCategories.reduce(
     (sum, category) => sum + category.services.length,
@@ -110,12 +114,6 @@ export function BusinessLanding(props: BusinessDataResponse) {
                     <h2 className="text-2xl font-bold text-slate-800">
                       Our Programs ({props.programs.length})
                     </h2>
-                    <Link
-                      href={`/booking/${props.bUrl}/program-reg-wizard`}
-                      className="bg-green-500 text-white px-6 py-3 rounded-md inline-flex items-center justify-center font-medium hover:bg-green-600 transition-colors"
-                    >
-                      Register for Programs
-                    </Link>
                   </CardHeader>
                   <CardContent className="p-4 md:p-8 !pt-0">
                     <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
@@ -123,126 +121,179 @@ export function BusinessLanding(props: BusinessDataResponse) {
                         .filter(
                           (program) => program.is_published && program.is_active
                         )
-                        .map((program) => (
-                          <div
-                            key={program.id}
-                            className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow bg-white"
-                          >
-                            {/* Banner Image or Random Color */}
-                            <div className="relative h-48 w-full">
-                              {program.banner_image_url ? (
-                                <img
-                                  src={program.banner_image_url}
-                                  alt={program.name}
-                                  className="h-full w-full object-cover"
-                                />
-                              ) : (
-                                <div
-                                  className={`h-full w-full ${getRandomColor(
-                                    program.id
-                                  )} flex items-center justify-center`}
-                                >
-                                  <span className="text-white text-lg font-semibold text-center px-4">
-                                    {program.name}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
+                        .map((program) => {
+                          const { minPrice, maxPrice } =
+                            getProgramPriceRange(program);
+                          // For now, assume available seats = capacity (would need enrollment data from API)
+                          const availableSeats = program.available_seats;
 
-                            {/* Program Content */}
-                            <div className="p-4 space-y-3">
-                              <h3 className="text-xl font-semibold text-slate-800 line-clamp-2">
-                                {program.name}
-                              </h3>
-
-                              {/* Date Range */}
-                              <div className="text-sm text-gray-600">
-                                <span className="font-medium">Dates: </span>
-                                {formatDateRange(
-                                  program.start_date,
-                                  program.end_date,
-                                  userTimezone
-                                )}
-                              </div>
-
-                              {/* Capacity and Available Seats */}
-                              <div className="text-sm text-gray-600">
-                                <span className="font-medium">Capacity: </span>
-                                {program.capacity ? (
-                                  <>
-                                    {program.capacity} participants
-                                    {/* Note: Available seats would need participant count from API */}
-                                    <span className="text-green-600 ml-2">
-                                      ({program.availableSeats} seats available)
-                                    </span>
-                                  </>
+                          return (
+                            <div
+                              key={program.id}
+                              className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow bg-white"
+                            >
+                              {/* Banner Image or Random Color */}
+                              <div className="relative h-48 w-full">
+                                {program.banner_image_url ? (
+                                  <img
+                                    src={program.banner_image_url}
+                                    alt={program.name}
+                                    className="h-full w-full object-cover"
+                                  />
                                 ) : (
-                                  <span className="text-blue-600">
-                                    Unlimited
-                                  </span>
+                                  <div
+                                    className={`h-full w-full ${getRandomColor(
+                                      program.id
+                                    )} flex items-center justify-center`}
+                                  >
+                                    <span className="text-white text-lg font-semibold text-center px-4">
+                                      {program.name}
+                                    </span>
+                                  </div>
                                 )}
                               </div>
 
-                              {/* Price */}
-                              <div className="flex items-center justify-between">
-                                <div className="flex flex-col">
-                                  {(() => {
-                                    const basePrice = getProgramBasePrice(program);
-                                    const discount = calculateProgramDiscount(program);
-                                    const finalPrice = getProgramPriceWithDiscount(program);
-                                    const isDeposit = program.allow_deposits && program.deposit_amount;
-                                    
-                                    return (
-                                      <>
-                                        {discount > 0 ? (
-                                          <>
-                                            <div className="text-sm text-gray-500 line-through">
-                                              £{getProgramPrice(program).toFixed(2)}
-                                              {isDeposit && (
-                                                <span className="ml-1">(Deposit)</span>
-                                              )}
-                                            </div>
-                                            <div className="text-lg font-bold text-green-600">
-                                              £{finalPrice.toFixed(2)}
-                                              {isDeposit && (
-                                                <span className="text-sm font-normal text-gray-600 ml-1">
-                                                  (Deposit)
-                                                </span>
-                                              )}
-                                            </div>
-                                            <div className="text-xs text-green-600">
-                                              Save £{discount.toFixed(2)} - Early Bird!
-                                            </div>
-                                          </>
-                                        ) : (
-                                          <div className="text-lg font-bold text-green-600">
-                                            £{finalPrice.toFixed(2)}
-                                            {isDeposit && (
-                                              <span className="text-sm font-normal text-gray-600 ml-1">
-                                                (Deposit)
-                                              </span>
-                                            )}
-                                          </div>
-                                        )}
-                                        {isDeposit && program.deposit_amount && (
-                                          <div className="text-sm font-bold text-gray-500">
-                                            Balance: £{(parseFloat(program.price) - parseFloat(program.deposit_amount.toString())).toFixed(2)}
-                                          </div>
-                                        )}
-                                      </>
-                                    );
-                                  })()}
+                              {/* Program Content */}
+                              <div className="p-4 space-y-3">
+                                <h3 className="text-xl font-semibold text-slate-800 line-clamp-2">
+                                  {program.name}
+                                </h3>
+
+                                {/* About */}
+                                <p className="text-sm text-gray-600 line-clamp-3">
+                                  {program.about}
+                                </p>
+
+                                {/* Price Range */}
+                                <div className="text-sm text-gray-600">
+                                  <span className="font-medium">Price: </span>
+                                  {program.classes_count > 0 ? (
+                                    minPrice === maxPrice ? (
+                                      <span className="text-green-600 font-semibold">
+                                        £{minPrice.toFixed(2)}
+                                      </span>
+                                    ) : (
+                                      <span className="text-green-600 font-semibold">
+                                        £{minPrice.toFixed(2)} - £
+                                        {maxPrice.toFixed(2)}
+                                      </span>
+                                    )
+                                  ) : (
+                                    <span className="text-gray-500">
+                                      No classes available
+                                    </span>
+                                  )}
                                 </div>
-                                <Link
-                                  href={`/booking/${props.bUrl}/program-reg-wizard`}
-                                  className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-600 transition-colors"
-                                >
-                                  Register Now
-                                </Link>
+
+                                {/* Capacity and Available Seats */}
+                                <div className="text-sm text-gray-600">
+                                  <span className="font-medium">
+                                    Capacity:{" "}
+                                  </span>
+                                  {program.set_capacity_per_class ? (
+                                    <span>Capacity set per class</span>
+                                  ) : program.capacity ? (
+                                    <>
+                                      <span>
+                                        {program.capacity} participants
+                                      </span>
+                                      <span className="text-green-600 ml-2">
+                                        ({availableSeats} seats available)
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <span>Unlimited</span>
+                                  )}
+                                </div>
+
+                                {/* Classes Section */}
+                                {program.upcoming_classes &&
+                                  program.upcoming_classes.length > 0 && (
+                                    <div className="border-t pt-3 mt-3">
+                                      <h4 className="text-sm font-medium text-gray-700 mb-2">
+                                        Classes ({program.classes_count})
+                                      </h4>
+                                      <div className="space-y-2">
+                                        {program.upcoming_classes
+                                          .slice(0, 3)
+                                          .map((cls) => {
+                                            // Class capacity and available seats
+                                            const classCapacity =
+                                              program.set_capacity_per_class
+                                                ? cls.capacity || 0
+                                                : program.capacity || 0;
+                                            const classAvailable = cls.available_seats
+
+                                            return (
+                                              <div
+                                                key={cls.id}
+                                                className="bg-gray-50 p-3 rounded-md text-xs"
+                                              >
+                                                <div className="font-medium text-gray-800 mb-1">
+                                                  {cls.name}
+                                                </div>
+                                                <div className="space-y-1 text-gray-600">
+                                                  <div>
+                                                    {formatDateRange(
+                                                      cls.start_date,
+                                                      cls.end_date,
+                                                      userTimezone
+                                                    )}
+                                                  </div>
+                                                  <div className="flex justify-between items-center">
+                                                    <span className="text-green-600 font-semibold">
+                                                      £
+                                                      {getProgramClassPriceWithDiscount(
+                                                        cls,
+                                                        program
+                                                      ).toFixed(2)}
+                                                    </span>
+                                                    <span className="text-green-600 ml-2">
+                                                      {classCapacity > 0 ? (
+                                                        <>
+                                                          {classCapacity}{" "}
+                                                          capacity (
+                                                          {classAvailable}{" "}
+                                                          available)
+                                                        </>
+                                                      ) : (
+                                                        "Unlimited"
+                                                      )}
+                                                    </span>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            );
+                                          })}
+
+                                        {program.classes_count > 3 && (
+                                          <div className="text-center">
+                                            <Link
+                                              href={`/booking/${props.bUrl}/program-reg-wizard/${program.id}`}
+                                              className="text-blue-500 hover:text-blue-600 text-sm font-medium"
+                                            >
+                                              View {program.classes_count - 3}{" "}
+                                              more classes
+                                            </Link>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                {/* Register Button */}
+                                <div className="flex justify-end pt-2">
+                                  <Link
+                                    href={`/booking/${props.bUrl}/program-reg-wizard/${program.id}`}
+                                    className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-600 transition-colors"
+                                  >
+                                    Register
+                                  </Link>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                     </div>
                   </CardContent>
                 </Card>

@@ -21,12 +21,12 @@ interface IProgramClass {
   id: number;
   name: string;
   description: string;
-  start_date: Date;
-  end_date: Date;
+  start_date: string;
+  end_date: string;
   start_booking_immediately: boolean;
-  start_booking_date: Date | null;
+  start_booking_date?: string;
   end_booking_when_class_ends: boolean;
-  end_booking_date: Date | null;
+  end_booking_date?: string;
   price: number;
   capacity: number | null;
   is_active: boolean;
@@ -34,7 +34,7 @@ interface IProgramClass {
   offer_early_bird: boolean;
   early_bird_discount_type: 'percentage' | 'fixed_amount' | null;
   early_bird_discount_value: number | null;
-  early_bird_deadline: Date | null;
+  early_bird_deadline?: string;
   allow_deposits: boolean;
   deposit_amount: number | null;
   ProgramId: number;

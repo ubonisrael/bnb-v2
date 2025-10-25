@@ -364,8 +364,26 @@ export interface Review {
   service?: string;
 }
 
+interface IProgramCapacityInfo {
+  type: "per_class" | "program_level";
+  total_capacity: number | null;
+  program_capacity: number | null;
+}
+
 interface BusinessDataResponse {
-  programs: (IProgram & { availableSeats: number })[];
+  programs: (IProgram & {
+    capacity_info: IProgramCapacityInfo;
+    available_seats: number | null;
+    upcoming_classes: (IProgramClass & {
+      capacity_info: {
+        type: "per_class" | "program_level";
+        available_seats: number | null;
+        capacity: number | null;
+      };
+      available_seats: number | null;
+    })[];
+    classes_count: number;
+  })[];
   cancellationAllowed: boolean;
   absorbServiceCharge: boolean;
   currencySymbol: string;
@@ -489,7 +507,7 @@ interface INewProgram {
   class_count?: number;
   enrolled_students_count?: number;
   capacity_info?: {
-    type: 'per_class' | 'program_level';
+    type: "per_class" | "program_level";
     total_capacity: number | null;
     program_capacity: number | null;
   };
@@ -517,7 +535,7 @@ interface IProgramClass {
   end_booking_when_class_ends: boolean;
   end_booking_date?: string;
   offer_early_bird: boolean;
-  early_bird_discount_type: 'percentage' | 'fixed_amount' | null;
+  early_bird_discount_type: "percentage" | "fixed_amount" | null;
   early_bird_discount_value: number | null;
   early_bird_deadline?: string;
   allow_deposits: boolean;
