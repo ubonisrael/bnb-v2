@@ -796,7 +796,7 @@ export default function ProgramsPage() {
       {/* Main View */}
       <div
         className={`transition-transform duration-700 ease-in-out ${
-          showDetailsView ? "-translate-x-full" : "translate-x-0"
+          showDetailsView || showClassView ? "-translate-x-full" : "translate-x-0"
         }`}
       >
         <div className="space-y-6">
@@ -998,8 +998,9 @@ export default function ProgramsPage() {
       {/* Details View */}
       <div
         className={`absolute top-0 left-0 w-full h-full md:px-4 xl:px-8 overflow-y-auto transition-transform duration-300 ease-in-out ${
-          showDetailsView ? "translate-x-0" : "translate-x-full"
+          showDetailsView && !showClassView ? "translate-x-0" : "translate-x-full"
         }`}
+        style={{ zIndex: 15 }}
       >
         {selectedProgram && (
           <div className="space-y-6 h-full">
@@ -1327,6 +1328,7 @@ export default function ProgramsPage() {
         className={`absolute top-0 left-0 w-full h-full md:px-4 xl:px-8 overflow-y-auto transition-transform duration-300 ease-in-out ${
           showClassView ? "translate-x-0" : "translate-x-full"
         }`}
+        style={{ zIndex: showClassView ? 20 : 10 }}
       >
         {selectedClass && (
           <div className="space-y-6 h-full">
@@ -1342,6 +1344,19 @@ export default function ProgramsPage() {
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <div>
+                  {/* Breadcrumb */}
+                  <div className="flex items-center text-sm text-[#6E6E73] mb-1">
+                    <span 
+                      className="hover:text-[#121212] cursor-pointer"
+                      onClick={handleBackFromClassDetails}
+                    >
+                      {selectedProgram?.name}
+                    </span>
+                    <span className="mx-2">/</span>
+                    <span className="text-[#121212] font-medium">
+                      {selectedClass.name}
+                    </span>
+                  </div>
                   <h1 className="text-3xl font-bold text-[#121212]">
                     {selectedClass.name}
                   </h1>
