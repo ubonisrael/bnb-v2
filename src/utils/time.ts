@@ -21,8 +21,8 @@ export function minutesToTimeString(minutesFromMidnight: number): string {
 
 export function convertTimeSlotsToUserLocalTime(
   slot: number,
-  businessOffset: number,
-  userOffset: number
+  userOffset: number,
+  businessOffset: number
 ) {
   return (slot - businessOffset + userOffset + 1440) % 1440;
 }

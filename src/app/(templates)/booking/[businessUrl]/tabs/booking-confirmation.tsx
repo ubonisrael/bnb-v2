@@ -139,7 +139,7 @@ export const BookingConfirmation = ({
               selectedDate &&
               selectedTime &&
               businessLocation &&
-              businessUtcOffset && (
+              businessUtcOffset !== undefined && (
                 <>
                   {/* Keep the existing appointment details section */}
                   <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">

@@ -1,5 +1,5 @@
 import { Service } from "@/types/onboarding";
-import { boolean } from "zod";
+import { boolean, number } from "zod";
 
 export interface VoidResponse {
   status: boolean;
@@ -370,20 +370,25 @@ interface IProgramCapacityInfo {
   program_capacity: number | null;
 }
 
-interface BusinessDataResponse {
-  programs: (IProgram & {
-    capacity_info: IProgramCapacityInfo;
+interface IProgramDataResponse extends IProgram {
+  ServiceProvider: {
+    id: number;
+    name: string;
+    logo: string | null;
+  };
+  capacity_info: IProgramCapacityInfo;
+  available_seats: number | null;
+  upcoming_classes: (IProgramClass & {
+    capacity_info: {
+      type: "per_class" | "program_level";
+    };
     available_seats: number | null;
-    upcoming_classes: (IProgramClass & {
-      capacity_info: {
-        type: "per_class" | "program_level";
-        available_seats: number | null;
-        capacity: number | null;
-      };
-      available_seats: number | null;
-    })[];
-    classes_count: number;
   })[];
+  classes_count: number;
+}
+
+interface BusinessDataResponse {
+  programs: IProgramDataResponse[];
   cancellationAllowed: boolean;
   absorbServiceCharge: boolean;
   currencySymbol: string;
@@ -424,8 +429,20 @@ export interface ServicesTabPropsInterface {
 type ConfirmationStatus = "success" | "failed" | "expired" | "pending";
 
 interface ProgramRegistrationResultData {
-  status: ConfirmationStatus;
-  programs: IProgram[];
+  program: {
+    id: number;
+    name: string;
+    absorb_service_charge: boolean;
+  };
+  programClasses: {
+    id: number;
+    name: string;
+    price: number;
+    start_date: string;
+    end_date: string;
+    allow_deposits: boolean;
+    deposit_amount: number;
+  }[];
   total_discount: number;
   serviceProvider: {
     id: number;
@@ -434,6 +451,7 @@ interface ProgramRegistrationResultData {
     logo: string | null;
     location: string;
   };
+  status: ConfirmationStatus;
 }
 
 interface ProgramRegisterationResponse {
@@ -474,9 +492,7 @@ interface IExtendedProgram extends IProgram {
 interface ProgramsWizardResponse {
   success: boolean;
   message: string;
-  data?: {
-    programs: IExtendedProgram[];
-  };
+  program: IProgramDataResponse;
   error?: any;
 }
 

@@ -5,7 +5,7 @@ import dayjs from "@/utils/dayjsConfig";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ProgramRegistrationResultData } from "@/types/response";
-import { getProgramPrice } from "@/utils/programs";
+import { getProgramClassPrice } from "@/utils/programs";
 
 interface ProgramRegistrationConfirmationProps
   extends ProgramRegistrationResultData {
@@ -23,14 +23,25 @@ export const ProgramRegistrationConfirmation = (
   // Get the confirmation status from the nested data
   const confirmationStatus = props.status;
 
-  // Handle program data (ensure it's always an array)
-  const programs = Array.isArray(props.programs)
-    ? props.programs
-    : [props.programs];
+  // Get program classes (ensure it's always an array)
+  const programClasses = Array.isArray(props.programClasses)
+    ? props.programClasses
+    : [];
 
   // Calculate total price including service charges
   const calculateTotalPrice = () => {
-    return programs.reduce((total, program) => total + getProgramPrice(program), 0);
+    return programClasses.reduce((total, programClass) => {
+      const basePrice = programClass.allow_deposits && programClass.deposit_amount
+        ? programClass.deposit_amount
+        : programClass.price;
+      
+      // Add service charge if not absorbed
+      const serviceFee = props.program.absorb_service_charge
+        ? 0
+        : Math.max(1, basePrice * 0.1);
+      
+      return total + basePrice + serviceFee;
+    }, 0);
   };
 
   const totalPrice = calculateTotalPrice();
@@ -150,7 +161,7 @@ export const ProgramRegistrationConfirmation = (
 
             {confirmationStatus === "success" && (
               <>
-                {/* Program Registration Details */}
+                  {/* Program Registration Details */}
                 <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
                   <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
                     Registration Details
@@ -251,88 +262,94 @@ export const ProgramRegistrationConfirmation = (
                     </div>
                   </div>
 
-                  {/* Programs List */}
-                  <div className="mb-6">
-                    <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
-                      Registered Programs ({programs.length})
-                    </h5>
-                    <div className="space-y-4">
-                      {programs.map((program, index) => (
-                        <div
-                          key={index}
-                          className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
-                        >
-                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
-                                Program Name
-                              </p>
-                              <p className="font-medium text-gray-900 dark:text-white">
-                                {program?.name || "Program Name"}
-                              </p>
-                            </div>
-
-                            <div>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
-                                Start Date
-                              </p>
-                              <p className="font-medium text-gray-900 dark:text-white">
-                                {program?.start_date
-                                  ? dayjs(program.start_date)
-                                      .tz(timezone)
-                                      .format("MMM D, YYYY")
-                                  : "TBA"}
-                              </p>
-                            </div>
-
-                            <div>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
-                                End Date
-                              </p>
-                              <p className="font-medium text-gray-900 dark:text-white">
-                                {program?.end_date
-                                  ? dayjs(program.end_date)
-                                      .tz(timezone)
-                                      .format("MMM D, YYYY")
-                                  : "TBA"}
-                              </p>
-                            </div>
-
-                            <div>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
-                                Price (inc. service charge)
-                              </p>
-                              <p className="font-medium text-gray-900 dark:text-white">
-                                £
-                                {program?.price
-                                  ? getProgramPrice(program).toFixed(2)
-                                  : "0.00"}
-                                {program.allow_deposits && program.deposit_amount && (
-                                  <span className="text-sm text-gray-500 dark:text-gray-400">
-                                    {" "}
-                                    (Deposit)
-                                  </span>
-                                )}
-                              </p>
-                            </div>
-                          </div>
-
-                          {program?.about && (
-                            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-                                Description
-                              </p>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
-                                {program.about}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                  {/* Program Info */}
+                  <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                      Program
+                    </p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {props.program.name}
+                    </p>
                   </div>
 
-                  {/* Pricing Summary */}
+                  {/* Classes List */}
+                  <div className="mb-6">
+                    <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+                      Registered Classes ({programClasses.length})
+                    </h5>
+                    <div className="space-y-4">
+                      {programClasses.map((programClass, index) => {
+                        const basePrice = programClass.allow_deposits && programClass.deposit_amount
+                          ? programClass.deposit_amount
+                          : programClass.price;
+                        
+                        const serviceFee = props.program.absorb_service_charge
+                          ? 0
+                          : Math.max(1, basePrice * 0.1);
+                        
+                        const displayPrice = basePrice + serviceFee;
+
+                        return (
+                          <div
+                            key={index}
+                            className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+                          >
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                              <div>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                  Class Name
+                                </p>
+                                <p className="font-medium text-gray-900 dark:text-white">
+                                  {programClass.name}
+                                </p>
+                              </div>
+
+                              <div>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                  Start Date
+                                </p>
+                                <p className="font-medium text-gray-900 dark:text-white">
+                                  {programClass.start_date
+                                    ? dayjs(programClass.start_date)
+                                        .tz(timezone)
+                                        .format("MMM D, YYYY")
+                                    : "TBA"}
+                                </p>
+                              </div>
+
+                              <div>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                  End Date
+                                </p>
+                                <p className="font-medium text-gray-900 dark:text-white">
+                                  {programClass.end_date
+                                    ? dayjs(programClass.end_date)
+                                        .tz(timezone)
+                                        .format("MMM D, YYYY")
+                                    : "TBA"}
+                                </p>
+                              </div>
+
+                              <div>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                  Price (inc. service charge)
+                                </p>
+                                <p className="font-medium text-gray-900 dark:text-white">
+                                  £{displayPrice.toFixed(2)}
+                                  {programClass.allow_deposits && programClass.deposit_amount && (
+                                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                                      {" "}
+                                      (Deposit)
+                                    </span>
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>                  {/* Pricing Summary */}
                   <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
                     <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                       Pricing Summary
@@ -340,7 +357,7 @@ export const ProgramRegistrationConfirmation = (
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-600 dark:text-gray-400">
-                          Subtotal ({programs.length} program{programs.length !== 1 ? 's' : ''})
+                          Subtotal ({programClasses.length} class{programClasses.length !== 1 ? 'es' : ''})
                         </span>
                         <span className="text-sm font-medium text-gray-900 dark:text-white">
                           £{totalPrice.toFixed(2)}

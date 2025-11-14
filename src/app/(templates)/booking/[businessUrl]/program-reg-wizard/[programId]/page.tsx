@@ -2,20 +2,20 @@ import React from "react";
 import Link from "next/link";
 import api from "@/services/api-service";
 import { ProgramsWizardResponse } from "@/types/response";
-import { ProgramRegistrationWizard } from "../program-reg-wizard";
+import { ProgramRegistrationWizard } from "../../program-reg-wizard";
 
 export type Params = {
   params: Promise<{
     businessUrl: string;
+    programId: string;
   }>;
 };
 
-async function getServiceProviderProgramDetails(businessUrl: string) {
+async function getServiceProviderProgramDetails(businessUrl: string, programId: string) {
   try {
     const response = await api.get<ProgramsWizardResponse>(
-      `programs/${businessUrl}/active-programs`
+      `programs/${businessUrl}/active-programs/${programId}`
     );
-    console.log("response", response);
     return { data: response, error: null };
   } catch (error: any) {
     return { data: null, error };
@@ -23,8 +23,8 @@ async function getServiceProviderProgramDetails(businessUrl: string) {
 }
 
 export default async function ProgramRegistrationWizardPage(props: Params) {
-  const { businessUrl } = await props.params;
-  let { data, error } = await getServiceProviderProgramDetails(businessUrl);
+  const { businessUrl, programId } = await props.params;
+  let { data, error } = await getServiceProviderProgramDetails(businessUrl, programId);
 
   if (error) {
     console.error("Failed to load business details:", error.response || error);
@@ -49,13 +49,13 @@ export default async function ProgramRegistrationWizardPage(props: Params) {
     );
   }
 
-  if (!data?.data) {
+  if (!data?.program) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center p-8">
           <h1 className="text-4xl font-bold text-red-600 mb-4">Oops!</h1>
           <p className="text-gray-600 mb-4">
-            We couldn't load the business details.
+            We couldn't load the program details.
           </p>
           <p className="text-gray-500 mb-4">
             Please try again later or contact support.
@@ -70,5 +70,5 @@ export default async function ProgramRegistrationWizardPage(props: Params) {
       </div>
     );
   }
-  return <ProgramRegistrationWizard programs={data.data?.programs} businessUrl={businessUrl} />;
+  return <ProgramRegistrationWizard program={data.program} businessUrl={businessUrl} />;
 }
