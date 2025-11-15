@@ -13,14 +13,12 @@ import dayjs from "@/utils/dayjsConfig";
 import { getRandomColor } from "@/utils/color";
 import { formatDateRange } from "@/utils/time";
 import {
-  getProgramClassPriceWithDiscount,
-  getProgramPriceRange,
+  getProgramClassPriceWithDiscount
 } from "@/utils/programs";
 
 const userTimezone = dayjs.tz.guess();
 
 export function BusinessLanding(props: BusinessDataResponse) {
-  console.log("Business Landing Props:", props);
   // get number of services
   const totalServices = props.serviceCategories.reduce(
     (sum, category) => sum + category.services.length,
@@ -122,11 +120,6 @@ export function BusinessLanding(props: BusinessDataResponse) {
                           (program) => program.is_published && program.is_active
                         )
                         .map((program) => {
-                          const { minPrice, maxPrice } =
-                            getProgramPriceRange(program);
-                          // For now, assume available seats = capacity (would need enrollment data from API)
-                          const availableSeats = program.available_seats;
-
                           return (
                             <div
                               key={program.id}
@@ -165,7 +158,7 @@ export function BusinessLanding(props: BusinessDataResponse) {
                                 </p>
 
                                 {/* Price Range */}
-                                <div className="text-sm text-gray-600">
+                                {/* <div className="text-sm text-gray-600">
                                   <span className="font-medium">Price: </span>
                                   {program.classes_count > 0 ? (
                                     minPrice === maxPrice ? (
@@ -183,7 +176,7 @@ export function BusinessLanding(props: BusinessDataResponse) {
                                       No classes available
                                     </span>
                                   )}
-                                </div>
+                                </div> */}
 
                                 {/* Capacity and Available Seats */}
                                 <div className="text-sm text-gray-600">
@@ -198,7 +191,8 @@ export function BusinessLanding(props: BusinessDataResponse) {
                                         {program.capacity} participants
                                       </span>
                                       <span className="text-green-600 ml-2">
-                                        ({availableSeats} seats available)
+                                        ({program.available_seats} seats
+                                        available)
                                       </span>
                                     </>
                                   ) : (
@@ -217,12 +211,8 @@ export function BusinessLanding(props: BusinessDataResponse) {
                                         {program.upcoming_classes
                                           .slice(0, 3)
                                           .map((cls) => {
-                                            // Class capacity and available seats
-                                            const classCapacity =
-                                              program.set_capacity_per_class
-                                                ? cls.capacity || 0
-                                                : program.capacity || 0;
-                                            const classAvailable = cls.available_seats
+                                            const capacitySetup =
+                                              program.set_capacity_per_class;
 
                                             return (
                                               <div
@@ -249,11 +239,13 @@ export function BusinessLanding(props: BusinessDataResponse) {
                                                       ).toFixed(2)}
                                                     </span>
                                                     <span className="text-green-600 ml-2">
-                                                      {classCapacity > 0 ? (
+                                                      {!capacitySetup ? (
+                                                        "Set per program"
+                                                      ) : cls.capacity !== null && cls.capacity !== undefined ? (
                                                         <>
-                                                          {classCapacity}{" "}
+                                                          {cls.capacity}{" "}
                                                           capacity (
-                                                          {classAvailable}{" "}
+                                                          {cls.available_seats}{" "}
                                                           available)
                                                         </>
                                                       ) : (

@@ -45,7 +45,6 @@ export function DatePicker({
             mode="single"
             selected={date ? new Date(date) : undefined}
             onSelect={(date) => {
-              console.log("Selected date:", date);
               if (!date) return;
               onAdd({
                 ...offDay,

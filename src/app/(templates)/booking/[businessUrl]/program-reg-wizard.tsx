@@ -90,7 +90,6 @@ interface IExtendedProgramClass extends IProgramClass {
 export function ProgramRegistrationWizard(
   props: ProgramRegistrationWizardProps
 ) {
-  console.log("props.program", props.program);
   const [showProgRegistrationModal, setShowProgRegistrationModal] =
     useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -109,7 +108,7 @@ export function ProgramRegistrationWizard(
   // Get upcoming classes from the program
   const upcomingClasses: IExtendedProgramClass[] = (props.program.upcoming_classes || []).map((cls: any) => ({
     ...cls,
-    availableSeats: cls.available_seats ?? cls.availableSeatsInRedis ?? null,
+    availableSeats: cls.available_seats ?? null,
   }));
 
   // Helper functions for class pricing (wrapping utility functions with program context)
