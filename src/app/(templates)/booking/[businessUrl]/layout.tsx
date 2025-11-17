@@ -14,9 +14,7 @@ export default function LandingPageLayout({
   return (
       <AppProvider>
         <Header />
-        {/* <Navbar /> */}
         {children}
-        <Footer />
         <SupportModalTrigger />
       </AppProvider>
   );
