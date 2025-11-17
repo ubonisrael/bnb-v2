@@ -8,10 +8,7 @@ import { z } from "zod";
 import toast from "react-hot-toast";
 import api from "@/services/api-service";
 import dayjs from "@/utils/dayjsConfig";
-import {
-  IProgramClass,
-  IProgramDataResponse,
-} from "@/types/response";
+import { IProgramClass, IProgramDataResponse } from "@/types/response";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +37,7 @@ import {
   CirclePercent,
   Home,
   BookOpen,
+  Banknote,
 } from "lucide-react";
 import {
   Dialog,
@@ -360,21 +358,33 @@ export function ProgramRegistrationWizard(
                           <span className="text-sm font-medium text-gray-700">
                             {props.program.capacity ? (
                               <>
-                                {(props.program as any).available_seats !== null && (props.program as any).available_seats !== undefined ? (
+                                {(props.program as any).available_seats !==
+                                  null &&
+                                (props.program as any).available_seats !==
+                                  undefined ? (
                                   <span
                                     className={`${
                                       (props.program as any).available_seats < 1
                                         ? "text-red-600"
-                                        : (props.program as any).available_seats <= 5
+                                        : (props.program as any)
+                                            .available_seats <= 5
                                         ? "text-yellow-600"
                                         : "text-green-600"
                                     }`}
                                   >
-                                    {(props.program as any).available_seats} {(props.program as any).available_seats === 1 ? 'seat' : 'seats'} available
+                                    {(props.program as any).available_seats}{" "}
+                                    {(props.program as any).available_seats ===
+                                    1
+                                      ? "seat"
+                                      : "seats"}{" "}
+                                    available
                                   </span>
                                 ) : (
                                   <span className="text-gray-600">
-                                    {props.program.capacity} {props.program.capacity === 1 ? 'seat' : 'seats'}
+                                    {props.program.capacity}{" "}
+                                    {props.program.capacity === 1
+                                      ? "seat"
+                                      : "seats"}
                                   </span>
                                 )}
                               </>
@@ -603,43 +613,51 @@ export function ProgramRegistrationWizard(
                               </div>
 
                               {/* Refund Policy (from parent program) */}
-                              <div className="">
-                                {props.program.allow_refunds ? (
-                                  <>
-                                    <Badge
-                                      variant="outline"
-                                      className="text-green-600 border-green-600"
-                                    >
-                                      Refundable
-                                    </Badge>
-                                    <div className="text-sm mt-1 text-gray-600">
-                                      {props.program.refund_percentage && (
-                                        <span>
-                                          {props.program.refund_percentage}%
-                                          refund
-                                        </span>
-                                      )}
-                                      {props.program
-                                        .refund_deadline_in_hours && (
-                                        <span className="ml-1">
-                                          (within{" "}
-                                          {
-                                            props.program
-                                              .refund_deadline_in_hours
-                                          }{" "}
-                                          hours)
-                                        </span>
-                                      )}
+                              <div className="flex items-center gap-2 mb-2">
+                                <Banknote className="h-4 w-4 text-gray-600" />
+                                <div className="flex-col gap-2">
+                                  <span className="font-medium text-gray-700">
+                                    Refund Policy
+                                  </span>
+                                  {props.program.allow_refunds ? (
+                                    <div className="flex items-center gap-2">
+                                      <Badge
+                                        variant="outline"
+                                        className="text-green-600 border-green-600"
+                                      >
+                                        Refundable
+                                      </Badge>
+                                      <div className="text-sm mt-1 text-gray-600">
+                                        {props.program.refund_percentage && (
+                                          <span>
+                                            {props.program.refund_percentage}%
+                                            refund
+                                          </span>
+                                        )}
+                                        {props.program
+                                          .refund_deadline_in_hours && (
+                                          <span className="ml-1">
+                                            (within{" "}
+                                            {
+                                              props.program
+                                                .refund_deadline_in_hours
+                                            }{" "}
+                                            hours)
+                                          </span>
+                                        )}
+                                      </div>
                                     </div>
-                                  </>
-                                ) : (
-                                  <Badge
-                                    variant="outline"
-                                    className="text-red-600 border-red-600"
-                                  >
-                                    Non-refundable
-                                  </Badge>
-                                )}
+                                  ) : (
+                                    <div>
+                                      <Badge
+                                        variant="outline"
+                                        className="text-red-600 border-red-600"
+                                      >
+                                        Non-refundable
+                                      </Badge>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -1071,44 +1089,46 @@ export function ProgramRegistrationWizard(
                           )}
 
                         {/* Refund Policy (from parent program) */}
-                        <div className="p-3 bg-gray-50 rounded-lg">
-                          {props.program.allow_refunds ? (
-                            <>
-                              <Badge
-                                variant="outline"
-                                className="text-green-600 border-green-600 mb-2"
-                              >
-                                Refundable
-                              </Badge>
-                              <div className="text-sm text-gray-600">
-                                {props.program.refund_percentage && (
-                                  <div>
-                                    {props.program.refund_percentage}% refund
-                                    available
-                                  </div>
-                                )}
-                                {props.program.refund_deadline_in_hours && (
-                                  <div>
-                                    Refund must be requested within{" "}
-                                    {props.program.refund_deadline_in_hours}{" "}
-                                    hours
-                                  </div>
-                                )}
+                        <div className="flex items-center gap-2 mb-2">
+                          <Banknote className="h-4 w-4 text-gray-600" />
+                          <div className="flex-col gap-2">
+                            <span className="font-medium text-gray-700">
+                              Refund Policy
+                            </span>
+                            {props.program.allow_refunds ? (
+                              <div className="flex items-center gap-2">
+                                <Badge
+                                  variant="outline"
+                                  className="text-green-600 border-green-600"
+                                >
+                                  Refundable
+                                </Badge>
+                                <div className="text-sm mt-1 text-gray-600">
+                                  {props.program.refund_percentage && (
+                                    <span>
+                                      {props.program.refund_percentage}% refund
+                                    </span>
+                                  )}
+                                  {props.program.refund_deadline_in_hours && (
+                                    <span className="ml-1">
+                                      (within{" "}
+                                      {props.program.refund_deadline_in_hours}{" "}
+                                      hours)
+                                    </span>
+                                  )}
+                                </div>
                               </div>
-                            </>
-                          ) : (
-                            <>
-                              <Badge
-                                variant="outline"
-                                className="text-red-600 border-red-600 mb-2"
-                              >
-                                Non-refundable
-                              </Badge>
-                              <div className="text-sm text-gray-600">
-                                This class does not offer refunds
+                            ) : (
+                              <div>
+                                <Badge
+                                  variant="outline"
+                                  className="text-red-600 border-red-600"
+                                >
+                                  Non-refundable
+                                </Badge>
                               </div>
-                            </>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </div>
 
