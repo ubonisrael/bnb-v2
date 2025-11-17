@@ -8,12 +8,14 @@ import { z } from "zod";
 import toast from "react-hot-toast";
 import api from "@/services/api-service";
 import dayjs from "@/utils/dayjsConfig";
-import { IExtendedProgram, IProgramClass, IProgramDataResponse } from "@/types/response";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  IProgramClass,
+  IProgramDataResponse,
+} from "@/types/response";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
@@ -93,9 +95,9 @@ export function ProgramRegistrationWizard(
   const [showProgRegistrationModal, setShowProgRegistrationModal] =
     useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const [selectedClasses, setSelectedClasses] = useState<IExtendedProgramClass[]>(
-    []
-  );
+  const [selectedClasses, setSelectedClasses] = useState<
+    IExtendedProgramClass[]
+  >([]);
   const [selectedClassForModal, setSelectedClassForModal] =
     useState<IExtendedProgramClass | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -106,7 +108,9 @@ export function ProgramRegistrationWizard(
   const serviceProvider = props.program.ServiceProvider || null;
 
   // Get upcoming classes from the program
-  const upcomingClasses: IExtendedProgramClass[] = (props.program.upcoming_classes || []).map((cls: any) => ({
+  const upcomingClasses: IExtendedProgramClass[] = (
+    props.program.upcoming_classes || []
+  ).map((cls: any) => ({
     ...cls,
     availableSeats: cls.available_seats ?? null,
   }));
@@ -158,7 +162,10 @@ export function ProgramRegistrationWizard(
     const now = dayjs();
 
     // Check available seats
-    if (programClass.availableSeats !== null && programClass.availableSeats < 1) {
+    if (
+      programClass.availableSeats !== null &&
+      programClass.availableSeats < 1
+    ) {
       return false;
     }
 
@@ -191,7 +198,10 @@ export function ProgramRegistrationWizard(
   const getDisabledReason = (programClass: IExtendedProgramClass) => {
     const now = dayjs();
 
-    if (programClass.availableSeats !== null && programClass.availableSeats < 1) {
+    if (
+      programClass.availableSeats !== null &&
+      programClass.availableSeats < 1
+    ) {
       return "No seats available";
     }
 
@@ -308,6 +318,8 @@ export function ProgramRegistrationWizard(
     }
   }
 
+  const capacitySetup = props.program.set_capacity_per_class;
+
   return (
     <div className="w-full bg-slate-100 py-16 sm:pb-20 lg:pb-24">
       <div className="sm:px-6 pb-4 sm:py-6 lg:py-8 mx-auto max-w-7xl">
@@ -315,18 +327,42 @@ export function ProgramRegistrationWizard(
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Header */}
             <div className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                    {props.program.name}
-                  </h1>
-                  <p className="text-gray-600">
-                    Select the classes you'd like to register for and proceed
-                    to checkout.
-                  </p>
-                  {props.program.about && (
-                    <p className="text-gray-500 mt-2">{props.program.about}</p>
-                  )}
+              <div className="flex flex-col-reverse md:flex-row md:justify-between gap-4 mb-4">
+                <div className="flex flex-col md:flex-row md:justify-between mb-4">
+                  {/* Banner Image or Random Color */}
+                  <div className="relative w-full md:w-64 h-48">
+                    {props.program.banner_image_url ? (
+                      <img
+                        src={props.program.banner_image_url}
+                        alt={props.program.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div
+                        className={`h-full w-full ${getRandomColor(
+                          props.program.id.toString()
+                        )} flex items-center justify-center`}
+                      >
+                        <span className="text-white text-xl font-semibold text-center px-4">
+                          {props.program.name}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                      {props.program.name}
+                    </h1>
+                    {props.program.about && (
+                      <p className="text-gray-500 mt-2 mb-4">
+                        {props.program.about}
+                      </p>
+                    )}
+                    <p className="text-gray-600">
+                      Select the classes you'd like to register for and proceed
+                      to checkout.
+                    </p>
+                  </div>
                 </div>
                 <Button
                   variant="outline"
@@ -357,272 +393,267 @@ export function ProgramRegistrationWizard(
                 ) : (
                   upcomingClasses
                     .filter(
-                      (programClass) => programClass.is_published && programClass.is_active
+                      (programClass) =>
+                        programClass.is_published && programClass.is_active
                     )
                     .map((programClass) => (
-                    <Card
-                      key={programClass.id}
-                      className="overflow-hidden hover:shadow-lg transition-shadow"
-                    >
-                      <div className="flex flex-col md:flex-row">
-                        {/* Banner Image or Random Color */}
-                        <div className="relative w-full md:w-64 h-48 md:h-72">
-                          {props.program.banner_image_url ? (
-                            <img
-                              src={props.program.banner_image_url}
-                              alt={programClass.name}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <div
-                              className={`h-full w-full ${getRandomColor(
-                                programClass.id.toString()
-                              )} flex items-center justify-center`}
-                            >
-                              <span className="text-white text-xl font-semibold text-center px-4">
+                      <Card
+                        key={programClass.id}
+                        className="overflow-hidden hover:shadow-lg transition-shadow"
+                      >
+                        <div className="flex flex-col md:flex-row">
+                          {/* Class Details */}
+                          <div className="flex-1 p-6">
+                            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+                              <h3 className="text-2xl font-bold text-gray-900">
                                 {programClass.name}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Class Details */}
-                        <div className="flex-1 p-6">
-                          <div className="flex flex-col mb-4">
-                            <h3 className="text-2xl font-bold text-gray-900">
-                              {programClass.name}
-                            </h3>
-                            <div className="">
-                              {isClassDeposit(programClass) ? (
-                                <>
+                              </h3>
+                              <div className="md:text-right">
+                                {isClassDeposit(programClass) ? (
+                                  <>
+                                    <div className="text-2xl font-bold text-green-600">
+                                      £{getClassPrice(programClass).toFixed(2)}
+                                      <span className="text-sm font-normal text-gray-600 ml-1">
+                                        (Deposit)
+                                      </span>
+                                    </div>
+                                    <div className="text-sm font-bold text-gray-500">
+                                      Balance: £
+                                      {(
+                                        parseFloat(
+                                          programClass.price.toString()
+                                        ) -
+                                        parseFloat(
+                                          programClass.deposit_amount?.toString() ||
+                                            "0"
+                                        )
+                                      ).toFixed(2)}
+                                    </div>
+                                  </>
+                                ) : (
                                   <div className="text-2xl font-bold text-green-600">
                                     £{getClassPrice(programClass).toFixed(2)}
-                                    <span className="text-sm font-normal text-gray-600 ml-1">
-                                      (Deposit)
-                                    </span>
                                   </div>
-                                  <div className="text-sm font-bold text-gray-500">
-                                    Balance: £
-                                    {(
-                                      parseFloat(programClass.price.toString()) -
-                                      parseFloat(
-                                        programClass.deposit_amount?.toString() || "0"
-                                      )
-                                    ).toFixed(2)}
-                                  </div>
-                                </>
-                              ) : (
-                                <div className="text-2xl font-bold text-green-600">
-                                  £{getClassPrice(programClass).toFixed(2)}
-                                </div>
-                              )}
-                              <div className="text-sm text-gray-500">
-                                Inclusive of a non-refundable service fee of £
-                                {getClassServiceFee(programClass).toFixed(2)}
-                              </div>
-                            </div>
-                          </div>
-
-                          {programClass.description && (
-                            <div className="mb-4">
-                              <p className="text-gray-600">
-                                {truncateText(programClass.description).truncated}
-                              </p>
-                              {truncateText(programClass.description).hasMore && (
-                                <button
-                                  onClick={() => openClassModal(programClass)}
-                                  className="text-blue-600 hover:text-blue-800 text-sm mt-1"
-                                >
-                                  See more
-                                </button>
-                              )}
-                            </div>
-                          )}
-
-                          <div className="grid grid-cols-1 gap-4 mb-6">
-                            {/* Date Range */}
-                            <div className="flex items-center gap-2">
-                              <Calendar className="h-5 w-5 text-gray-500" />
-                              <div>
-                                <div className="text-sm font-medium text-gray-700">
-                                  Duration
-                                </div>
-                                <div className="text-sm text-gray-600">
-                                  {formatDateRange(
-                                    programClass.start_date,
-                                    programClass.end_date,
-                                    userTimezone
-                                  )}
+                                )}
+                                <div className="text-sm text-gray-500">
+                                  Inclusive of a non-refundable service fee of £
+                                  {getClassServiceFee(programClass).toFixed(2)}
                                 </div>
                               </div>
                             </div>
 
-                            {/* Capacity */}
-                            <div className="flex items-center gap-2">
-                              <Users className="h-5 w-5 text-gray-500" />
-                              <div>
-                                <div className="text-sm font-medium text-gray-700">
-                                  Capacity
-                                </div>
-                                <div className="flex gap-1 text-sm text-gray-600">
-                                  <div>
-                                    {programClass.capacity
-                                      ? `${programClass.capacity} participants`
-                                      : "Unlimited"}
+                            {programClass.description && (
+                              <div className="mb-4">
+                                <p className="text-gray-600">
+                                  {
+                                    truncateText(programClass.description)
+                                      .truncated
+                                  }
+                                </p>
+                                {truncateText(programClass.description)
+                                  .hasMore && (
+                                  <button
+                                    onClick={() => openClassModal(programClass)}
+                                    className="text-blue-600 hover:text-blue-800 text-sm mt-1"
+                                  >
+                                    See more
+                                  </button>
+                                )}
+                              </div>
+                            )}
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                              {/* Date Range */}
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-5 w-5 text-gray-500" />
+                                <div>
+                                  <div className="text-sm font-medium text-gray-700">
+                                    Duration
                                   </div>
-                                  {programClass.availableSeats !== null && (
-                                    <div className="">
-                                      <span
-                                        className={`font-medium ${
-                                          programClass.availableSeats < 1
-                                            ? "text-red-600"
-                                            : programClass.availableSeats <= 5
-                                            ? "text-yellow-600"
-                                            : "text-green-600"
-                                        }`}
-                                      >
-                                        (
-                                        {programClass.availableSeats < 1
-                                          ? "Sold out"
-                                          : `${programClass.availableSeats} seats available`}
-                                        )
+                                  <div className="text-sm text-gray-600">
+                                    {formatDateRange(
+                                      programClass.start_date,
+                                      programClass.end_date,
+                                      userTimezone
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Capacity */}
+                              <div className="flex items-center gap-2">
+                                <Users className="h-5 w-5 text-gray-500" />
+                                <div>
+                                  <div className="text-sm font-medium text-gray-700">
+                                    Capacity
+                                  </div>
+                                  <div className="flex gap-1 text-sm text-gray-600">
+                                    <div>
+                                      {!capacitySetup
+                                        ? "Set per program"
+                                        : programClass.capacity
+                                        ? `${programClass.capacity} participants`
+                                        : "Unlimited"}
+                                    </div>
+                                    {programClass.availableSeats !== null && (
+                                      <div className="">
+                                        <span
+                                          className={`font-medium ${
+                                            programClass.availableSeats < 1
+                                              ? "text-red-600"
+                                              : programClass.availableSeats <= 5
+                                              ? "text-yellow-600"
+                                              : "text-green-600"
+                                          }`}
+                                        >
+                                          (
+                                          {programClass.availableSeats < 1
+                                            ? "Sold out"
+                                            : `${programClass.availableSeats} seats available`}
+                                          )
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Deposits */}
+                              <div className="flex items-center gap-2">
+                                <PoundSterling className="h-4 w-4 text-gray-500" />
+                                <div>
+                                  <div className="text-sm font-medium text-gray-700">
+                                    Deposit Option
+                                  </div>
+                                  {programClass.allow_deposits &&
+                                  programClass.deposit_amount ? (
+                                    <div className="text-sm text-gray-600">
+                                      £{programClass.deposit_amount} deposit
+                                      available
+                                    </div>
+                                  ) : (
+                                    <div>
+                                      <span className="text-sm text-gray-600">
+                                        No deposit option available
                                       </span>
                                     </div>
                                   )}
                                 </div>
                               </div>
-                            </div>
 
-                            {/* Deposits */}
-                            <div className="flex items-center gap-2">
-                              <PoundSterling className="h-4 w-4 text-gray-500" />
-                              <div>
-                                <div className="text-sm font-medium text-gray-700">
-                                  Deposit Option
-                                </div>
-                                {programClass.allow_deposits &&
-                                programClass.deposit_amount ? (
-                                  <div className="text-sm text-gray-600">
-                                    £{programClass.deposit_amount} deposit available
+                              {/* Early Bird */}
+                              <div className="flex items-center gap-2">
+                                <CirclePercent className="h-4 w-4 text-gray-500" />
+                                <div>
+                                  <div className="text-sm font-medium text-gray-700">
+                                    Early Bird Discount
                                   </div>
-                                ) : (
-                                  <div>
-                                    <span className="text-sm text-gray-600">
-                                      No deposit option available
+                                  {programClass.early_bird_deadline ? (
+                                    <div className="text-sm ">
+                                      <span className="font-medium text-green-600">
+                                        {programClass.early_bird_discount_type ===
+                                        "percentage"
+                                          ? `${programClass.early_bird_discount_value}% off`
+                                          : `£${programClass.early_bird_discount_value} off`}
+                                      </span>
+                                      {"  "}
+                                      Until{" "}
+                                      {dayjs(programClass.early_bird_deadline)
+                                        .tz(userTimezone)
+                                        .format("LLL")}
+                                    </div>
+                                  ) : (
+                                    <span className="text-xs font-medium text-red-600">
+                                      No discount available
                                     </span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Early Bird */}
-                            <div className="flex items-center gap-2">
-                              <CirclePercent className="h-4 w-4 text-gray-500" />
-                              <div>
-                                <div className="text-sm font-medium text-gray-700">
-                                  Early Bird Discount
+                                  )}
                                 </div>
-                                {programClass.early_bird_deadline ? (
-                                  <div className="text-sm ">
-                                    <span className="font-medium text-green-600">
-                                      {programClass.early_bird_discount_type ===
-                                      "percentage"
-                                        ? `${programClass.early_bird_discount_value}% off`
-                                        : `£${programClass.early_bird_discount_value} off`}
-                                    </span>
-                                    {"  "}
-                                    Until{" "}
-                                    {dayjs(programClass.early_bird_deadline)
-                                      .tz(userTimezone)
-                                      .format("LLL")}
-                                  </div>
-                                ) : (
-                                  <span className="text-xs font-medium text-red-600">
-                                    No discount available
-                                  </span>
-                                )}
                               </div>
-                            </div>
 
-                            {/* Refund Policy (from parent program) */}
-                            <div className="">
-                              {props.program.allow_refunds ? (
-                                <>
+                              {/* Refund Policy (from parent program) */}
+                              <div className="">
+                                {props.program.allow_refunds ? (
+                                  <>
+                                    <Badge
+                                      variant="outline"
+                                      className="text-green-600 border-green-600"
+                                    >
+                                      Refundable
+                                    </Badge>
+                                    <div className="text-sm mt-1 text-gray-600">
+                                      {props.program.refund_percentage && (
+                                        <span>
+                                          {props.program.refund_percentage}%
+                                          refund
+                                        </span>
+                                      )}
+                                      {props.program
+                                        .refund_deadline_in_hours && (
+                                        <span className="ml-1">
+                                          (within{" "}
+                                          {
+                                            props.program
+                                              .refund_deadline_in_hours
+                                          }{" "}
+                                          hours)
+                                        </span>
+                                      )}
+                                    </div>
+                                  </>
+                                ) : (
                                   <Badge
                                     variant="outline"
-                                    className="text-green-600 border-green-600"
+                                    className="text-red-600 border-red-600"
                                   >
-                                    Refundable
+                                    Non-refundable
                                   </Badge>
-                                  <div className="text-sm mt-1 text-gray-600">
-                                    {props.program.refund_percentage && (
-                                      <span>
-                                        {props.program.refund_percentage}% refund
-                                      </span>
-                                    )}
-                                    {props.program.refund_deadline_in_hours && (
-                                      <span className="ml-1">
-                                        (within{" "}
-                                        {props.program.refund_deadline_in_hours}{" "}
-                                        hours)
-                                      </span>
-                                    )}
-                                  </div>
-                                </>
-                              ) : (
-                                <Badge
-                                  variant="outline"
-                                  className="text-red-600 border-red-600"
-                                >
-                                  Non-refundable
-                                </Badge>
-                              )}
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                      {/* Action Buttons */}
-                      <div className="flex justify-between items-center p-4">
-                        <Button
-                          variant="outline"
-                          onClick={() => openClassModal(programClass)}
-                          className="flex items-center gap-2"
-                        >
-                          <Eye className="h-4 w-4" />
-                          View Details
-                        </Button>
+                        {/* Action Buttons */}
+                        <div className="flex justify-between items-center p-4 pt-0">
+                          <Button
+                            variant="outline"
+                            onClick={() => openClassModal(programClass)}
+                            className="flex items-center gap-2"
+                          >
+                            <Eye className="h-4 w-4" />
+                            View Details
+                          </Button>
 
-                        <div className="flex flex-col items-end gap-2">
-                          {!canAddToCart(programClass) ? (
-                            <div className="flex items-center gap-1 text-sm text-red-600">
-                              <AlertCircle className="h-4 w-4" />
-                              <span>{getDisabledReason(programClass)}</span>
-                            </div>
-                          ) : selectedClasses.some(
-                              (c) => c.id === programClass.id
-                            ) ? (
-                            <Button
-                              onClick={() => removeFromCart(programClass.id)}
-                              variant="destructive"
-                              className="flex items-center gap-2"
-                            >
-                              <Minus className="h-4 w-4" />
-                              Remove from Cart
-                            </Button>
-                          ) : (
-                            <Button
-                              onClick={() => addToCart(programClass)}
-                              disabled={!canAddToCart(programClass)}
-                              className="flex items-center gap-2"
-                            >
-                              <Plus className="h-4 w-4" />
-                              Add to Cart
-                            </Button>
-                          )}
+                          <div className="flex flex-col items-end gap-2">
+                            {!canAddToCart(programClass) ? (
+                              <div className="flex items-center gap-1 text-sm text-red-600">
+                                <AlertCircle className="h-4 w-4" />
+                                <span>{getDisabledReason(programClass)}</span>
+                              </div>
+                            ) : selectedClasses.some(
+                                (c) => c.id === programClass.id
+                              ) ? (
+                              <Button
+                                onClick={() => removeFromCart(programClass.id)}
+                                variant="destructive"
+                                className="flex items-center gap-2"
+                              >
+                                <Minus className="h-4 w-4" />
+                                Remove from Cart
+                              </Button>
+                            ) : (
+                              <Button
+                                onClick={() => addToCart(programClass)}
+                                disabled={!canAddToCart(programClass)}
+                                className="flex items-center gap-2"
+                              >
+                                <Plus className="h-4 w-4" />
+                                Add to Cart
+                              </Button>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </Card>
-                  ))
+                      </Card>
+                    ))
                 )}
               </div>
 
@@ -674,7 +705,8 @@ export function ProgramRegistrationWizard(
                             {selectedClasses.map((programClass) => {
                               const basePrice = getClassBasePrice(programClass);
                               const discount = getClassDiscount(programClass);
-                              const serviceFee = getClassServiceFee(programClass);
+                              const serviceFee =
+                                getClassServiceFee(programClass);
                               const finalPrice =
                                 getClassPriceWithDiscount(programClass);
 
@@ -690,7 +722,9 @@ export function ProgramRegistrationWizard(
                                     <Button
                                       variant="outline"
                                       size="sm"
-                                      onClick={() => removeFromCart(programClass.id)}
+                                      onClick={() =>
+                                        removeFromCart(programClass.id)
+                                      }
                                     >
                                       <Minus className="h-4 w-4" />
                                     </Button>
@@ -995,7 +1029,10 @@ export function ProgramRegistrationWizard(
                                 </span>
                               </div>
                               <div className="text-sm text-gray-600">
-                                Pay £{getClassPrice(selectedClassForModal).toFixed(2)}{" "}
+                                Pay £
+                                {getClassPrice(selectedClassForModal).toFixed(
+                                  2
+                                )}{" "}
                                 now, balance due later
                               </div>
                             </div>
@@ -1014,16 +1051,14 @@ export function ProgramRegistrationWizard(
                               <div className="text-sm text-gray-600">
                                 {props.program.refund_percentage && (
                                   <div>
-                                    {props.program.refund_percentage}%
-                                    refund available
+                                    {props.program.refund_percentage}% refund
+                                    available
                                   </div>
                                 )}
                                 {props.program.refund_deadline_in_hours && (
                                   <div>
                                     Refund must be requested within{" "}
-                                    {
-                                      props.program.refund_deadline_in_hours
-                                    }{" "}
+                                    {props.program.refund_deadline_in_hours}{" "}
                                     hours
                                   </div>
                                 )}
@@ -1216,7 +1251,8 @@ export function ProgramRegistrationWizard(
                       {selectedClasses.map((programClass) => {
                         const basePrice = getClassBasePrice(programClass);
                         const discount = getClassDiscount(programClass);
-                        const finalPrice = getClassPriceWithDiscount(programClass);
+                        const finalPrice =
+                          getClassPriceWithDiscount(programClass);
 
                         return (
                           <div key={programClass.id} className="text-sm">
