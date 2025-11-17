@@ -350,9 +350,41 @@ export function ProgramRegistrationWizard(
                     )}
                   </div>
                   <div className="p-4">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                      {props.program.name}
-                    </h1>
+                    <div className="flex items-center gap-3 mb-2">
+                      <h1 className="text-3xl font-bold text-gray-900">
+                        {props.program.name}
+                      </h1>
+                      {!props.program.set_capacity_per_class && (
+                        <div className="flex items-center gap-1">
+                          <Users className="h-5 w-5 text-gray-500" />
+                          <span className="text-sm font-medium text-gray-700">
+                            {props.program.capacity ? (
+                              <>
+                                {(props.program as any).available_seats !== null && (props.program as any).available_seats !== undefined ? (
+                                  <span
+                                    className={`${
+                                      (props.program as any).available_seats < 1
+                                        ? "text-red-600"
+                                        : (props.program as any).available_seats <= 5
+                                        ? "text-yellow-600"
+                                        : "text-green-600"
+                                    }`}
+                                  >
+                                    {(props.program as any).available_seats} {(props.program as any).available_seats === 1 ? 'seat' : 'seats'} available
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-600">
+                                    {props.program.capacity} {props.program.capacity === 1 ? 'seat' : 'seats'}
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-gray-600">Unlimited</span>
+                            )}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                     {props.program.about && (
                       <p className="text-gray-500 mt-2 mb-4">
                         {props.program.about}
