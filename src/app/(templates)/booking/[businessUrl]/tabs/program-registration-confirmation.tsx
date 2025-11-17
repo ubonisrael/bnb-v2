@@ -38,14 +38,14 @@ export const ProgramRegistrationConfirmation = (
       // Add service charge if not absorbed
       const serviceFee = props.program.absorb_service_charge
         ? 0
-        : Math.max(1, basePrice * 0.1);
+        : Math.max(1, parseFloat(basePrice.toString()) * 0.1);
       
-      return total + basePrice + serviceFee;
+      return total + parseFloat(basePrice.toString()) + serviceFee;
     }, 0);
   };
 
   const totalPrice = calculateTotalPrice();
-  const finalPrice = totalPrice - props.total_discount;
+  const finalPrice = totalPrice - parseFloat(props.total_discount.toString());
 
   const statusConfig = {
     success: {
@@ -287,7 +287,7 @@ export const ProgramRegistrationConfirmation = (
                           ? 0
                           : Math.max(1, basePrice * 0.1);
                         
-                        const displayPrice = basePrice + serviceFee;
+                        const displayPrice = parseFloat(basePrice.toString()) + serviceFee;
 
                         return (
                           <div
@@ -335,7 +335,7 @@ export const ProgramRegistrationConfirmation = (
                                   Price (inc. service charge)
                                 </p>
                                 <p className="font-medium text-gray-900 dark:text-white">
-                                  £{displayPrice.toFixed(2)}
+                                  £{parseFloat(displayPrice.toString()).toFixed(2)}
                                   {programClass.allow_deposits && programClass.deposit_amount && (
                                     <span className="text-sm text-gray-500 dark:text-gray-400">
                                       {" "}
@@ -360,7 +360,7 @@ export const ProgramRegistrationConfirmation = (
                           Subtotal ({programClasses.length} class{programClasses.length !== 1 ? 'es' : ''})
                         </span>
                         <span className="text-sm font-medium text-gray-900 dark:text-white">
-                          £{totalPrice.toFixed(2)}
+                          £{parseFloat(totalPrice.toString()).toFixed(2)}
                         </span>
                       </div>
                       {props.total_discount > 0 && (
@@ -369,7 +369,7 @@ export const ProgramRegistrationConfirmation = (
                             Discount Applied
                           </span>
                           <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                            -£{props.total_discount.toFixed(2)}
+                            -£{parseFloat(props.total_discount.toString()).toFixed(2)}
                           </span>
                         </div>
                       )}

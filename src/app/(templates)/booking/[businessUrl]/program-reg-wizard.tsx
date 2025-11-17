@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -87,6 +87,14 @@ interface IExtendedProgramClass extends IProgramClass {
   availableSeats: number | null;
 }
 
+interface IParticipantData {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+}
+
 export function ProgramRegistrationWizard(
   props: ProgramRegistrationWizardProps
 ) {
@@ -99,6 +107,13 @@ export function ProgramRegistrationWizard(
   const [selectedClassForModal, setSelectedClassForModal] =
     useState<IExtendedProgramClass | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Email verification states for program-level capacity
+  const [emailInput, setEmailInput] = useState("");
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [participantData, setParticipantData] =
+    useState<IParticipantData | null>(null);
 
   const userTimezone = dayjs.tz.guess();
 
@@ -134,6 +149,48 @@ export function ProgramRegistrationWizard(
     return getProgramClassPriceWithDiscount(programClass, props.program as any);
   };
 
+  // Email verification function for program-level capacity
+  const handleCheckEmail = async () => {
+    if (!emailInput || !emailInput.includes("@")) {
+      setEmailError("Please enter a valid email address");
+      return;
+    }
+
+    setIsCheckingEmail(true);
+    setEmailError("");
+
+    try {
+      const response = await api.get<{
+        success: boolean;
+        message: string;
+        data?: IParticipantData;
+      }>(
+        `programs/check-participant?email=${encodeURIComponent(
+          emailInput
+        )}&programId=${props.program.id}`
+      );
+
+      if (response.success && response.data) {
+        // User is already registered
+        setParticipantData(response.data);
+        toast.success(`Welcome back, ${response.data.first_name}!`);
+      } else {
+        // User is not registered
+        setEmailError(
+          response.message || "This email is not registered for this program."
+        );
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Error checking email";
+      setEmailError(errorMessage);
+    } finally {
+      setIsCheckingEmail(false);
+    }
+  };
+
   const addToCart = (programClass: IExtendedProgramClass) => {
     if (!selectedClasses.find((c) => c.id === programClass.id)) {
       const updatedClasses = [...selectedClasses, programClass];
@@ -157,6 +214,11 @@ export function ProgramRegistrationWizard(
   };
 
   const canAddToCart = (programClass: IExtendedProgramClass) => {
+    // If program capacity is set at program level, require participant verification
+    if (!props.program.set_capacity_per_class && participantData) {
+      return true;
+    }
+
     const now = dayjs();
 
     // Check available seats
@@ -293,7 +355,7 @@ export function ProgramRegistrationWizard(
       toast.dismiss("prog-registration");
       toast.remove("prog-registration");
       const errorMessage =
-        error?.response?.data?.errors?.[0]?.message ||
+        error?.response?.data?.message ||
         error?.message ||
         "Error while registering for class(es)";
       toast.error(errorMessage, {
@@ -304,11 +366,22 @@ export function ProgramRegistrationWizard(
 
   async function onSubmit(data: ProgramRegistrationFormValues) {
     try {
-      // Add selected class IDs to the form data
-      const formDataWithClasses = {
-        ...data,
+      // Prepare form data with selected class IDs
+      const formDataWithClasses: any = {
         programClassIds: selectedClasses.map((c) => c.id),
       };
+
+      // If participant data exists (program-level capacity), skip the form and use studentId
+      if (participantData) {
+        formDataWithClasses.studentId = participantData.id;
+      } else {
+        // Otherwise, include the form data
+        formDataWithClasses.first_name = data.first_name;
+        formDataWithClasses.last_name = data.last_name;
+        formDataWithClasses.email = data.email;
+        formDataWithClasses.phone = data.phone;
+        formDataWithClasses.agree_to_terms = data.agree_to_terms;
+      }
 
       await registrationMutation.mutateAsync(formDataWithClasses);
     } catch (error) {
@@ -317,6 +390,16 @@ export function ProgramRegistrationWizard(
   }
 
   const capacitySetup = props.program.set_capacity_per_class;
+
+  useEffect(() => {
+    if (participantData) {
+      // If participant is verified, set default form values
+      form.setValue("first_name", participantData.first_name);
+      form.setValue("last_name", participantData.last_name);
+      form.setValue("email", participantData.email);
+      form.setValue("phone", participantData.phone);
+    }
+  }, [participantData]);
 
   return (
     <div className="w-full bg-slate-100 py-16 sm:pb-20 lg:pb-24">
@@ -400,6 +483,72 @@ export function ProgramRegistrationWizard(
                         {props.program.about}
                       </p>
                     )}
+
+                    {/* Email Verification for Program-Level Capacity */}
+                    {!props.program.set_capacity_per_class &&
+                      !participantData && (
+                        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <h3 className="text-sm font-medium text-gray-900 mb-2">
+                            Retrieve Registration Info If Already Registered
+                          </h3>
+                          <p className="text-sm text-gray-600 mb-3">
+                            if you have already registered for any class under
+                            this program, please enter your email to retrieve
+                            your information.
+                          </p>
+                          <div className="flex gap-2">
+                            <Input
+                              type="email"
+                              placeholder="Enter your email"
+                              value={emailInput}
+                              onChange={(e) => {
+                                setEmailInput(e.target.value);
+                                setEmailError("");
+                              }}
+                              className="flex-1"
+                              disabled={isCheckingEmail}
+                            />
+                            <Button
+                              onClick={handleCheckEmail}
+                              disabled={isCheckingEmail || !emailInput}
+                              className="whitespace-nowrap"
+                            >
+                              {isCheckingEmail ? "Checking..." : "Verify"}
+                            </Button>
+                          </div>
+                          {emailError && (
+                            <p className="text-sm text-red-600 mt-2">
+                              {emailError}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                    {/* Welcome Message for Verified Participant */}
+                    {!props.program.set_capacity_per_class &&
+                      participantData && (
+                        <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-5 w-5 text-green-600"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                            <h3 className="text-sm font-medium text-green-900">
+                              Welcome back, {participantData.first_name}!
+                            </h3>
+                          </div>
+                        </div>
+                      )}
                     <p className="text-gray-600">
                       Select the classes you'd like to register for and proceed
                       to checkout.
@@ -1189,7 +1338,9 @@ export function ProgramRegistrationWizard(
               <DialogHeader>
                 <DialogTitle>Complete Your Registration</DialogTitle>
                 <DialogDescription>
-                  Please provide your details to proceed with the registration.
+                  {participantData
+                    ? "Review your details and complete registration."
+                    : "Please provide your details to proceed with the registration."}
                 </DialogDescription>
               </DialogHeader>
 
