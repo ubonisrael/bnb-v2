@@ -12,9 +12,7 @@ import api from "@/services/api-service";
 import dayjs from "@/utils/dayjsConfig";
 import { getRandomColor } from "@/utils/color";
 import { formatDateRange } from "@/utils/time";
-import {
-  getProgramClassPriceWithDiscount
-} from "@/utils/programs";
+import { getProgramClassPriceWithDiscount } from "@/utils/programs";
 
 const userTimezone = dayjs.tz.guess();
 
@@ -70,12 +68,6 @@ export function BusinessLanding(props: BusinessDataResponse) {
                   <h2 className="text-2xl font-bold text-slate-800">
                     Our Services ({totalServices})
                   </h2>
-                  <Link
-                    href={`/booking/${props.bUrl}/booking-wizard`}
-                    className="bg-blue-400 text-white px-6 py-3 rounded-md inline-flex items-center justify-center font-medium hover:bg-blue-500 transition-colors"
-                  >
-                    Book Now
-                  </Link>
                 </CardHeader>
                 <CardContent className="grid gap-4 p-4 md:p-8 !pt-0">
                   {props.serviceCategories.map((category) => (
@@ -95,14 +87,14 @@ export function BusinessLanding(props: BusinessDataResponse) {
                       </ul>
                     </div>
                   ))}
+                  <Link
+                    href={`/booking/${props.bUrl}/booking-wizard`}
+                    className="w-full bg-blue-400 text-white px-6 py-3 rounded-md inline-flex items-center justify-center font-medium hover:bg-blue-500 transition-colors"
+                  >
+                    Book Now
+                  </Link>
                 </CardContent>
               </Card>
-              <Link
-                href={`/booking/${props.bUrl}/booking-wizard`}
-                className="w-full bg-blue-400 text-white px-6 py-3 rounded-md inline-flex items-center justify-center font-medium hover:bg-blue-500 transition-colors"
-              >
-                Book Now
-              </Link>
               {/* <ReviewsSection reviews={props.reviews} /> */}
 
               {/* Display Programs section */}
@@ -241,7 +233,10 @@ export function BusinessLanding(props: BusinessDataResponse) {
                                                     <span className="text-green-600 ml-2">
                                                       {!capacitySetup ? (
                                                         "Set per program"
-                                                      ) : cls.capacity !== null && cls.capacity !== undefined ? (
+                                                      ) : cls.capacity !==
+                                                          null &&
+                                                        cls.capacity !==
+                                                          undefined ? (
                                                         <>
                                                           {cls.capacity}{" "}
                                                           capacity (

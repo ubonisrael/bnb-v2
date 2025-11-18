@@ -303,7 +303,7 @@ export default function ProgramsPage() {
       setPrograms((prev) =>
         prev.map((program) =>
           program.id === response.data.program.id
-            ? response.data.program
+            ? {...program, ...response.data.program}
             : program
         )
       );
@@ -620,13 +620,6 @@ export default function ProgramsPage() {
     setClassDetails(null);
   };
 
-  const handleEditFromDetails = () => {
-    if (selectedProgram) {
-      handleEditProgram(selectedProgram);
-      setShowDetailsView(false);
-    }
-  };
-
   const handleDeleteProgram = () => {
     if (!selectedProgram) return;
 
@@ -674,11 +667,6 @@ export default function ProgramsPage() {
   };
 
   // Class handlers
-  const handleCreateClass = () => {
-    if (!selectedProgram) return;
-    setShowCreateClassModal(true);
-  };
-
   const handleEditClass = (programClass: IProgramClass) => {
     // Convert UTC dates back to user's timezone for editing
     const convertFromUTC = (dateString: string | undefined) => {
@@ -1261,10 +1249,10 @@ export default function ProgramsPage() {
                               </span>
                               <span className="flex items-center gap-1">
                                 <Users className="h-3 w-3" />
-                                {cls.students?.length || 0} students
+                                {cls.enrollmentCount || 0} students
                               </span>
-                              <span className="flex items-center gap-1">
-                                <PoundSterling className="h-3 w-3" />£
+                              <span className="flex items-center">
+                                <PoundSterling className="h-3 w-3" />
                                 {cls.price}
                               </span>
                             </div>
@@ -1571,13 +1559,13 @@ export default function ProgramsPage() {
                             {student.first_name} {student.last_name}
                           </p>
                           <p className="text-xs text-gray-500">
-                            {student.email}
+                            {student.email} || {student.phone}
                           </p>
                         </div>
                         <div className="text-right">
                           <p className="text-xs text-gray-500">
                             Enrolled:{" "}
-                            {dayjs(student.createdAt).format("MMM D, YYYY")}
+                            {dayjs(student.Enrollments[0]?.createdAt).format("lll")}
                           </p>
                         </div>
                       </div>
