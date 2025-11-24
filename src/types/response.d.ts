@@ -854,12 +854,13 @@ interface StaffBookingsByDateData {
   date: string;
   timezone: string;
   bookings: StaffBookingItem[];
-  pagination: {
+  pagination?: {
     total: number;
     page: number;
     size: number;
     totalPages: number;
   };
+  total?: number;
 }
 
 interface StaffBookingsByDateResponse {

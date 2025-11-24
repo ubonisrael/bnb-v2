@@ -631,7 +631,7 @@ const StaffDashboard = () => {
               {bookingsLoading ? (
                 <div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
               ) : todayBookings?.success ? (
-                `You have ${todayBookings.data.pagination.total} appointments today`
+                `You have ${todayBookings.data.pagination ? todayBookings.data.pagination.total: todayBookings.data.total} appointments today`
               ) : (
                 "Your schedule for today"
               )}
@@ -748,7 +748,7 @@ const StaffDashboard = () => {
           </div>
 
           {/* Pagination Controls */}
-          {todayBookings?.success && todayBookings.data.pagination.totalPages > 1 && (
+          {todayBookings?.success && todayBookings.data.pagination && todayBookings.data.pagination.totalPages > 1 && (
             <div className="flex items-center justify-between mt-6 pt-4 border-t border-[#E0E0E5]">
               <div className="text-sm text-[#6E6E73]">
                 Showing{" "}
@@ -774,7 +774,7 @@ const StaffDashboard = () => {
                   {Array.from(
                     { length: Math.min(5, todayBookings.data.pagination.totalPages) },
                     (_, i) => {
-                      const totalPages = todayBookings.data.pagination.totalPages;
+                      const totalPages = todayBookings.data.pagination ? todayBookings.data.pagination.totalPages : 1;
                       let pageNum;
                       
                       if (totalPages <= 5) {
@@ -811,7 +811,7 @@ const StaffDashboard = () => {
                   size="sm"
                   onClick={() =>
                     setCurrentPage((prev) =>
-                      Math.min(todayBookings.data.pagination.totalPages, prev + 1)
+                      Math.min(todayBookings.data.pagination ? todayBookings.data.pagination.totalPages : 1, prev + 1)
                     )
                   }
                   disabled={
