@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useApp } from "@/contexts/AppContext";
 import BookingForm, {
   BookingType,
-} from "@/components/templates/default/BookingForm";
+} from "@/components/BookingForm";
 import { useMutation } from "@tanstack/react-query";
 import {
   BookingResponse,

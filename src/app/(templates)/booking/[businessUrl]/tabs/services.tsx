@@ -1,7 +1,6 @@
 "use client";
 
-import Cart from "@/components/templates/default/Cart";
-import { Button } from "@/components/templates/default/ui/button";
+import Cart from "@/components/Cart";
 import { Home } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useEffect } from "react";

@@ -16,8 +16,8 @@ import {
 } from "../ui/alert-dialog";
 import toast from "react-hot-toast";
 import api from "@/services/api-service";
-import Calendar from "../templates/default/Calendar";
-import TimeSlots from "../templates/default/TimeSlots";
+import Calendar from "../Calendar";
+import TimeSlots from "../TimeSlots";
 
 export function RescheduleAppointmentDialog({
   appointment,

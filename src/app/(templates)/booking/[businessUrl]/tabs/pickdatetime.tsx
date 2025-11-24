@@ -1,9 +1,9 @@
 "use client";
 
-import Calendar from "@/components/templates/default/Calendar";
-import Cart from "@/components/templates/default/Cart";
-import TimeSlots from "@/components/templates/default/TimeSlots";
-import { Button } from "@/components/templates/default/ui/button";
+import Calendar from "@/components/Calendar";
+import Cart from "@/components/Cart";
+import TimeSlots from "@/components/TimeSlots";
+import { Button } from "@/components/ui/button";
 import { useApp } from "@/contexts/AppContext";
 import {
   convertTimeSlotsToUserLocalTime,

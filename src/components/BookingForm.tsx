@@ -8,8 +8,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "./ui/dialog";
-import { Button } from "./ui/button";
+} from "./templates/default/ui/dialog";
+import { Button } from "./templates/default/ui/button";
 import {
   Form,
   FormControl,
@@ -17,14 +17,14 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "./ui/form";
-import { Input } from "./ui/input";
+} from "./templates/default/ui/form";
+import { Input } from "./templates/default/ui/input";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { PolicyData } from "@/types/response";
-import { Checkbox } from "./ui/checkbox";
+import { Checkbox } from "./templates/default/ui/checkbox";
 
 const amountToBePaid = (
   serviceChargeAbsorbed: boolean,

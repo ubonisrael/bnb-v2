@@ -5,7 +5,6 @@ import dayjs from "@/utils/dayjsConfig";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ProgramRegistrationResultData } from "@/types/response";
-import { getProgramClassPrice } from "@/utils/programs";
 
 interface ProgramRegistrationConfirmationProps
   extends ProgramRegistrationResultData {

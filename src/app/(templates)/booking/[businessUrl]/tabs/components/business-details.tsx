@@ -17,7 +17,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import Map from "@/components/templates/default/Map";
 import { BusinessDataResponse } from "@/types/response";
 import Image from "next/image";
 

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { CarouselImage } from "@/types/response";
 import Image from "next/image";
 import useEmblaCarousel from "embla-carousel-react";

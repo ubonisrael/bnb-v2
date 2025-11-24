@@ -30,8 +30,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
-import Calendar from "../templates/default/Calendar";
-import TimeSlots from "../templates/default/TimeSlots";
+import Calendar from "../Calendar";
+import TimeSlots from "../TimeSlots";
 import {
   convertTimeSlotsToUserLocalTime,
   minutesToTimeString,
