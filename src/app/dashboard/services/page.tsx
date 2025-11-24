@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Search,
   Plus,
@@ -67,6 +67,7 @@ import { useMutation } from "@tanstack/react-query";
 import api from "@/services/api-service";
 import { useUserSettings } from "@/contexts/UserSettingsContext";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useRouter } from "next/navigation";
 
 const days = [
   "monday",
@@ -100,6 +101,8 @@ export default function ServicesPage() {
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [editingCategory, setEditingCategory] =
     useState<ServiceCategory | null>(null);
+
+  const router = useRouter();
 
   // Category form
   const categoryForm = useForm<{ name: string }>({
@@ -393,13 +396,17 @@ export default function ServicesPage() {
         ?.name.toLowerCase()
         .includes(query);
 
-      return (
-        matchesName ||
-        matchesDescription ||
-        matchesCategory
-      );
+      return matchesName || matchesDescription || matchesCategory;
     });
   }, [settings?.services, settings?.categories, searchQuery]);
+
+  // Restrict access to admin and owner only
+  useEffect(() => {
+    if (settings && settings.role !== "owner" && settings.role !== "admin") {
+      toast.error("You don't have permission to access this page");
+      router.push("/dashboard");
+    }
+  }, [settings, router]);
 
   return (
     <div className="space-y-6">
@@ -865,7 +872,9 @@ export default function ServicesPage() {
                           <tr key={service.id} className="border-b">
                             <td className="px-4 py-3">
                               <div>
-                                <div className="font-medium">{service.name}</div>
+                                <div className="font-medium">
+                                  {service.name}
+                                </div>
                                 <div className="text-xs text-muted-foreground">
                                   {service.description}
                                 </div>

@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardHeader,
@@ -16,6 +18,15 @@ import SubscriptionDetails from "@/components/payments/subscription-card";
 // ------------------- Component -------------------
 export default function PaymentDashboardPage() {
   const { settings } = useUserSettings();
+  const router = useRouter();
+
+  // Restrict access to admin and owner only
+  useEffect(() => {
+    if (settings && settings.role !== "owner" && settings.role !== "admin") {
+      toast.error("You don't have permission to access this page");
+      router.push("/dashboard");
+    }
+  }, [settings, router]);
 
   return (
     <div className="space-y-6">

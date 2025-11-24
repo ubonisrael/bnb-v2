@@ -37,6 +37,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMutation } from "@tanstack/react-query";
 import api from "@/services/api-service";
 import { TemplateDataResponse } from "@/types/response";
+import { useRouter } from "next/navigation";
 
 export default function TemplatesPage() {
   const {
@@ -46,6 +47,8 @@ export default function TemplatesPage() {
   } = useUserSettings();
   const [images, setImages] = useState(settings?.template.imageUrls ?? []);
   const [isUploading, setIsUploading] = useState(false);
+
+  const router = useRouter();
 
   const form = useForm<Omit<BookingTemplateData, "images">>({
     resolver: zodResolver(bookingTemplateSchema),
@@ -223,6 +226,14 @@ export default function TemplatesPage() {
       onClick={onClick}
     />
   );
+
+  // Restrict access to admin and owner only
+  useEffect(() => {
+    if (settings && settings.role !== "owner" && settings.role !== "admin") {
+      toast.error("You don't have permission to access this page");
+      router.push("/dashboard");
+    }
+  }, [settings, router]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">

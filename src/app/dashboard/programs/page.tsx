@@ -88,11 +88,14 @@ import {
   UpdateProgramClassResponse,
   IProgramStat,
 } from "@/types/response";
+import { useRouter } from "next/navigation";
+import { useUserSettings } from "@/contexts/UserSettingsContext";
 
 type NewProgramFormValues = z.infer<typeof newProgramSchema>;
 type ProgramClassFormValues = z.infer<typeof programClassSchema>;
 
 export default function ProgramsPage() {
+  const { settings } = useUserSettings();
   const [programs, setPrograms] = useState<INewProgram[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterBy, setFilterBy] = useState<string>("");
@@ -127,6 +130,8 @@ export default function ProgramsPage() {
     stats: any;
   } | null>(null);
   const [isLoadingClassDetails, setIsLoadingClassDetails] = useState(false);
+
+  const router = useRouter();
 
   // Get user's timezone
   const userTimezone = dayjs.tz.guess();
@@ -303,7 +308,7 @@ export default function ProgramsPage() {
       setPrograms((prev) =>
         prev.map((program) =>
           program.id === response.data.program.id
-            ? {...program, ...response.data.program}
+            ? { ...program, ...response.data.program }
             : program
         )
       );
@@ -779,12 +784,22 @@ export default function ProgramsPage() {
     fetchPrograms();
   }, []);
 
+  // Restrict access to admin and owner only
+  useEffect(() => {
+    if (settings && settings.role !== "owner" && settings.role !== "admin") {
+      toast.error("You don't have permission to access this page");
+      router.push("/dashboard");
+    }
+  }, [settings, router]);
+
   return (
     <div className="relative overflow-hidden h-full">
       {/* Main View */}
       <div
         className={`transition-transform duration-700 ease-in-out ${
-          showDetailsView || showClassView ? "-translate-x-full" : "translate-x-0"
+          showDetailsView || showClassView
+            ? "-translate-x-full"
+            : "translate-x-0"
         }`}
       >
         <div className="space-y-6">
@@ -938,8 +953,7 @@ export default function ProgramsPage() {
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-[#6E6E73]" />
                       <span className="text-sm text-[#6E6E73]">
-                        {program.enrolled_students_count ?? 0}{" "}
-                        students enrolled
+                        {program.enrolled_students_count ?? 0} students enrolled
                       </span>
                     </div>
 
@@ -986,7 +1000,9 @@ export default function ProgramsPage() {
       {/* Details View */}
       <div
         className={`absolute top-0 left-0 w-full h-full md:px-4 xl:px-8 overflow-y-auto transition-transform duration-300 ease-in-out ${
-          showDetailsView && !showClassView ? "translate-x-0" : "translate-x-full"
+          showDetailsView && !showClassView
+            ? "translate-x-0"
+            : "translate-x-full"
         }`}
         style={{ zIndex: 15 }}
       >
@@ -1192,7 +1208,8 @@ export default function ProgramsPage() {
                     <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                       <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                         £
-                        {programDetails?.stats.totalRevenue.toFixed(2) || "0.00"}
+                        {programDetails?.stats.totalRevenue.toFixed(2) ||
+                          "0.00"}
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">
                         Total Revenue
@@ -1200,7 +1217,10 @@ export default function ProgramsPage() {
                     </div>
                     <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
                       <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-                        £{programDetails?.stats.averageRevenuePerClass.toFixed(2) || 0}
+                        £
+                        {programDetails?.stats.averageRevenuePerClass.toFixed(
+                          2
+                        ) || 0}
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">
                         Average Revenue/Class
@@ -1334,7 +1354,7 @@ export default function ProgramsPage() {
                 <div>
                   {/* Breadcrumb */}
                   <div className="flex items-center text-sm text-[#6E6E73] mb-1">
-                    <span 
+                    <span
                       className="hover:text-[#121212] cursor-pointer"
                       onClick={handleBackFromClassDetails}
                     >
@@ -1410,7 +1430,9 @@ export default function ProgramsPage() {
                     <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
                       Price
                     </label>
-                    <p className="mt-1 text-sm">£{parseFloat(selectedClass.price.toString()).toFixed(2)}</p>
+                    <p className="mt-1 text-sm">
+                      £{parseFloat(selectedClass.price.toString()).toFixed(2)}
+                    </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -1433,7 +1455,9 @@ export default function ProgramsPage() {
                         {selectedClass.is_published ? "Published" : "Draft"}
                       </Badge>
                       <Badge
-                        variant={selectedClass.is_active ? "default" : "secondary"}
+                        variant={
+                          selectedClass.is_active ? "default" : "secondary"
+                        }
                       >
                         {selectedClass.is_active ? "Active" : "Inactive"}
                       </Badge>
@@ -1452,7 +1476,9 @@ export default function ProgramsPage() {
                       <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
                         Description
                       </label>
-                      <p className="mt-1 text-sm">{selectedClass.description}</p>
+                      <p className="mt-1 text-sm">
+                        {selectedClass.description}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -1503,7 +1529,8 @@ export default function ProgramsPage() {
                         <div className="space-y-2">
                           <p className="text-sm">
                             <span className="font-medium">Discount:</span>{" "}
-                            {selectedClass.early_bird_discount_type === "percentage"
+                            {selectedClass.early_bird_discount_type ===
+                            "percentage"
                               ? `${selectedClass.early_bird_discount_value}%`
                               : `£${selectedClass.early_bird_discount_value}`}
                           </p>
@@ -1518,7 +1545,9 @@ export default function ProgramsPage() {
                           </p>
                         </div>
                       ) : (
-                        <p className="text-sm text-gray-500">No early bird offer</p>
+                        <p className="text-sm text-gray-500">
+                          No early bird offer
+                        </p>
                       )}
                     </div>
                     <div>
@@ -1529,7 +1558,9 @@ export default function ProgramsPage() {
                           {selectedClass.deposit_amount?.toFixed(2) || "0.00"}
                         </p>
                       ) : (
-                        <p className="text-sm text-gray-500">Deposits not allowed</p>
+                        <p className="text-sm text-gray-500">
+                          Deposits not allowed
+                        </p>
                       )}
                     </div>
                   </div>
@@ -1547,7 +1578,8 @@ export default function ProgramsPage() {
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin" />
                   </div>
-                ) : classDetails?.students && classDetails.students.length > 0 ? (
+                ) : classDetails?.students &&
+                  classDetails.students.length > 0 ? (
                   <div className="space-y-3">
                     {classDetails.students.map((student, index) => (
                       <div
@@ -1565,7 +1597,9 @@ export default function ProgramsPage() {
                         <div className="text-right">
                           <p className="text-xs text-gray-500">
                             Enrolled:{" "}
-                            {dayjs(student.Enrollments[0]?.createdAt).format("lll")}
+                            {dayjs(student.Enrollments[0]?.createdAt).format(
+                              "lll"
+                            )}
                           </p>
                         </div>
                       </div>
