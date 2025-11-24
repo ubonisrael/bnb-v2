@@ -244,7 +244,7 @@ export default function CalendarPage() {
                   </SelectItem>
                 ) : membersData?.success ? (
                   membersData.data.members
-                    .filter((member) => member.status === "accepted" && member.role === "staff")
+                    .filter((member) => member.status === "accepted")
                     .map((member) => (
                       <SelectItem
                         key={member.id}

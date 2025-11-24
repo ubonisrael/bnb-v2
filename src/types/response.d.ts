@@ -924,3 +924,47 @@ interface MembersResponse {
     members: Member[];
   };
 }
+
+// Bookings List Types (for upcoming/past appointments)
+interface BookingListItem {
+  id: number;
+  start_time: string;
+  end_time: string;
+  duration: number;
+  status: string;
+  Booking: {
+    id: number;
+    uuid: string;
+    status: string;
+    payment_status: string;
+    amount_paid: number;
+    amount_due: number;
+    Customer: {
+      id: number;
+      name: string;
+      email: string;
+      phone: string;
+    };
+  };
+  Service: {
+    id: number;
+    title: string;
+    description: string | null;
+  };
+}
+
+interface BookingsListData {
+  bookings: BookingListItem[];
+  pagination: {
+    total: number;
+    page: number;
+    size: number;
+    totalPages: number;
+  };
+}
+
+interface BookingsListResponse {
+  success: boolean;
+  message: string;
+  data: BookingsListData;
+}
