@@ -854,6 +854,27 @@ interface StaffBookingsByDateData {
   date: string;
   timezone: string;
   bookings: StaffBookingItem[];
+  sunday_enabled?: boolean;
+  sunday_opening?: number | null;
+  sunday_closing?: number | null;
+  monday_enabled?: boolean;
+  monday_opening?: number | null;
+  monday_closing?: number | null;
+  tuesday_enabled?: boolean;
+  tuesday_opening?: number | null;
+  tuesday_closing?: number | null;
+  wednesday_enabled?: boolean;
+  wednesday_opening?: number | null;
+  wednesday_closing?: number | null;
+  thursday_enabled?: boolean;
+  thursday_opening?: number | null;
+  thursday_closing?: number | null;
+  friday_enabled?: boolean;
+  friday_opening?: number | null;
+  friday_closing?: number | null;
+  saturday_enabled?: boolean;
+  saturday_opening?: number | null;
+  saturday_closing?: number | null;
   pagination?: {
     total: number;
     page: number;
@@ -867,4 +888,39 @@ interface StaffBookingsByDateResponse {
   success: boolean;
   message: string;
   data: StaffBookingsByDateData;
+}
+
+// Members Types
+interface MemberUser {
+  id: number;
+  full_name: string;
+  email: string;
+  is_email_verified: boolean;
+}
+
+interface Member {
+  id: number;
+  UserId: number;
+  ServiceProviderId: number;
+  role: "owner" | "admin" | "staff";
+  status: "pending" | "accepted" | "rejected";
+  invitedBy: number | null;
+  invitedAt: string;
+  acceptedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  User: MemberUser;
+  Inviter: {
+    id: number;
+    full_name: string;
+    email: string;
+  } | null;
+}
+
+interface MembersResponse {
+  success: boolean;
+  message: string;
+  data: {
+    members: Member[];
+  };
 }
