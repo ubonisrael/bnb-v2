@@ -467,6 +467,8 @@ const AdminDashboard = () => {
 const StaffDashboard = () => {
   const { settings } = useUserSettings();
   const today = dayjs().format("YYYY-MM-DD");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const { data: overview, isLoading: overviewLoading } = useQuery({
     queryKey: ["staff-dashboard-overview"],
@@ -479,16 +481,14 @@ const StaffDashboard = () => {
   });
 
   const { data: todayBookings, isLoading: bookingsLoading } = useQuery({
-    queryKey: ["staff-today-bookings", today],
+    queryKey: ["staff-today-bookings", today, currentPage, pageSize],
     queryFn: async () => {
       const response = await api.get<StaffBookingsByDateResponse>(
-        `members/me/booking/date?date=${today}`
+        `members/me/booking/date?date=${today}&page=${currentPage}&size=${pageSize}`
       );
       return response;
     },
   });
-
-  const isLoading = overviewLoading || bookingsLoading;
 
   const getStatusBadgeStyles = (status: string) => {
     switch (status.toLowerCase()) {
@@ -631,19 +631,27 @@ const StaffDashboard = () => {
               {bookingsLoading ? (
                 <div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
               ) : todayBookings?.success ? (
-                `You have ${todayBookings.data.bookings.length} appointments today`
+                `You have ${todayBookings.data.pagination.total} appointments today`
               ) : (
                 "Your schedule for today"
               )}
             </CardDescription>
           </div>
-          <Button
-            variant="outline"
-            className="gap-2 border-[#E0E0E5] bg-white text-[#121212]"
-          >
-            View All
-            <ArrowUpRight className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1); // Reset to first page when changing page size
+              }}
+              className="text-sm border border-[#E0E0E5] rounded px-2 py-1 bg-white text-[#121212]"
+            >
+              <option value={5}>5 per page</option>
+              <option value={10}>10 per page</option>
+              <option value={20}>20 per page</option>
+              <option value={50}>50 per page</option>
+            </select>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -738,6 +746,85 @@ const StaffDashboard = () => {
               </div>
             )}
           </div>
+
+          {/* Pagination Controls */}
+          {todayBookings?.success && todayBookings.data.pagination.totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6 pt-4 border-t border-[#E0E0E5]">
+              <div className="text-sm text-[#6E6E73]">
+                Showing{" "}
+                {(currentPage - 1) * pageSize + 1} to{" "}
+                {Math.min(
+                  currentPage * pageSize,
+                  todayBookings.data.pagination.total
+                )}{" "}
+                of {todayBookings.data.pagination.total} appointments
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1 || bookingsLoading}
+                  className="border-[#E0E0E5] bg-white text-[#121212] disabled:opacity-50"
+                >
+                  Previous
+                </Button>
+                <div className="flex items-center gap-1">
+                  {/* Show page numbers */}
+                  {Array.from(
+                    { length: Math.min(5, todayBookings.data.pagination.totalPages) },
+                    (_, i) => {
+                      const totalPages = todayBookings.data.pagination.totalPages;
+                      let pageNum;
+                      
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setCurrentPage(pageNum)}
+                          disabled={bookingsLoading}
+                          className={
+                            currentPage === pageNum
+                              ? "bg-[#121212] text-white"
+                              : "border-[#E0E0E5] bg-white text-[#121212]"
+                          }
+                        >
+                          {pageNum}
+                        </Button>
+                      );
+                    }
+                  )}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setCurrentPage((prev) =>
+                      Math.min(todayBookings.data.pagination.totalPages, prev + 1)
+                    )
+                  }
+                  disabled={
+                    currentPage === todayBookings.data.pagination.totalPages ||
+                    bookingsLoading
+                  }
+                  className="border-[#E0E0E5] bg-white text-[#121212] disabled:opacity-50"
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
