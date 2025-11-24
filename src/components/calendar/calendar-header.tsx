@@ -4,10 +4,9 @@ import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { DayPicker } from "react-day-picker";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-export function CalendarHeader({ date, view, setDate, setView }: CalendarHeaderProps) {
+export function CalendarHeader({ date, setDate }: CalendarHeaderProps) {
   return (
     <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center mb-4">
       <div>
@@ -26,15 +25,6 @@ export function CalendarHeader({ date, view, setDate, setView }: CalendarHeaderP
             <DayPicker animate mode="single" selected={date} onSelect={setDate} required />
           </PopoverContent>
         </Popover>
-        <Select value={view} onValueChange={(value) => setView(value as "day" | "week")}>
-          <SelectTrigger className="w-[120px] border-[#E0E0E5] bg-white text-[#121212]">
-            <SelectValue placeholder="View" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="day">Day View</SelectItem>
-            <SelectItem value="week">Week View</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
     </div>
   );

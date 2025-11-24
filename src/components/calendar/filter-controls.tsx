@@ -16,7 +16,7 @@ export function FilterControls({
   filters,
   setFilters,
   settings,
-}: Omit<CalendarControlsProps, "date" | "setDate" | "view">) {
+}: Omit<CalendarControlsProps, "date" | "setDate">) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

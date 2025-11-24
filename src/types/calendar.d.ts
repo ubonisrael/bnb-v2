@@ -9,14 +9,11 @@ interface CalendarControlsProps {
   filters: FilterType;
   setFilters: (filters: FilterType) => void;
   settings: UserSettings | null;
-  view: "day" | "week";
 }
 
 interface CalendarHeaderProps {
   date: Date;
-  view: "day" | "week";
   setDate: (date: Date) => void;
-  setView: (view: "day" | "week") => void;
 }
 
 interface DayViewProps {

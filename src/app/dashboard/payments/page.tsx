@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   Card,
   CardHeader,
@@ -9,28 +8,14 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils"; // optional util for classnames
 import api from "@/services/api-service";
 import toast from "react-hot-toast";
 import { useUserSettings } from "@/contexts/UserSettingsContext";
 import SubscriptionDetails from "@/components/payments/subscription-card";
 
-type Invoice = {
-  id: string;
-  date: string;
-  amountPaid: number;
-  status: string;
-  invoiceUrl: string;
-  description: string;
-  customerName: string;
-  customerEmail: string;
-  direction: "incoming" | "outgoing";
-};
-
 // ------------------- Component -------------------
 export default function PaymentDashboardPage() {
   const { settings } = useUserSettings();
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
 
   return (
     <div className="space-y-6">
