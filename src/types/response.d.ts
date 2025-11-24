@@ -718,3 +718,152 @@ interface DeleteProgramClassResponse {
     };
   };
 }
+
+// Dashboard Types for Admin/Owner
+interface KeyMetricsData {
+  period: "week" | "month";
+  startDate: string;
+  endDate: string;
+  totalRevenue: number;
+  totalBookings: number;
+  activeClients: number;
+  staffWithBookings: number;
+  utilization: number;
+  timezone: string;
+}
+
+interface KeyMetricsResponse {
+  success: boolean;
+  message: string;
+  data: KeyMetricsData;
+}
+
+interface TodayOverviewStaffBreakdown {
+  staffId: number;
+  staffName: string;
+  staffEmail: string;
+  staffAvatar: string | null;
+  role: string;
+  firstAppointmentTime: string;
+  appointmentsCount: number;
+  statusBreakdown: {
+    confirmed: number;
+    pending: number;
+    cancelled: number;
+  };
+}
+
+interface TodayOverviewUpcomingBooking {
+  id: number;
+  bookingId: number;
+  bookingUuid: string;
+  startTime: string;
+  endTime: string;
+  duration: number;
+  status: string;
+  customer: {
+    id: number;
+    name: string;
+    email: string;
+    phone: string;
+  };
+  service: {
+    id: number;
+    name: string;
+  };
+  staff: {
+    id: number;
+    name: string;
+    email: string;
+  };
+  bookingStatus: string;
+  paymentStatus: string;
+}
+
+interface TodayOverviewData {
+  date: string;
+  timezone: string;
+  summary: {
+    totalAppointments: number;
+    confirmed: number;
+    pending: number;
+    cancelled: number;
+  };
+  staffBreakdown: TodayOverviewStaffBreakdown[];
+  upcomingBookings: TodayOverviewUpcomingBooking[];
+}
+
+interface TodayOverviewResponse {
+  success: boolean;
+  message: string;
+  data: TodayOverviewData;
+}
+
+// Dashboard Types for Staff
+interface StaffDashboardOverviewData {
+  appointmentsToday: number;
+  appointmentsThisWeek: number;
+  todayOccupancy: number;
+  newCustomers: number;
+  date: string;
+  timezone: string;
+}
+
+interface StaffDashboardOverviewResponse {
+  success: boolean;
+  message: string;
+  data: StaffDashboardOverviewData;
+}
+
+interface StaffBookingItem {
+  id: number;
+  bookingId: number;
+  startTime: string;
+  endTime: string;
+  duration: number;
+  price: number;
+  status: string;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+  Booking: {
+    id: number;
+    uuid: string;
+    status: string;
+    paymentStatus: string;
+    amountPaid: number;
+    amountDue: number;
+    Customer: {
+      id: number;
+      name: string;
+      email: string;
+      phone: string;
+    };
+  };
+  Service: {
+    id: number;
+    title: string;
+    description: string | null;
+    category: string;
+    duration: number;
+    price: number;
+  };
+}
+
+interface StaffBookingsByDateData {
+  date: string;
+  timezone: string;
+  bookings: StaffBookingItem[];
+  pagination: {
+    total: number;
+    page: number;
+    size: number;
+    totalPages: number;
+  };
+}
+
+interface StaffBookingsByDateResponse {
+  success: boolean;
+  message: string;
+  data: StaffBookingsByDateData;
+}

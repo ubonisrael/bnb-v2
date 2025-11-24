@@ -55,34 +55,13 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       if (settings) {
-        if (section === "batch") {
-          setSettings((prev) => {
-            if (!prev) return null;
-            return {
-              ...prev,
-              ...data,
-            } as UserSettings;
-          });
-        } else if (section === "categories" || section === "services") {
-          setSettings((prev) => {
-            if (!prev) return null;
-            return {
-              ...prev,
-              [section]: data,
-            } as UserSettings;
-          });
-        } else {
-          setSettings((prev) => {
-            if (!prev) return null;
-            return {
-              ...prev,
-              [section]: {
-                ...prev[section],
-                ...data,
-              },
-            } as UserSettings;
-          });
-        }
+        setSettings((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            ...data,
+          } as UserSettings;
+        });
       }
     } catch (error) {
       toast.error(error as string);

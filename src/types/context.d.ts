@@ -1,4 +1,5 @@
 interface UserSettings {
+  role: "owner" | "admin" | "staff";
   profile: {
     name: string;
     email: string;
