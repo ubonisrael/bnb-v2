@@ -15,6 +15,8 @@ import { CategoryFormDialog } from "@/components/services/category-form-dialog";
 import { ServiceFormDialog } from "@/components/services/service-form-dialog";
 import { CategoriesList } from "@/components/services/categories-list";
 import { ServicesTable } from "@/components/services/services-table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export default function ServicesPage() {
   const { settings } = useUserSettings();
@@ -195,9 +197,28 @@ export default function ServicesPage() {
           </Button>
         </div>
         {isLoadingCategories ? (
-          <div className="text-center text-muted-foreground py-8">
-            Loading categories...
-          </div>
+          <>
+            {/* Search Bar Skeleton */}
+            <Skeleton className="h-10 w-full" />
+            
+            {/* Categories Grid Skeleton */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {[...Array(6)].map((_, i) => (
+                <Card key={i}>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-8 w-8 rounded-md" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between">
+                      <Skeleton className="h-8 w-12" />
+                      <Skeleton className="h-6 w-20 rounded-full" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </>
         ) : (
           <CategoriesList
             categories={categories}
@@ -218,8 +239,43 @@ export default function ServicesPage() {
           <h2 className="text-lg font-semibold">All Services</h2>
         </div>
         {isLoadingServices ? (
-          <div className="text-center text-muted-foreground py-8">
-            Loading services...
+          <div className="space-y-4">
+            {/* Search Bar Skeleton */}
+            <Skeleton className="h-10 w-full" />
+            
+            {/* Tabs Skeleton */}
+            <div className="flex space-x-2">
+              <Skeleton className="h-10 w-32 rounded-md" />
+              <Skeleton className="h-10 w-24 rounded-md" />
+              <Skeleton className="h-10 w-28 rounded-md" />
+            </div>
+            
+            {/* Table Skeleton */}
+            <div className="rounded-md border">
+              <div className="p-4">
+                {/* Table Header */}
+                <div className="grid grid-cols-6 gap-4 border-b pb-3 mb-3">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-4 w-24 hidden md:block" />
+                  <Skeleton className="h-4 w-20 hidden sm:block" />
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-4 w-8" />
+                </div>
+                
+                {/* Table Rows */}
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="grid grid-cols-6 gap-4 py-3 border-b last:border-0">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full hidden md:block" />
+                    <Skeleton className="h-6 w-20 hidden sm:block rounded-full" />
+                    <Skeleton className="h-6 w-16" />
+                    <Skeleton className="h-6 w-16" />
+                    <Skeleton className="h-8 w-8 rounded-md" />
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         ) : (
           <ServicesTable
