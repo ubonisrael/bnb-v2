@@ -90,6 +90,7 @@ export default function ServicesPage() {
     deleteCategoryMutation,
     createServiceMutation,
     deleteServiceMutation,
+    bulkDeleteServicesMutation,
   } = useServiceMutations();
 
   // Restrict access to admin and owner only
@@ -151,6 +152,14 @@ export default function ServicesPage() {
       await deleteServiceMutation.mutateAsync(serviceId);
     } catch (error) {
       console.error("Failed to delete service:", error);
+    }
+  };
+
+  const handleBulkServiceDelete = async (serviceIds: number[]) => {
+    try {
+      await bulkDeleteServicesMutation.mutateAsync(serviceIds);
+    } catch (error) {
+      console.error("Failed to bulk delete services:", error);
     }
   };
 
@@ -325,7 +334,9 @@ export default function ServicesPage() {
             }}
             onEdit={handleServiceEdit}
             onDelete={handleServiceDelete}
+            onBulkDelete={handleBulkServiceDelete}
             isDeleting={deleteServiceMutation.isPending}
+            isBulkDeleting={bulkDeleteServicesMutation.isPending}
           />
         )}
       </div>

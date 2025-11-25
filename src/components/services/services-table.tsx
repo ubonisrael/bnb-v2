@@ -39,6 +39,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -83,7 +84,9 @@ interface ServicesTableProps {
   };
   onEdit: (service: Service) => void;
   onDelete: (serviceId: number) => void;
+  onBulkDelete: (serviceIds: number[]) => void;
   isDeleting: boolean;
+  isBulkDeleting: boolean;
 }
 
 export function ServicesTable({
@@ -99,12 +102,16 @@ export function ServicesTable({
   onSortingChange,
   onEdit,
   onDelete,
+  onBulkDelete,
   isDeleting,
+  isBulkDeleting,
 }: ServicesTableProps) {
   const [activeTab, setActiveTab] = useState("all");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedServices, setSelectedServices] = useState<number[]>([]);
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
 
   // Filter by category tab (search is handled server-side now)
   const filteredServices = useMemo(() => {
@@ -136,6 +143,42 @@ export function ServicesTable({
       setDeleteDialogOpen(false);
       setServiceToDelete(null);
     }
+  };
+
+  // Selection handlers
+  const allFilteredServiceIds = filteredServices.map((s) => s.id);
+  const isAllSelected =
+    allFilteredServiceIds.length > 0 &&
+    allFilteredServiceIds.every((id) => selectedServices.includes(id));
+  const isSomeSelected =
+    selectedServices.length > 0 &&
+    !isAllSelected &&
+    allFilteredServiceIds.some((id) => selectedServices.includes(id));
+
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedServices([]);
+    } else {
+      setSelectedServices(allFilteredServiceIds);
+    }
+  };
+
+  const handleSelectService = (serviceId: number) => {
+    setSelectedServices((prev) =>
+      prev.includes(serviceId)
+        ? prev.filter((id) => id !== serviceId)
+        : [...prev, serviceId]
+    );
+  };
+
+  const handleBulkDeleteClick = () => {
+    setBulkDeleteDialogOpen(true);
+  };
+
+  const handleBulkDeleteConfirm = async () => {
+    await onBulkDelete(selectedServices);
+    setSelectedServices([]);
+    setBulkDeleteDialogOpen(false);
   };
 
   const renderPaginationItems = () => {
@@ -398,6 +441,24 @@ export function ServicesTable({
           </TabsList>
 
           <TabsContent value={activeTab} className="space-y-4">
+            {/* Bulk Action Toolbar */}
+            {selectedServices.length > 0 && (
+              <div className="flex items-center justify-between p-3 bg-muted rounded-lg border">
+                <p className="text-sm font-medium">
+                  {selectedServices.length} service(s) selected
+                </p>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleBulkDeleteClick}
+                  disabled={isBulkDeleting}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Selected
+                </Button>
+              </div>
+            )}
+
             {filteredServices.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-muted-foreground mb-2">
@@ -423,6 +484,14 @@ export function ServicesTable({
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-[50px]">
+                        <Checkbox
+                          checked={isAllSelected}
+                          onCheckedChange={handleSelectAll}
+                          aria-label="Select all services"
+                          className={isSomeSelected ? "opacity-50" : ""}
+                        />
+                      </TableHead>
                       <TableHead>
                         <div className="flex items-center gap-1">
                           Name
@@ -471,6 +540,13 @@ export function ServicesTable({
                   <TableBody>
                     {filteredServices.map((service) => (
                       <TableRow key={service.id}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedServices.includes(service.id)}
+                            onCheckedChange={() => handleSelectService(service.id)}
+                            aria-label={`Select ${service.name}`}
+                          />
+                        </TableCell>
                         <TableCell className="font-medium">
                           <div>
                             <div>{service.name}</div>
@@ -586,6 +662,28 @@ export function ServicesTable({
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Multiple Services</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedServices.length} service(s)? 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isBulkDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkDeleteConfirm}
+              disabled={isBulkDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isBulkDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

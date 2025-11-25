@@ -162,10 +162,51 @@ export function useServiceMutations() {
     },
   });
 
+  // Bulk Delete Services
+  const bulkDeleteServicesMutation = useMutation({
+    mutationFn: async (serviceIds: number[]) => {
+      const controller = new AbortController();
+      const signal = controller.signal;
+
+      try {
+        await api.post(
+          "sp/services/bulk-delete",
+          { serviceIds },
+          { signal }
+        );
+        return { serviceIds };
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name === "AbortError") {
+          toast.error("Request was cancelled");
+        }
+        throw error;
+      }
+    },
+    onMutate: (serviceIds) => {
+      toast.loading(
+        `Deleting ${serviceIds.length} service${serviceIds.length > 1 ? "s" : ""}...`,
+        { id: "bulk-delete-services" }
+      );
+    },
+    onSuccess: (data) => {
+      toast.success(
+        `${data.serviceIds.length} service${data.serviceIds.length > 1 ? "s" : ""} deleted successfully`,
+        { id: "bulk-delete-services" }
+      );
+      queryClient.invalidateQueries({ queryKey: ["services"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || "Failed to delete services", {
+        id: "bulk-delete-services",
+      });
+    },
+  });
+
   return {
     createCategoryMutation,
     deleteCategoryMutation,
     createServiceMutation,
     deleteServiceMutation,
+    bulkDeleteServicesMutation,
   };
 }
