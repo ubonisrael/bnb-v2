@@ -1,13 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Clock, Mail, Phone, ChevronLeft, ChevronRight } from "lucide-react";
-import dayjs from "@/utils/dayjsConfig";
-import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -19,6 +16,7 @@ import { useUserSettings } from "@/contexts/UserSettingsContext";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api-service";
 import { BookingsListResponse, MembersResponse } from "@/types/response";
+import { AppointmentList } from "@/components/appointments/appointment-list";
 
 export default function AppointmentsPage() {
   const { settings } = useUserSettings();
@@ -100,32 +98,6 @@ export default function AppointmentsPage() {
   useEffect(() => {
     setCurrentPage(1);
   }, [activeTab, searchQuery, selectedMemberId]);
-
-  const getStatusBadgeStyles = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "confirmed":
-        return "bg-green-50 text-green-700 border-green-200";
-      case "pending":
-        return "bg-yellow-50 text-yellow-700 border-yellow-200";
-      case "cancelled":
-        return "bg-red-50 text-red-700 border-red-200";
-      default:
-        return "bg-gray-50 text-gray-700 border-gray-200";
-    }
-  };
-
-  const getPaymentBadgeStyles = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "paid":
-        return "bg-blue-50 text-blue-700 border-blue-200";
-      case "pending":
-        return "bg-orange-50 text-orange-700 border-orange-200";
-      case "partial":
-        return "bg-purple-50 text-purple-700 border-purple-200";
-      default:
-        return "bg-gray-50 text-gray-700 border-gray-200";
-    }
-  };
 
   const isLoading = isBookingsLoading || (isAdminOrOwner && isMembersLoading);
 
@@ -218,149 +190,14 @@ export default function AppointmentsPage() {
                   </p>
                 </div>
               ) : bookingsData?.success && bookingsData.data.bookings.length > 0 ? (
-                <div className="space-y-4">
-                  {bookingsData.data.bookings.map((booking) => {
-                    const startTime = dayjs(booking.start_time);
-                    return (
-                      <div
-                        key={booking.id}
-                        className="flex items-center justify-between rounded-lg border border-[#E0E0E5] p-4 hover:bg-[#F5F5F7]/50 cursor-pointer"
-                      >
-                        <div className="flex items-center gap-4 flex-1">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F5F5F7]">
-                            <Clock className="h-6 w-6 text-[#6E6E73]" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="font-medium text-[#121212]">
-                              {booking.Booking.Customer.name}
-                            </div>
-                            <div className="text-sm text-[#6E6E73]">
-                              {booking.Service.title} • £{booking.Booking.amount_paid + booking.Booking.amount_due}
-                            </div>
-                            <div className="flex items-center gap-2 mt-1">
-                              <div className="text-xs text-[#6E6E73] flex items-center gap-1">
-                                <Mail className="w-3 h-3" />
-                                {booking.Booking.Customer.email}
-                              </div>
-                              {booking.Booking.Customer.phone && (
-                                <div className="text-xs text-[#6E6E73] flex items-center gap-1">
-                                  <Phone className="w-3 h-3" />
-                                  {booking.Booking.Customer.phone}
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2 mt-2">
-                              <Badge
-                                variant="outline"
-                                className={getStatusBadgeStyles(booking.status)}
-                              >
-                                {booking.status}
-                              </Badge>
-                              <Badge
-                                variant="outline"
-                                className={getPaymentBadgeStyles(
-                                  booking.Booking.payment_status
-                                )}
-                              >
-                                {booking.Booking.payment_status}
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-medium text-[#121212]">
-                            {startTime.format("MMM DD, YYYY")}
-                          </div>
-                          <div className="text-sm text-[#6E6E73]">
-                            {startTime.format("HH:mm")} • {booking.duration} min
-                          </div>
-                          <div className="text-xs text-[#6E6E73] mt-1">
-                            £{booking.Booking.amount_paid} / £
-                            {booking.Booking.amount_paid + booking.Booking.amount_due}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {/* Pagination */}
-                  {bookingsData.data.pagination.totalPages > 1 && (
-                    <div className="flex items-center justify-between mt-6 pt-4 border-t border-[#E0E0E5]">
-                      <div className="text-sm text-[#6E6E73]">
-                        Showing{" "}
-                        {(currentPage - 1) * pageSize + 1} to{" "}
-                        {Math.min(
-                          currentPage * pageSize,
-                          bookingsData.data.pagination.total
-                        )}{" "}
-                        of {bookingsData.data.pagination.total} appointments
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                          disabled={currentPage === 1}
-                          className="border-[#E0E0E5] bg-white text-[#121212] disabled:opacity-50"
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                          Previous
-                        </Button>
-                        <div className="flex items-center gap-1">
-                          {Array.from(
-                            { length: Math.min(5, bookingsData.data.pagination.totalPages) },
-                            (_, i) => {
-                              const totalPages = bookingsData.data.pagination.totalPages;
-                              let pageNum;
-
-                              if (totalPages <= 5) {
-                                pageNum = i + 1;
-                              } else if (currentPage <= 3) {
-                                pageNum = i + 1;
-                              } else if (currentPage >= totalPages - 2) {
-                                pageNum = totalPages - 4 + i;
-                              } else {
-                                pageNum = currentPage - 2 + i;
-                              }
-
-                              return (
-                                <Button
-                                  key={pageNum}
-                                  variant={currentPage === pageNum ? "default" : "outline"}
-                                  size="sm"
-                                  onClick={() => setCurrentPage(pageNum)}
-                                  className={
-                                    currentPage === pageNum
-                                      ? "bg-[#121212] text-white"
-                                      : "border-[#E0E0E5] bg-white text-[#121212]"
-                                  }
-                                >
-                                  {pageNum}
-                                </Button>
-                              );
-                            }
-                          )}
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            setCurrentPage((prev) =>
-                              Math.min(bookingsData.data.pagination.totalPages, prev + 1)
-                            )
-                          }
-                          disabled={
-                            currentPage === bookingsData.data.pagination.totalPages
-                          }
-                          className="border-[#E0E0E5] bg-white text-[#121212] disabled:opacity-50"
-                        >
-                          Next
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <AppointmentList
+                  bookings={bookingsData.data.bookings}
+                  currentPage={currentPage}
+                  pageSize={pageSize}
+                  totalPages={bookingsData.data.pagination.totalPages}
+                  totalItems={bookingsData.data.pagination.total}
+                  onPageChange={setCurrentPage}
+                />
               ) : (
                 <div className="flex h-60 items-center justify-center">
                   <p className="text-[#6E6E73]">No upcoming appointments found.</p>
@@ -387,149 +224,15 @@ export default function AppointmentsPage() {
                   </p>
                 </div>
               ) : bookingsData?.success && bookingsData.data.bookings.length > 0 ? (
-                <div className="space-y-4">
-                  {bookingsData.data.bookings.map((booking) => {
-                    const startTime = dayjs(booking.start_time);
-                    return (
-                      <div
-                        key={booking.id}
-                        className="flex items-center justify-between rounded-lg border border-[#E0E0E5] p-4 hover:bg-[#F5F5F7]/50 cursor-pointer opacity-75"
-                      >
-                        <div className="flex items-center gap-4 flex-1">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F5F5F7]">
-                            <Clock className="h-6 w-6 text-[#6E6E73]" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="font-medium text-[#121212]">
-                              {booking.Booking.Customer.name}
-                            </div>
-                            <div className="text-sm text-[#6E6E73]">
-                              {booking.Service.title} • £{booking.Booking.amount_paid + booking.Booking.amount_due}
-                            </div>
-                            <div className="flex items-center gap-2 mt-1">
-                              <div className="text-xs text-[#6E6E73] flex items-center gap-1">
-                                <Mail className="w-3 h-3" />
-                                {booking.Booking.Customer.email}
-                              </div>
-                              {booking.Booking.Customer.phone && (
-                                <div className="text-xs text-[#6E6E73] flex items-center gap-1">
-                                  <Phone className="w-3 h-3" />
-                                  {booking.Booking.Customer.phone}
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2 mt-2">
-                              <Badge
-                                variant="outline"
-                                className={getStatusBadgeStyles(booking.status)}
-                              >
-                                {booking.status}
-                              </Badge>
-                              <Badge
-                                variant="outline"
-                                className={getPaymentBadgeStyles(
-                                  booking.Booking.payment_status
-                                )}
-                              >
-                                {booking.Booking.payment_status}
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-medium text-[#121212]">
-                            {startTime.format("MMM DD, YYYY")}
-                          </div>
-                          <div className="text-sm text-[#6E6E73]">
-                            {startTime.format("HH:mm")} • {booking.duration} min
-                          </div>
-                          <div className="text-xs text-[#6E6E73] mt-1">
-                            £{booking.Booking.amount_paid} / £
-                            {booking.Booking.amount_paid + booking.Booking.amount_due}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {/* Pagination */}
-                  {bookingsData.data.pagination.totalPages > 1 && (
-                    <div className="flex items-center justify-between mt-6 pt-4 border-t border-[#E0E0E5]">
-                      <div className="text-sm text-[#6E6E73]">
-                        Showing{" "}
-                        {(currentPage - 1) * pageSize + 1} to{" "}
-                        {Math.min(
-                          currentPage * pageSize,
-                          bookingsData.data.pagination.total
-                        )}{" "}
-                        of {bookingsData.data.pagination.total} appointments
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                          disabled={currentPage === 1}
-                          className="border-[#E0E0E5] bg-white text-[#121212] disabled:opacity-50"
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                          Previous
-                        </Button>
-                        <div className="flex items-center gap-1">
-                          {Array.from(
-                            { length: Math.min(5, bookingsData.data.pagination.totalPages) },
-                            (_, i) => {
-                              const totalPages = bookingsData.data.pagination.totalPages;
-                              let pageNum;
-
-                              if (totalPages <= 5) {
-                                pageNum = i + 1;
-                              } else if (currentPage <= 3) {
-                                pageNum = i + 1;
-                              } else if (currentPage >= totalPages - 2) {
-                                pageNum = totalPages - 4 + i;
-                              } else {
-                                pageNum = currentPage - 2 + i;
-                              }
-
-                              return (
-                                <Button
-                                  key={pageNum}
-                                  variant={currentPage === pageNum ? "default" : "outline"}
-                                  size="sm"
-                                  onClick={() => setCurrentPage(pageNum)}
-                                  className={
-                                    currentPage === pageNum
-                                      ? "bg-[#121212] text-white"
-                                      : "border-[#E0E0E5] bg-white text-[#121212]"
-                                  }
-                                >
-                                  {pageNum}
-                                </Button>
-                              );
-                            }
-                          )}
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            setCurrentPage((prev) =>
-                              Math.min(bookingsData.data.pagination.totalPages, prev + 1)
-                            )
-                          }
-                          disabled={
-                            currentPage === bookingsData.data.pagination.totalPages
-                          }
-                          className="border-[#E0E0E5] bg-white text-[#121212] disabled:opacity-50"
-                        >
-                          Next
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <AppointmentList
+                  bookings={bookingsData.data.bookings}
+                  currentPage={currentPage}
+                  pageSize={pageSize}
+                  totalPages={bookingsData.data.pagination.totalPages}
+                  totalItems={bookingsData.data.pagination.total}
+                  onPageChange={setCurrentPage}
+                  isPastAppointments
+                />
               ) : (
                 <div className="flex h-60 items-center justify-center">
                   <p className="text-[#6E6E73]">No past appointments found.</p>
