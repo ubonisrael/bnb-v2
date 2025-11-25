@@ -35,6 +35,15 @@ export default function ServicesPage() {
   const [serviceSearch, setServiceSearch] = useState("");
   const servicePageSize = 10;
 
+  // Filter and sort state for services
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [minDuration, setMinDuration] = useState("");
+  const [maxDuration, setMaxDuration] = useState("");
+  const [availableOn, setAvailableOn] = useState("");
+  const [sortBy, setSortBy] = useState("name");
+  const [sortOrder, setSortOrder] = useState<"ASC" | "DESC">("ASC");
+
   const router = useRouter();
 
   const { data: categoriesData, isLoading: isLoadingCategories } = useQuery({
@@ -51,12 +60,19 @@ export default function ServicesPage() {
   })
 
   const { data: servicesData, isLoading: isLoadingServices } = useQuery({
-    queryKey: ["services", servicePage, serviceSearch],
+    queryKey: ["services", servicePage, serviceSearch, minPrice, maxPrice, minDuration, maxDuration, availableOn, sortBy, sortOrder],
     queryFn: async () => {
       const params = new URLSearchParams({
         page: servicePage.toString(),
         size: servicePageSize.toString(),
         ...(serviceSearch && { search: serviceSearch }),
+        ...(minPrice && { minPrice }),
+        ...(maxPrice && { maxPrice }),
+        ...(minDuration && { minDuration }),
+        ...(maxDuration && { maxDuration }),
+        ...(availableOn && { availableOn }),
+        sortBy,
+        sortOrder,
       });
       return await api.get<FetchServicesSuccessResponse>(`/sp/services?${params}`);
     },
@@ -285,6 +301,28 @@ export default function ServicesPage() {
             searchQuery={serviceSearch}
             onSearchChange={setServiceSearch}
             onPageChange={setServicePage}
+            filters={{
+              minPrice,
+              maxPrice,
+              minDuration,
+              maxDuration,
+              availableOn,
+            }}
+            onFiltersChange={{
+              setMinPrice,
+              setMaxPrice,
+              setMinDuration,
+              setMaxDuration,
+              setAvailableOn,
+            }}
+            sorting={{
+              sortBy,
+              sortOrder,
+            }}
+            onSortingChange={{
+              setSortBy,
+              setSortOrder,
+            }}
             onEdit={handleServiceEdit}
             onDelete={handleServiceDelete}
             isDeleting={deleteServiceMutation.isPending}

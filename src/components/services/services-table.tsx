@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Edit, MoreVertical, Search, Trash2 } from "lucide-react";
+import { Edit, MoreVertical, Search, Trash2, Filter, X, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
@@ -39,7 +39,27 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { serviceDurationOptions } from "@/lib/helpers";
+
+interface ServiceFilters {
+  minPrice: string;
+  maxPrice: string;
+  minDuration: string;
+  maxDuration: string;
+  availableOn: string;
+}
+
+interface ServiceSorting {
+  sortBy: string;
+  sortOrder: "ASC" | "DESC";
+}
 
 interface ServicesTableProps {
   services: ServiceWithStaff[];
@@ -48,6 +68,19 @@ interface ServicesTableProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onPageChange: (page: number) => void;
+  filters: ServiceFilters;
+  onFiltersChange: {
+    setMinPrice: (value: string) => void;
+    setMaxPrice: (value: string) => void;
+    setMinDuration: (value: string) => void;
+    setMaxDuration: (value: string) => void;
+    setAvailableOn: (value: string) => void;
+  };
+  sorting: ServiceSorting;
+  onSortingChange: {
+    setSortBy: (value: string) => void;
+    setSortOrder: (value: "ASC" | "DESC") => void;
+  };
   onEdit: (service: Service) => void;
   onDelete: (serviceId: number) => void;
   isDeleting: boolean;
@@ -60,6 +93,10 @@ export function ServicesTable({
   searchQuery,
   onSearchChange,
   onPageChange,
+  filters,
+  onFiltersChange,
+  sorting,
+  onSortingChange,
   onEdit,
   onDelete,
   isDeleting,
@@ -67,6 +104,7 @@ export function ServicesTable({
   const [activeTab, setActiveTab] = useState("all");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<number | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
 
   // Filter by category tab (search is handled server-side now)
   const filteredServices = useMemo(() => {
@@ -164,19 +202,185 @@ export function ServicesTable({
     return items;
   };
 
+  const hasActiveFilters = () => {
+    return (
+      filters.minPrice ||
+      filters.maxPrice ||
+      filters.minDuration ||
+      filters.maxDuration ||
+      filters.availableOn
+    );
+  };
+
+  const clearAllFilters = () => {
+    onFiltersChange.setMinPrice("");
+    onFiltersChange.setMaxPrice("");
+    onFiltersChange.setMinDuration("");
+    onFiltersChange.setMaxDuration("");
+    onFiltersChange.setAvailableOn("");
+  };
+
+  const days = [
+    { value: "monday", label: "Monday" },
+    { value: "tuesday", label: "Tuesday" },
+    { value: "wednesday", label: "Wednesday" },
+    { value: "thursday", label: "Thursday" },
+    { value: "friday", label: "Friday" },
+    { value: "saturday", label: "Saturday" },
+    { value: "sunday", label: "Sunday" },
+  ];
+
   return (
     <>
       <div className="space-y-4">
-        <div className="flex items-center space-x-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search services..."
-              className="pl-8"
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-            />
+        {/* Search and Filter Controls */}
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search services..."
+                className="pl-8"
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className={hasActiveFilters() ? "border-primary" : ""}
+            >
+              <Filter className="mr-2 h-4 w-4" />
+              Filters
+              {hasActiveFilters() && (
+                <Badge variant="secondary" className="ml-2 h-5 px-1">
+                  •
+                </Badge>
+              )}
+            </Button>
           </div>
+
+          {/* Filters Panel */}
+          {showFilters && (
+            <div className="rounded-lg border bg-card p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold">Filters</h3>
+                {hasActiveFilters() && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearAllFilters}
+                    className="h-8 px-2 text-xs"
+                  >
+                    <X className="mr-1 h-3 w-3" />
+                    Clear all
+                  </Button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Price Range */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Price Range (£)</label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      placeholder="Min"
+                      value={filters.minPrice}
+                      onChange={(e) => onFiltersChange.setMinPrice(e.target.value)}
+                      className="h-9"
+                    />
+                    <Input
+                      type="number"
+                      placeholder="Max"
+                      value={filters.maxPrice}
+                      onChange={(e) => onFiltersChange.setMaxPrice(e.target.value)}
+                      className="h-9"
+                    />
+                  </div>
+                </div>
+
+                {/* Duration Range */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Duration (min)</label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      placeholder="Min"
+                      value={filters.minDuration}
+                      onChange={(e) => onFiltersChange.setMinDuration(e.target.value)}
+                      className="h-9"
+                    />
+                    <Input
+                      type="number"
+                      placeholder="Max"
+                      value={filters.maxDuration}
+                      onChange={(e) => onFiltersChange.setMaxDuration(e.target.value)}
+                      className="h-9"
+                    />
+                  </div>
+                </div>
+
+                {/* Available On */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Available On</label>
+                  <Select
+                    value={filters.availableOn}
+                    onValueChange={onFiltersChange.setAvailableOn}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Select day" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value=" ">All days</SelectItem>
+                      {days.map((day) => (
+                        <SelectItem key={day.value} value={day.value}>
+                          {day.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Sort Controls */}
+              <div className="pt-2 border-t">
+                <label className="text-sm font-medium mb-2 block">Sort By</label>
+                <div className="flex gap-2">
+                  <Select
+                    value={sorting.sortBy}
+                    onValueChange={onSortingChange.setSortBy}
+                  >
+                    <SelectTrigger className="h-9 flex-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="name">Name</SelectItem>
+                      <SelectItem value="fullPrice">Price</SelectItem>
+                      <SelectItem value="duration">Duration</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      onSortingChange.setSortOrder(
+                        sorting.sortOrder === "ASC" ? "DESC" : "ASC"
+                      )
+                    }
+                    className="h-9 px-3"
+                  >
+                    {sorting.sortOrder === "ASC" ? (
+                      <ArrowUp className="h-4 w-4" />
+                    ) : (
+                      <ArrowDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -195,25 +399,72 @@ export function ServicesTable({
 
           <TabsContent value={activeTab} className="space-y-4">
             {filteredServices.length === 0 ? (
-              <div className="text-center text-muted-foreground py-8">
-                {searchQuery
-                  ? "No services match your search."
-                  : "No services in this category yet."}
+              <div className="text-center py-8">
+                <p className="text-muted-foreground mb-2">
+                  {searchQuery || hasActiveFilters()
+                    ? "No services match your filters."
+                    : "No services in this category yet."}
+                </p>
+                {(searchQuery || hasActiveFilters()) && (
+                  <Button
+                    variant="link"
+                    size="sm"
+                    onClick={() => {
+                      onSearchChange("");
+                      clearAllFilters();
+                    }}
+                  >
+                    Clear all filters
+                  </Button>
+                )}
               </div>
             ) : (
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
+                      <TableHead>
+                        <div className="flex items-center gap-1">
+                          Name
+                          {sorting.sortBy === "name" && (
+                            sorting.sortOrder === "ASC" ? (
+                              <ArrowUp className="h-3 w-3" />
+                            ) : (
+                              <ArrowDown className="h-3 w-3" />
+                            )
+                          )}
+                        </div>
+                      </TableHead>
                       <TableHead className="hidden md:table-cell">
                         Description
                       </TableHead>
                       <TableHead className="hidden sm:table-cell">
                         Category
                       </TableHead>
-                      <TableHead>Duration</TableHead>
-                      <TableHead>Price</TableHead>
+                      <TableHead>
+                        <div className="flex items-center gap-1">
+                          Duration
+                          {sorting.sortBy === "duration" && (
+                            sorting.sortOrder === "ASC" ? (
+                              <ArrowUp className="h-3 w-3" />
+                            ) : (
+                              <ArrowDown className="h-3 w-3" />
+                            )
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead>
+                        <div className="flex items-center gap-1">
+                          Price
+                          {sorting.sortBy === "fullPrice" && (
+                            sorting.sortOrder === "ASC" ? (
+                              <ArrowUp className="h-3 w-3" />
+                            ) : (
+                              <ArrowDown className="h-3 w-3" />
+                            )
+                          )}
+                        </div>
+                      </TableHead>
                       <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                   </TableHeader>
