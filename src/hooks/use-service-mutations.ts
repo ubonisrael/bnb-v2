@@ -202,11 +202,53 @@ export function useServiceMutations() {
     },
   });
 
+  // Bulk Delete Categories
+  const bulkDeleteCategoriesMutation = useMutation({
+    mutationFn: async (categoryIds: number[]) => {
+      const controller = new AbortController();
+      const signal = controller.signal;
+
+      try {
+        await api.post(
+          "sp/categories/bulk-delete",
+          { categoryIds },
+          { signal }
+        );
+        return { categoryIds };
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name === "AbortError") {
+          toast.error("Request was cancelled");
+        }
+        throw error;
+      }
+    },
+    onMutate: (categoryIds) => {
+      toast.loading(
+        `Deleting ${categoryIds.length} categor${categoryIds.length > 1 ? "ies" : "y"}...`,
+        { id: "bulk-delete-categories" }
+      );
+    },
+    onSuccess: (data) => {
+      toast.success(
+        `${data.categoryIds.length} categor${data.categoryIds.length > 1 ? "ies" : "y"} deleted successfully`,
+        { id: "bulk-delete-categories" }
+      );
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      queryClient.invalidateQueries({ queryKey: ["services"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error?.message || "Failed to delete categories", {
+        id: "bulk-delete-categories",
+      });
+    },
+  });
+
   return {
     createCategoryMutation,
     deleteCategoryMutation,
     createServiceMutation,
     deleteServiceMutation,
     bulkDeleteServicesMutation,
+    bulkDeleteCategoriesMutation,
   };
 }

@@ -22,6 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Pagination,
   PaginationContent,
@@ -40,7 +41,9 @@ interface CategoriesListProps {
   onPageChange: (page: number) => void;
   onEdit: (category: { id: number; name: string }) => void;
   onDelete: (categoryId: number) => void;
+  onBulkDelete: (categoryIds: number[]) => void;
   isDeleting: boolean;
+  isBulkDeleting: boolean;
 }
 
 export function CategoriesList({
@@ -51,10 +54,14 @@ export function CategoriesList({
   onPageChange,
   onEdit,
   onDelete,
+  onBulkDelete,
   isDeleting,
+  isBulkDeleting,
 }: CategoriesListProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<number | null>(null);
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
 
   const handleDeleteClick = (categoryId: number) => {
     setCategoryToDelete(categoryId);
@@ -67,6 +74,42 @@ export function CategoriesList({
       setDeleteDialogOpen(false);
       setCategoryToDelete(null);
     }
+  };
+
+  // Selection handlers
+  const allCategoryIds = categories.map((c) => c.id);
+  const isAllSelected =
+    allCategoryIds.length > 0 &&
+    allCategoryIds.every((id) => selectedCategories.includes(id));
+  const isSomeSelected =
+    selectedCategories.length > 0 &&
+    !isAllSelected &&
+    allCategoryIds.some((id) => selectedCategories.includes(id));
+
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedCategories([]);
+    } else {
+      setSelectedCategories(allCategoryIds);
+    }
+  };
+
+  const handleSelectCategory = (categoryId: number) => {
+    setSelectedCategories((prev) =>
+      prev.includes(categoryId)
+        ? prev.filter((id) => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
+
+  const handleBulkDeleteClick = () => {
+    setBulkDeleteDialogOpen(true);
+  };
+
+  const handleBulkDeleteConfirm = async () => {
+    await onBulkDelete(selectedCategories);
+    setSelectedCategories([]);
+    setBulkDeleteDialogOpen(false);
   };
 
   const renderPaginationItems = () => {
@@ -148,6 +191,41 @@ export function CategoriesList({
         </div>
       </div>
 
+      {/* Select All and Bulk Action Toolbar */}
+      {categories.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                checked={isAllSelected}
+                onCheckedChange={handleSelectAll}
+                aria-label="Select all categories"
+                className={isSomeSelected ? "opacity-50" : ""}
+              />
+              <span className="text-sm text-muted-foreground">
+                Select All
+              </span>
+            </div>
+            {selectedCategories.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">
+                  {selectedCategories.length} categor{selectedCategories.length > 1 ? "ies" : "y"} selected
+                </span>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleBulkDeleteClick}
+                  disabled={isBulkDeleting}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Selected
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Categories Grid */}
       {categories.length === 0 ? (
         <div className="text-center text-muted-foreground py-8">
@@ -159,8 +237,15 @@ export function CategoriesList({
         <>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {categories.map((category) => (
-          <Card key={category.id}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Card key={category.id} className="relative">
+            <div className="absolute top-3 left-3 z-10">
+              <Checkbox
+                checked={selectedCategories.includes(category.id)}
+                onCheckedChange={() => handleSelectCategory(category.id)}
+                aria-label={`Select ${category.name}`}
+              />
+            </div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pl-10">
               <CardTitle className="text-sm font-medium">
                 {category.name}
               </CardTitle>
@@ -261,6 +346,28 @@ export function CategoriesList({
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Multiple Categories</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedCategories.length} categor{selectedCategories.length > 1 ? "ies" : "y"}? 
+              This action cannot be undone. All services in these categories will also be deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isBulkDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkDeleteConfirm}
+              disabled={isBulkDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isBulkDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
