@@ -35,42 +35,50 @@ const sidebarItems = [
     title: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
+    requireAdmin: false,
   },
   {
     title: "Calendar",
     href: "/dashboard/calendar",
     icon: Calendar,
+    requireAdmin: false,
   },
 
   {
     title: "Services",
     href: "/dashboard/services",
     icon: Scissors,
+    requireAdmin: true,
   },
   {
     title: "Payments",
     href: "/dashboard/payments",
     icon: CreditCard,
+    requireAdmin: true,
   },
   {
     title: "Templates",
     href: "/dashboard/templates",
     icon: FileText,
+    requireAdmin: true,
   },
   {
     title: "Programs",
     href: "/dashboard/programs",
     icon: School,
+    requireAdmin: true,
   },
   {
     title: "Analytics",
     href: "/dashboard/analytics",
     icon: BarChart3,
+    requireAdmin: true,
   },
   {
     title: "Settings",
     href: "/dashboard/settings",
     icon: Settings,
+    requireAdmin: true,
   },
 ];
 
@@ -97,24 +105,6 @@ export function Sidebar({
   useEffect(() => {
     setIsMobileOpen(false);
   }, [pathname]);
-
-  const toggleSidebar = () => {
-    if (window.innerWidth >= 768) {
-      // Desktop behavior
-      const newState = !collapsed;
-      setCollapsed(newState);
-      localStorage.setItem("sidebar-collapsed", String(newState));
-      window.dispatchEvent(
-        new StorageEvent("storage", {
-          key: "sidebar-collapsed",
-          newValue: String(newState),
-        })
-      );
-    } else {
-      // Mobile behavior
-      setIsMobileOpen(!isMobileOpen);
-    }
-  };
 
   return (
     <>
@@ -180,38 +170,46 @@ export function Sidebar({
         <div className="flex-1 overflow-auto py-4">
           <nav className="grid gap-6 px-2">
             <TooltipProvider delayDuration={0}>
-              {sidebarItems.map((item) => (
-                <Tooltip key={item.href}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      asChild
-                      className={cn(
-                        "flex h-12 items-center justify-start rounded-md px-3 text-[#a4b0d3] hover:bg-[#2a3352] hover:text-white",
-                        collapsed && "justify-center px-0",
-                        pathname === item.href && "bg-[#2a3352] text-white"
-                      )}
-                    >
-                      <Link
-                        href={item.href}
-                        className={`flex w-full items-center gap-3`}
+              {sidebarItems
+                .filter(
+                  (item) =>
+                    !item.requireAdmin ||
+                    (item.requireAdmin &&
+                      (settings?.role === "admin" ||
+                        settings?.role === "owner"))
+                )
+                .map((item) => (
+                  <Tooltip key={item.href}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        asChild
+                        className={cn(
+                          "flex h-12 items-center justify-start rounded-md px-3 text-[#a4b0d3] hover:bg-[#2a3352] hover:text-white",
+                          collapsed && "justify-center px-0",
+                          pathname === item.href && "bg-[#2a3352] text-white"
+                        )}
                       >
-                        <item.icon className="h-5 w-5 flex-shrink-0" />
-                        <span
-                          className={`text-sm font-medium md:${
-                            collapsed ? "hidden" : ""
-                          }`}
+                        <Link
+                          href={item.href}
+                          className={`flex w-full items-center gap-3`}
                         >
-                          {item.title}
-                        </span>
-                      </Link>
-                    </Button>
-                  </TooltipTrigger>
-                  {collapsed && (
-                    <TooltipContent side="right">{item.title}</TooltipContent>
-                  )}
-                </Tooltip>
-              ))}
+                          <item.icon className="h-5 w-5 flex-shrink-0" />
+                          <span
+                            className={`text-sm font-medium md:${
+                              collapsed ? "hidden" : ""
+                            }`}
+                          >
+                            {item.title}
+                          </span>
+                        </Link>
+                      </Button>
+                    </TooltipTrigger>
+                    {collapsed && (
+                      <TooltipContent side="right">{item.title}</TooltipContent>
+                    )}
+                  </Tooltip>
+                ))}
             </TooltipProvider>
           </nav>
         </div>
