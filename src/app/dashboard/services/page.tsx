@@ -1,79 +1,29 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import {
-  Search,
-  Plus,
-  MoreHorizontal,
-  Clock,
-  FolderPlus,
-  PoundSterling,
-} from "lucide-react";
+import { useState, useEffect } from "react";
+import { FolderPlus } from "lucide-react";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import toast from "react-hot-toast";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api-service";
 import { useUserSettings } from "@/contexts/UserSettingsContext";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter } from "next/navigation";
-import { days, daysStatusType, defaultServiceValues, serviceDurationOptions } from "@/lib/helpers";
+import toast from "react-hot-toast";
 import { categorySchema, serviceSchema } from "@/schemas/schema";
+import { useServiceMutations } from "@/hooks/use-service-mutations";
+import { CategoryFormDialog } from "@/components/services/category-form-dialog";
+import { ServiceFormDialog } from "@/components/services/service-form-dialog";
+import { CategoriesList } from "@/components/services/categories-list";
+import { ServicesTable } from "@/components/services/services-table";
 
 export default function ServicesPage() {
-  const { settings, updateSettings } = useUserSettings();
-  const [searchQuery, setSearchQuery] = useState("");
+  const { settings } = useUserSettings();
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showServiceModal, setShowServiceModal] = useState(false);
-  const [isAddingService, setIsAddingService] = useState(false);
-  const [showDeleteCategoryModal, setShowDeleteCategoryModal] = useState(false);
-  const [showDeleteServiceModal, setShowDeleteServiceModal] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
-  const [editingCategory, setEditingCategory] =
-    useState<ServiceCategory | null>(null);
+  const [editingCategory, setEditingCategory] = useState<ServiceCategory | null>(null);
 
   const router = useRouter();
-  const queryClient = useQueryClient();
 
   const { data: categoriesData, isLoading: isLoadingCategories } = useQuery({
     queryKey: ["categories"],
@@ -94,242 +44,13 @@ export default function ServicesPage() {
   const categories = categoriesData?.data.categories || [];
   const services = servicesData?.data.services || [];
 
-  // Category form
-  const categoryForm = useForm<{ name: string }>({
-    resolver: zodResolver(categorySchema),
-    defaultValues: {
-      name: "",
-    },
-  });
-
-  // Service form
-  const serviceForm = useForm<Omit<Service, "id">>({
-    resolver: zodResolver(serviceSchema),
-    defaultValues: defaultServiceValues,
-  });
-
-  const createCategoryMutation = useMutation({
-    mutationFn: async (values: z.infer<typeof categorySchema>) => {
-      const controller = new AbortController();
-      const signal = controller.signal;
-
-      try {
-        const response = await api.post(
-          editingCategory
-            ? `sp/categories/${editingCategory.id}`
-            : "sp/categories",
-          {
-            ...values,
-          },
-          { signal }
-        );
-        return response;
-      } catch (error: unknown) {
-        if (error instanceof Error && error.name === "AbortError") {
-          toast.error("Request was cancelled");
-        }
-        throw error;
-      }
-    },
-    onMutate: () => {
-      toast.loading(`${editingCategory ? "Editing" : "Creating"} category...`, {
-        id: `${editingCategory ? "edit" : "create"}-category`,
-      });
-    },
-    onSuccess: (response: any) => {
-      toast.success(
-        `Category ${editingCategory ? "updated" : "created"} successfully`,
-        { id: `${editingCategory ? "edit" : "create"}-category` }
-      );
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
-    },
-    onError: (error: Error) => {
-      toast.error(
-        error?.message ||
-          `Failed to ${editingCategory ? "update" : "create new"} category`,
-        { id: `${editingCategory ? "edit" : "create"}-category` }
-      );
-    },
-  });
-
-  const onSubmitCategory = async (data: z.infer<typeof categorySchema>) => {
-    try {
-      await createCategoryMutation.mutateAsync(data);
-      setShowCategoryModal(false);
-      categoryForm.reset();
-    } catch (error) {
-      console.error("Failed to create category:", error);
-    }
-  };
-
-  const createServiceMutation = useMutation({
-    mutationFn: async (values: z.infer<typeof serviceSchema>) => {
-      const controller = new AbortController();
-      const signal = controller.signal;
-
-      try {
-        const response = await api.post(
-          editingService ? `sp/services/${editingService.id}` : "/sp/services",
-          values,
-          { signal }
-        );
-        return response;
-      } catch (error: unknown) {
-        if (error instanceof Error && error.name === "AbortError") {
-          toast.error("Request was cancelled");
-        }
-        throw error;
-      }
-    },
-    onMutate: () => {
-      toast.loading(
-        editingService ? "Updating service" : "Creating service...",
-        { id: editingService ? "update-service" : "create-service" }
-      );
-    },
-    onSuccess: (response: any) => {
-      toast.success(
-        `Service ${editingService ? "updated" : "created"} successfully`,
-        { id: editingService ? "update-service" : "create-service" }
-      );
-      queryClient.invalidateQueries({ queryKey: ["services"] });
-      setShowServiceModal(false);
-      setEditingService(null);
-    },
-    onError: (error: Error) => {
-      toast.error(
-        error?.message ||
-          `Failed to ${editingService ? "update" : "create new"} service`,
-        {
-          id: editingService ? "update-service" : "create-service",
-        }
-      );
-    },
-  });
-
-  const deleteCategoryMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const controller = new AbortController();
-      const signal = controller.signal;
-
-      try {
-        await api.delete(`sp/categories/${id}`, { signal });
-        return { id };
-      } catch (error: unknown) {
-        if (error instanceof Error && error.name === "AbortError") {
-          toast.error("Request was cancelled");
-        }
-        throw error;
-      }
-    },
-    onMutate: () => {
-      toast.loading("Deleting category", { id: "delete-category" });
-    },
-    onSuccess: (response: any) => {
-      toast.success(`Category deleted successfully`, { id: "delete-category" });
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
-      setShowCategoryModal(false);
-      setEditingCategory(null);
-    },
-    onError: (error: Error) => {
-      toast.error(error?.message || `Failed to delete category`, {
-        id: "delete-category",
-      });
-    },
-  });
-
-  const deleteServiceMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const controller = new AbortController();
-      const signal = controller.signal;
-
-      try {
-        await api.delete(`sp/services/${id}`, { signal });
-        return { id };
-      } catch (error: unknown) {
-        if (error instanceof Error && error.name === "AbortError") {
-          toast.error("Request was cancelled");
-        }
-        throw error;
-      }
-    },
-    onMutate: () => {
-      toast.loading("Deleting service", { id: "delete-service" });
-    },
-    onSuccess: (response: any) => {
-      toast.success(`Service deleted successfully`, { id: "delete-service" });
-      queryClient.invalidateQueries({ queryKey: ["services"] });
-      setShowServiceModal(false);
-      setEditingService(null);
-    },
-    onError: (error: Error) => {
-      toast.error(error?.message || `Failed to delete service`, {
-        id: "delete-service",
-      });
-    },
-  });
-
-  const handleServiceSubmit = async (data: z.infer<typeof serviceSchema>) => {
-    try {
-      await createServiceMutation.mutateAsync(data);
-    } catch (e) {
-      console.error(e);
-    }
-    serviceForm.reset(defaultServiceValues);
-  };
-
-  const handleServiceDelete = async (id: number ) => {
-    try {
-      await deleteServiceMutation.mutateAsync(id);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleCategoryDelete = async (id: number) => {
-    try {
-      await deleteCategoryMutation.mutateAsync(id);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleEditService = (service: Service) => {
-    const days_enabled: string[] = [];
-
-    setEditingService(service);
-    serviceForm.reset({
-      ...service,
-    });
-    setShowServiceModal(true);
-  };
-
-  const handleEditCategory = (cat: ServiceCategory) => {
-    setEditingCategory(cat);
-    categoryForm.reset(cat);
-    setShowCategoryModal(true);
-  };
-
-  const filteredServices = useMemo(() => {
-    if (!services.length) return [];
-
-    if (!searchQuery) return services;
-
-    const query = searchQuery.toLowerCase().trim();
-
-    return services.filter((service) => {
-      const matchesName = service.name.toLowerCase().includes(query);
-      const matchesDescription = service.description
-        ?.toLowerCase()
-        .includes(query);
-      const matchesCategory = categories
-        .find((cat) => cat.id === service.CategoryId)
-        ?.name.toLowerCase()
-        .includes(query);
-
-      return matchesName || matchesDescription || matchesCategory;
-    });
-  }, [services, categories, searchQuery]);
+  // Get mutations from custom hook
+  const {
+    createCategoryMutation,
+    deleteCategoryMutation,
+    createServiceMutation,
+    deleteServiceMutation,
+  } = useServiceMutations();
 
   // Restrict access to admin and owner only
   useEffect(() => {
@@ -339,8 +60,80 @@ export default function ServicesPage() {
     }
   }, [settings, router]);
 
+  // Category handlers
+  const handleCategorySubmit = async (values: z.infer<typeof categorySchema>) => {
+    try {
+      await createCategoryMutation.mutateAsync({
+        values,
+        categoryId: editingCategory?.id,
+      });
+      setShowCategoryModal(false);
+      setEditingCategory(null);
+    } catch (error) {
+      console.error("Failed to save category:", error);
+    }
+  };
+
+  const handleCategoryEdit = (category: { id: number; name: string }) => {
+    setEditingCategory(category as ServiceCategory);
+    setShowCategoryModal(true);
+  };
+
+  const handleCategoryDelete = async (categoryId: number) => {
+    try {
+      await deleteCategoryMutation.mutateAsync(categoryId);
+    } catch (error) {
+      console.error("Failed to delete category:", error);
+    }
+  };
+
+  // Service handlers
+  const handleServiceSubmit = async (values: z.infer<typeof serviceSchema>, serviceId?: number) => {
+    try {
+      await createServiceMutation.mutateAsync({
+        values,
+        serviceId,
+      });
+      setShowServiceModal(false);
+      setEditingService(null);
+    } catch (error) {
+      console.error("Failed to save service:", error);
+    }
+  };
+
+  const handleServiceEdit = (service: Service) => {
+    setEditingService(service);
+    setShowServiceModal(true);
+  };
+
+  const handleServiceDelete = async (serviceId: number) => {
+    try {
+      await deleteServiceMutation.mutateAsync(serviceId);
+    } catch (error) {
+      console.error("Failed to delete service:", error);
+    }
+  };
+
+  // Close modals and reset editing state
+  const handleCategoryModalChange = (open: boolean) => {
+    setShowCategoryModal(open);
+    if (!open) {
+      setEditingCategory(null);
+    }
+  };
+
+  const handleServiceModalChange = (open: boolean) => {
+    setShowServiceModal(open);
+    if (!open) {
+      setEditingService(null);
+    }
+  };
+
+  const isLoading = isLoadingCategories || isLoadingServices;
+
   return (
     <div className="space-y-6">
+      {/* Page Header */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1>Services</h1>
@@ -349,783 +142,71 @@ export default function ServicesPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Dialog
+          <CategoryFormDialog
             open={showCategoryModal}
-            onOpenChange={(val) => {
-              if (!val) {
-                categoryForm.reset({
-                  name: "",
-                });
-              }
-              setShowCategoryModal(val);
-            }}
-          >
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <FolderPlus className="mr-2 h-4 w-4" />
-                Add Category
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] overflow-y-auto max-h-screen">
-              <DialogHeader>
-                <DialogTitle>Add New Category</DialogTitle>
-                <DialogDescription>
-                  Create a new category for your services.
-                </DialogDescription>
-              </DialogHeader>
-              <Form {...categoryForm}>
-                <form
-                  onSubmit={categoryForm.handleSubmit(onSubmitCategory)}
-                  className="space-y-4"
-                >
-                  <FormField
-                    control={categoryForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Category Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter category name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <DialogFooter>
-                    <Button type="submit">
-                      {editingCategory ? "Edit Category" : "Add Category"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-          <Dialog
+            onOpenChange={handleCategoryModalChange}
+            category={editingCategory}
+            onSubmit={handleCategorySubmit}
+            isSubmitting={createCategoryMutation.isPending}
+          />
+          <ServiceFormDialog
             open={showServiceModal}
-            onOpenChange={(val) => {
-              if (!val) {
-                serviceForm.reset(defaultServiceValues);
-              }
-              setShowServiceModal(val);
-            }}
-          >
-            <DialogTrigger asChild>
-              <Button
-                disabled={settings?.categories.length === 0}
-                variant="outline"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Add Service
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] overflow-y-auto max-h-screen">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingService ? "Edit Service" : "Add New Service"}
-                </DialogTitle>
-                <DialogDescription>
-                  Enter the basic details of your service
-                </DialogDescription>
-              </DialogHeader>
-              <Form {...serviceForm}>
-                <form
-                  onSubmit={serviceForm.handleSubmit(handleServiceSubmit)}
-                  className="space-y-4"
-                >
-                  <FormField
-                    control={serviceForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Service Name</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="e.g., Haircut, Manicure"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={serviceForm.control}
-                    name="CategoryId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Category</FormLabel>
-                        <Select
-                          onValueChange={(value) =>
-                            field.onChange(Number(value))
-                          }
-                          defaultValue={
-                            field.value && field.value !== 0
-                              ? field.value.toString()
-                              : ""
-                          }
-                          value={
-                            field.value && field.value !== 0
-                              ? field.value.toString()
-                              : ""
-                          }
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a category" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {categories.map((category) => (
-                                <SelectItem
-                                  key={category.id}
-                                  value={category.id.toString()}
-                                >
-                                  {category.name}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <FormField
-                      control={serviceForm.control}
-                      name="fullPrice"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Price</FormLabel>
-                          <div className="relative">
-                            <PoundSterling className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min="1"
-                                step="0.01"
-                                placeholder="0.00"
-                                className="pl-8"
-                                {...field}
-                              />
-                            </FormControl>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={serviceForm.control}
-                      name="duration"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Duration</FormLabel>
-                          <Select
-                            onValueChange={(value) =>
-                              field.onChange(Number.parseInt(value))
-                            }
-                            defaultValue={field.value.toString()}
-                            value={field.value.toString()}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select duration" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {serviceDurationOptions.map((option) => (
-                                <SelectItem
-                                  key={option.value}
-                                  value={option.value}
-                                >
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <FormField
-                    control={serviceForm.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Brief description of the service"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="mb-2">
-                    <FormLabel>Available Days</FormLabel>
-                    <FormDescription>
-                      Select the days when this service is available
-                    </FormDescription>
-                  </div>
-                  {days.map((day) => (
-                    <FormField
-                      key={day}
-                      control={serviceForm.control}
-                      name={
-                        `${day}_enabled` as
-                          | "monday_enabled"
-                          | "tuesday_enabled"
-                          | "wednesday_enabled"
-                          | "thursday_enabled"
-                          | "friday_enabled"
-                          | "saturday_enabled"
-                          | "sunday_enabled"
-                      }
-                      render={({ field }) => {
-                        return (
-                          <FormItem
-                            key={day}
-                            className="flex items-center space-x-1 space-y-0"
-                          >
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                              />
-                            </FormControl>
-                            <FormLabel className="text-xs font-normal">
-                              {day.charAt(0).toUpperCase() + day.slice(1)}
-                            </FormLabel>
-                          </FormItem>
-                        );
-                      }}
-                    />
-                  ))}
-
-                  <DialogFooter>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        setIsAddingService(false);
-                        setEditingService(null);
-                        setShowServiceModal(false);
-                        serviceForm.reset(defaultServiceValues);
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button type="submit">
-                      {editingService ? "Update Service" : "Add Service"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
+            onOpenChange={handleServiceModalChange}
+            service={editingService}
+            categories={categories}
+            onSubmit={handleServiceSubmit}
+            isSubmitting={createServiceMutation.isPending}
+            disabled={categories.length === 0}
+          />
         </div>
       </div>
-      <Card className="shadow-card">
-        <CardHeader className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-          <CardTitle>Categories List</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {categories.length === 0 ? (
-            <div className="rounded-md border border-dashed border-[#E0E0E5] p-6 text-center">
-              <p className="text-sm text-[#6E6E73]">
-                No categories yet. Add your first service category.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
-              {categories.map((category) => (
-                <div
-                  key={category.id}
-                  className="flex justify-between rounded-md border border-[#E0E0E5] bg-[#F5F5F7]/50 p-3"
-                >
-                  <div className="flex flex-col">
-                    <div className="font-medium">{category.name}</div>
-                    <div className="mt-1 text-xs text-[#6E6E73]">
-                      {category.serviceCount}{" "}
-                      services
-                    </div>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Actions</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => handleEditCategory(category)}
-                      >
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive"
-                        onClick={() => setShowDeleteCategoryModal(true)}
-                      >
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <Dialog
-                    open={showDeleteCategoryModal}
-                    onOpenChange={(val) => setShowDeleteCategoryModal(val)}
-                  >
-                    <DialogContent className="sm:max-w-[480px] overflow-y-auto max-h-screen">
-                      <DialogHeader>
-                        <DialogTitle>
-                          Are you sure you want to delete this category?
-                        </DialogTitle>
-                        <DialogDescription>
-                          Deleting this category is irreversible and associated
-                          services will be deleted too.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <DialogFooter>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setShowDeleteCategoryModal(false)}
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          onClick={() => {
-                            handleCategoryDelete(category.id);
-                            setShowDeleteCategoryModal(false);
-                          }}
-                          type="button"
-                          variant="destructive"
-                        >
-                          Delete
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
-      <Card className="shadow-card">
-        <CardHeader className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-          <CardTitle>Service List</CardTitle>
-          <div className="flex w-full items-center gap-2 sm:w-auto">
-            <div className="relative flex-1 sm:w-64">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search services..."
-                className="pl-8"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            {/* <Button variant="outline" size="icon">
-              <Filter className="h-4 w-4" />
-            </Button> */}
+      {/* Categories Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Categories</h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowCategoryModal(true)}
+          >
+            <FolderPlus className="mr-2 h-4 w-4" />
+            Add Category
+          </Button>
+        </div>
+        {isLoadingCategories ? (
+          <div className="text-center text-muted-foreground py-8">
+            Loading categories...
           </div>
-        </CardHeader>
-        <CardContent>
-          {services.length === 0 ? (
-            <div className="rounded-md border border-dashed border-[#E0E0E5] p-6 text-center">
-              <p className="text-sm text-[#6E6E73]">
-                No services yet. Add your first service.
-              </p>
-            </div>
-          ) : searchQuery ? (
-            <div>
-              {filteredServices.length === 0 ? (
-                <div className="rounded-md border border-dashed border-[#E0E0E5] p-6 text-center">
-                  <p className="text-sm text-[#6E6E73]">
-                    No services match your search query: "{searchQuery}"
-                  </p>
-                </div>
-              ) : (
-                <div>
-                  <div className="mb-4">
-                    <h3 className="text-sm text-muted-foreground">
-                      Showing results for: "{searchQuery}"
-                    </h3>
-                  </div>
-                  <div className="rounded-md border">
-                    <table className="table w-full">
-                      <thead>
-                        <tr className="border-b bg-muted/50 text-left text-sm font-medium">
-                          <th className="px-4 py-3">Service</th>
-                          <th className="hidden md:table-cell px-4 py-3">
-                            Category
-                          </th>
-                          <th className="hidden md:table-cell px-4 py-3">
-                            Duration
-                          </th>
-                          <th className="hidden md:table-cell px-4 py-3">
-                            Price
-                          </th>
-                          <th className="px-4 py-3 text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredServices.map((service) => (
-                          <tr key={service.id} className="border-b">
-                            <td className="px-4 py-3">
-                              <div>
-                                <div className="font-medium">
-                                  {service.name}
-                                </div>
-                                <div className="text-xs text-muted-foreground">
-                                  {service.description}
-                                </div>
-                              </div>
-                              <div className="flex md:hidden text-sm items-center gap-4 mt-1">
-                                <div className="flex items-center gap-1">
-                                  <Clock className="h-4 w-4 text-muted-foreground" />
-                                  {service.duration}
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  £{service.fullPrice}
-                                </div>
-                              </div>
-                            </td>
-                            <td className="hidden md:table-cell px-4 py-3">
-                              <Badge variant="outline">
-                                {
-                                  settings?.categories.find(
-                                    (cat) => cat.id === service.CategoryId
-                                  )!.name
-                                }
-                              </Badge>
-                            </td>
-                            <td className="hidden md:table-cell px-4 py-3">
-                              <div className="flex items-center gap-1">
-                                <Clock className="h-4 w-4 text-muted-foreground" />
-                                {service.duration}
-                              </div>
-                            </td>
-                            <td className="hidden md:table-cell px-4 py-3">
-                              £{service.fullPrice}
-                            </td>
-                            <td className="px-4 py-3 text-right">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">Actions</span>
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem
-                                    onClick={() => handleEditService(service)}
-                                  >
-                                    Edit service
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem>
-                                    View bookings
-                                  </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem className="text-destructive">
-                                    Delete service
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <Tabs defaultValue="all">
-              <TabsList className="mb-4">
-                <TabsTrigger value="all">All Services</TabsTrigger>
-                {settings &&
-                  settings.categories.map((cat) => (
-                    <TabsTrigger key={cat.id} value={cat.id.toString()}>
-                      {cat.name}
-                    </TabsTrigger>
-                  ))}
-              </TabsList>
-              {settings &&
-                settings.categories.map((cat) => (
-                  <TabsContent
-                    key={cat.id}
-                    value={cat.id.toString()}
-                    className="w-full m-0"
-                  >
-                    {settings &&
-                    settings.services.filter(
-                      (service) => service.CategoryId === cat.id
-                    ).length ? (
-                      <div className="rounded-md border">
-                        <table className="table w-full">
-                          <thead>
-                            <tr className="border-b bg-muted/50 text-left text-sm font-medium">
-                              <th className="px-4 py-3">Service</th>
-                              <th className="hidden md:table-cell px-4 py-3">
-                                Category
-                              </th>
-                              <th className="hidden md:table-cell px-4 py-3">
-                                Duration
-                              </th>
-                              <th className="hidden md:table-cell px-4 py-3">
-                                Price
-                              </th>
-                              <th className="px-4 py-3 text-right">Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {services
-                                .filter(
-                                  (service) => service.CategoryId === cat.id
-                                )
-                                .map((service) => (
-                                  <tr key={service.id} className="border-b">
-                                    <td className="px-4 py-3">
-                                      <div>
-                                        <div className="font-medium">
-                                          {service.name}
-                                        </div>
-                                        <div className="text-xs text-muted-foreground">
-                                          {service.description}
-                                        </div>
-                                      </div>
-                                      <div className="flex md:hidden text-sm items-center gap-4 mt-1">
-                                        <div className="flex items-center gap-1">
-                                          <Clock className="h-4 w-4 text-muted-foreground" />
-                                          {service.duration}
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                          £{service.fullPrice}
-                                        </div>
-                                      </div>
-                                    </td>
-                                    <td className="hidden md:table-cell px-4 py-3">
-                                      <Badge variant="outline">
-                                        {
-                                          settings.categories.find(
-                                            (cat) =>
-                                              cat.id === service.CategoryId
-                                          )!.name
-                                        }
-                                      </Badge>
-                                    </td>
-                                    <td className="hidden md:table-cell px-4 py-3">
-                                      <div className="flex items-center gap-1">
-                                        <Clock className="h-4 w-4 text-muted-foreground" />
-                                        {service.duration}
-                                      </div>
-                                    </td>
-                                    <td className="hidden md:table-cell px-4 py-3">
-                                      £{service.fullPrice}
-                                    </td>
-                                    <td className="px-4 py-3 text-right">
-                                      <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                          <Button variant="ghost" size="icon">
-                                            <MoreHorizontal className="h-4 w-4" />
-                                            <span className="sr-only">
-                                              Actions
-                                            </span>
-                                          </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                          <DropdownMenuLabel>
-                                            Actions
-                                          </DropdownMenuLabel>
-                                          <DropdownMenuSeparator />
-                                          <DropdownMenuItem
-                                            onClick={() =>
-                                              handleEditService(service)
-                                            }
-                                          >
-                                            Edit service
-                                          </DropdownMenuItem>
-                                          <DropdownMenuItem>
-                                            View bookings
-                                          </DropdownMenuItem>
-                                          <DropdownMenuSeparator />
-                                          <DropdownMenuItem className="text-destructive">
-                                            Delete service
-                                          </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                      </DropdownMenu>
-                                    </td>
-                                  </tr>
-                                ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center p-4">
-                        <p className="text-sm text-muted-foreground">
-                          No services available in this category.
-                        </p>
-                      </div>
-                    )}
-                  </TabsContent>
-                ))}
-              <TabsContent value="all" className="w-full m-0">
-                <div className="rounded-md border">
-                  <table className="table w-full">
-                    <thead>
-                      <tr className="border-b bg-muted/50 text-left text-sm font-medium">
-                        <th className="px-4 py-3">Service</th>
-                        <th className="hidden md:table-cell px-4 py-3">
-                          Category
-                        </th>
-                        <th className="hidden md:table-cell px-4 py-3">
-                          Duration
-                        </th>
-                        <th className="hidden md:table-cell px-4 py-3">
-                          Price
-                        </th>
-                        <th className="px-4 py-3 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredServices.map((service) => (
-                        <tr
-                          key={`service_${service.id}_${service.name}`}
-                          className="border-b"
-                        >
-                          <td className="px-4 py-3">
-                            <div>
-                              <div className="font-medium">{service.name}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {service.description}
-                              </div>
-                            </div>
-                            <div className="flex md:hidden text-sm items-center gap-4 mt-1">
-                              <div className="flex items-center gap-1">
-                                <Clock className="h-4 w-4 text-muted-foreground" />
-                                {service.duration}
-                              </div>
-                              <div className="flex items-center gap-1">
-                                £{service.fullPrice}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="hidden md:table-cell px-4 py-3">
-                            {settings?.categories.find(
-                              (cat) => cat.id === service.CategoryId
-                            ) && (
-                              <Badge variant="outline">
-                                {
-                                  settings?.categories.find(
-                                    (cat) => cat.id === service.CategoryId
-                                  )!.name
-                                }
-                              </Badge>
-                            )}
-                          </td>
-                          <td className="hidden md:table-cell px-4 py-3">
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-4 w-4 text-muted-foreground" />
-                              {service.duration}
-                            </div>
-                          </td>
-                          <td className="hidden md:table-cell px-4 py-3">
-                            £{service.fullPrice}
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                  <span className="sr-only">Actions</span>
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    handleEditService(service);
-                                  }}
-                                >
-                                  Edit
-                                </DropdownMenuItem>
-                                {/* <DropdownMenuItem>
-                                  View bookings
-                                </DropdownMenuItem> */}
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  className="text-destructive"
-                                  onClick={() =>
-                                    setShowDeleteServiceModal(true)
-                                  }
-                                >
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                            <Dialog
-                              open={showDeleteServiceModal}
-                              onOpenChange={setShowDeleteServiceModal}
-                            >
-                              <DialogContent className="sm:max-w-[480px] overflow-y-auto max-h-screen">
-                                <DialogHeader>
-                                  <DialogTitle>
-                                    Are you sure you want to delete this
-                                    service?
-                                  </DialogTitle>
-                                  <DialogDescription>
-                                    Deleting this service is irreversible.
-                                  </DialogDescription>
-                                </DialogHeader>
-                                <DialogFooter>
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() =>
-                                      setShowDeleteServiceModal(false)
-                                    }
-                                  >
-                                    Cancel
-                                  </Button>
-                                  <Button
-                                    onClick={() => {
-                                      handleServiceDelete(service.id);
-                                      setShowDeleteServiceModal(false);
-                                    }}
-                                    type="button"
-                                    variant="destructive"
-                                  >
-                                    Delete
-                                  </Button>
-                                </DialogFooter>
-                              </DialogContent>
-                            </Dialog>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </TabsContent>
-            </Tabs>
-          )}
-        </CardContent>
-      </Card>
+        ) : (
+          <CategoriesList
+            categories={categories}
+            onEdit={handleCategoryEdit}
+            onDelete={handleCategoryDelete}
+            isDeleting={deleteCategoryMutation.isPending}
+          />
+        )}
+      </div>
+
+      {/* Services Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">All Services</h2>
+        </div>
+        {isLoadingServices ? (
+          <div className="text-center text-muted-foreground py-8">
+            Loading services...
+          </div>
+        ) : (
+          <ServicesTable
+            services={services}
+            categories={categories}
+            onEdit={handleServiceEdit}
+            onDelete={handleServiceDelete}
+            isDeleting={deleteServiceMutation.isPending}
+          />
+        )}
+      </div>
     </div>
   );
 }
