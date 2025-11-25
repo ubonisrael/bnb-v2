@@ -184,3 +184,97 @@ interface UpdateServiceErrorResponse {
 type UpdateServiceApiResponse =
   | UpdateServiceSuccessResponse
   | UpdateServiceErrorResponse;
+
+interface ServiceDetailsData {
+  service: {
+    id: number;
+    name: string;
+    duration: number;
+    description: string;
+    fullPrice: number;
+    CategoryId: number;
+    category: {
+      id: number;
+      name: string;
+    } | null;
+    monday_enabled: boolean;
+    tuesday_enabled: boolean;
+    wednesday_enabled: boolean;
+    thursday_enabled: boolean;
+    friday_enabled: boolean;
+    saturday_enabled: boolean;
+    sunday_enabled: boolean;
+    staff: Array<{
+      id: number;
+      role: string;
+      status: string;
+      user: {
+        id: number;
+        full_name: string;
+        email: string;
+        avatar: string | null;
+      } | null;
+    }>;
+  };
+  analytics: {
+    bookings: {
+      last7Days: { count: number; percentageChange: number };
+      last2Weeks: { count: number; percentageChange: number };
+      lastMonth: { count: number; percentageChange: number };
+      lastQuarter: { count: number; percentageChange: number };
+      lastYear: { count: number; percentageChange: number };
+      allTime: { count: number };
+    };
+    totalRevenue: number;
+    uniqueClients: number;
+  };
+}
+
+interface ServiceClient {
+  id: number;
+  full_name: string;
+  email: string;
+  phone_number: string | null;
+  bookingCount: number;
+}
+
+interface ServiceAppointment {
+  id: number;
+  start_time: string;
+  end_time: string;
+  duration: number;
+  price: number;
+  status: string;
+  notes: string | null;
+  staff: {
+    id: number;
+    role: string;
+    status: string;
+    user: {
+      id: number;
+      full_name: string;
+      email: string;
+      avatar: string | null;
+    } | null;
+  } | null;
+  booking: {
+    id: number;
+    uuid: string;
+    status: string;
+    payment_status: string;
+  } | null;
+  customer: {
+    id: number;
+    full_name: string;
+    email: string;
+    phone_number: string | null;
+  } | null;
+}
+
+interface ServiceDetailsDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  serviceId: number | null;
+  onEdit: () => void;
+  onDelete: () => void;
+}

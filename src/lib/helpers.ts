@@ -116,3 +116,59 @@ export const getPaymentBadgeStyles = (status: string) => {
       return "bg-gray-50 text-gray-700 border-gray-200";
   }
 };
+
+export const getDurationLabel = (duration: number) => {
+  const hours = Math.floor(duration / 60);
+  const minutes = duration % 60;
+  
+  if (hours === 0) return `${minutes} minutes`;
+  if (minutes === 0) return hours === 1 ? "1 hour" : `${hours} hours`;
+  return `${hours} hour${hours > 1 ? 's' : ''} ${minutes} minutes`;
+};
+
+export const getInitials = (name: string) => {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+};
+
+export const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+export const getStatusBadgeVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
+  switch (status.toLowerCase()) {
+    case "confirmed":
+      return "default";
+    case "pending":
+      return "secondary";
+    case "cancelled":
+      return "destructive";
+    default:
+      return "outline";
+  }
+};
+
+export const getAvailableDays = (service: any) => {
+    if (!service) return [];
+    const days = [
+      { key: "monday_enabled", label: "Mon" },
+      { key: "tuesday_enabled", label: "Tue" },
+      { key: "wednesday_enabled", label: "Wed" },
+      { key: "thursday_enabled", label: "Thu" },
+      { key: "friday_enabled", label: "Fri" },
+      { key: "saturday_enabled", label: "Sat" },
+      { key: "sunday_enabled", label: "Sun" },
+    ];
+    return days.filter((day) => service[day.key as keyof typeof service]).map((d) => d.label);
+  };
