@@ -68,7 +68,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import dayjs from "@/utils/dayjsConfig";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/services/api-service";
 import toast from "react-hot-toast";
 import { newProgramSchema, programClassSchema } from "@/schemas/schema";
@@ -96,7 +96,7 @@ type ProgramClassFormValues = z.infer<typeof programClassSchema>;
 
 export default function ProgramsPage() {
   const { settings } = useUserSettings();
-  const [programs, setPrograms] = useState<INewProgram[]>([]);
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterBy, setFilterBy] = useState<string>("");
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -135,6 +135,17 @@ export default function ProgramsPage() {
 
   // Get user's timezone
   const userTimezone = dayjs.tz.guess();
+
+  // Fetch programs using TanStack Query
+  const { data: programsData, isLoading: isProgramsLoading } = useQuery({
+    queryKey: ["programs"],
+    queryFn: async () => {
+      const response = await api.get<GetAllProgramsResponse>("programs");
+      return response;
+    },
+  });
+
+  const programs = programsData?.data?.programs || [];
 
   // Program form
   const programForm = useForm<NewProgramFormValues>({
@@ -258,7 +269,7 @@ export default function ProgramsPage() {
     onSuccess: (response: CreateProgramResponse) => {
       toast.success(response.message, { id: "create-program" });
       programForm.reset();
-      setPrograms((prev) => [...prev, response.data.program]);
+      queryClient.invalidateQueries({ queryKey: ["programs"] });
       setShowCreateModal(false);
     },
     onError: (error: Error) => {
@@ -305,13 +316,7 @@ export default function ProgramsPage() {
     onSuccess: (response: UpdateProgramResponse) => {
       toast.success(response.message, { id: "update-program" });
       editProgramForm.reset();
-      setPrograms((prev) =>
-        prev.map((program) =>
-          program.id === response.data.program.id
-            ? { ...program, ...response.data.program }
-            : program
-        )
-      );
+      queryClient.invalidateQueries({ queryKey: ["programs"] });
       setShowEditModal(false);
       setEditingProgram(null);
     },
@@ -387,9 +392,7 @@ export default function ProgramsPage() {
       toast.success(response.message || "Program deleted successfully", {
         id: "delete-program",
       });
-      setPrograms((prev) =>
-        prev.filter((program) => program.id !== selectedProgram?.id)
-      );
+      queryClient.invalidateQueries({ queryKey: ["programs"] });
       setShowDetailsView(false);
       setSelectedProgram(null);
     },
@@ -770,20 +773,6 @@ export default function ProgramsPage() {
     }
   });
 
-  useEffect(() => {
-    // Fetch programs data
-    const fetchPrograms = async () => {
-      try {
-        const response = await api.get<GetAllProgramsResponse>("programs");
-        setPrograms(response.data.programs);
-      } catch (error) {
-        console.error("Error fetching programs:", error);
-      }
-    };
-
-    fetchPrograms();
-  }, []);
-
   // Restrict access to admin and owner only
   useEffect(() => {
     if (settings && settings.role !== "owner" && settings.role !== "admin") {
@@ -870,7 +859,13 @@ export default function ProgramsPage() {
           </div>
 
           {/* Programs Grid */}
-          {filteredPrograms.length === 0 ? (
+          {isProgramsLoading ? (
+            /* Loading State */
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent border-[#7B68EE]"></div>
+              <p className="mt-4 text-[#6E6E73]">Loading programs...</p>
+            </div>
+          ) : filteredPrograms.length === 0 ? (
             /* Empty State */
             <div className="flex flex-col items-center justify-center py-20">
               <div className="text-center">

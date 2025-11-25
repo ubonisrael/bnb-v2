@@ -132,60 +132,6 @@ export default function PaymentDashboardPage() {
           )}
         </CardContent>
       </Card>
-
-      {/* Transaction History Section */}
-      {/* <Card>
-        <CardHeader>
-          <CardTitle>Transaction History</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {invoices.length > 0 ? (
-            invoices.map((invoice) => (
-              <div
-                key={invoice.id}
-                className="flex justify-between items-start border-b pb-3 last:border-none"
-              >
-                <div>
-                  <p className="font-medium">{invoice.description}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {invoice.date} &bull; {invoice.customerName} (
-                    {invoice.customerEmail})
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Status: {invoice.status}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p
-                    className={cn(
-                      "font-semibold",
-                      invoice.direction === "incoming"
-                        ? "text-green-600"
-                        : "text-red-600"
-                    )}
-                  >
-                    {invoice.direction === "incoming" ? "+" : "-"}$
-                    {(invoice.amountPaid / 100).toFixed(2)}
-                  </p>
-                  <Button variant="link" asChild className="text-xs px-0">
-                    <a
-                      href={invoice.invoiceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      View Invoice
-                    </a>
-                  </Button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              No transactions found.
-            </p>
-          )}
-        </CardContent>
-      </Card> */}
     </div>
   );
 }
