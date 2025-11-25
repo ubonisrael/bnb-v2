@@ -45,26 +45,21 @@ export default function ProgramsPageRefactored() {
   const [filterBy, setFilterBy] = useState<string>("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editingProgram, setEditingProgram] = useState<INewProgram | null>(null);
+  const [editingProgram, setEditingProgram] = useState<INewProgram | null>(
+    null
+  );
   const [showCreateClassModal, setShowCreateClassModal] = useState(false);
   const [showEditClassModal, setShowEditClassModal] = useState(false);
   const [editingClass, setEditingClass] = useState<IProgramClass | null>(null);
   const [showDetailsView, setShowDetailsView] = useState(false);
   const [showClassView, setShowClassView] = useState(false);
-  const [selectedProgram, setSelectedProgram] = useState<INewProgram | null>(null);
-  const [selectedClass, setSelectedClass] = useState<IProgramClass | null>(null);
-  const [programDetails, setProgramDetails] = useState<{
-    classes: IProgramClass[];
-    students: IProgramStudent[];
-    stats: IProgramStat;
-  } | null>(null);
-  const [classDetails, setClassDetails] = useState<{
-    students: any[];
-  } | undefined>(undefined);
-  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
-  const [isLoadingClassDetails, setIsLoadingClassDetails] = useState(false);
+  const [selectedProgram, setSelectedProgram] = useState<INewProgram | null>(
+    null
+  );
+  const [selectedClass, setSelectedClass] = useState<IProgramClass | null>(
+    null
+  );
 
-  // Fetch programs
   const { data: programsData, isLoading: isProgramsLoading } = useQuery({
     queryKey: ["programs"],
     queryFn: async () => {
@@ -72,8 +67,44 @@ export default function ProgramsPageRefactored() {
       return response;
     },
   });
+  const { data: programData, isLoading: isProgramLoading } = useQuery({
+    queryKey: ["program", selectedProgram?.id],
+    queryFn: async () => {
+      if (!selectedProgram?.id) return null;
+      return await api.get<GetProgramByIdResponse>(
+        `programs/${selectedProgram?.id}`
+      );
+    },
+    enabled: !!selectedProgram?.id,
+  });
+
+  const { data: classData, isLoading: isClassLoading } = useQuery({
+    queryKey: ["program-class", selectedClass?.id],
+    queryFn: async () => {
+      if (!selectedClass?.id) return null;
+      return await api.get<GetProgramClassByIdResponse>(
+        `programs/classes/${selectedClass.id}`
+      );
+    },
+    enabled: !!selectedClass?.id,
+  });
 
   const programs = programsData?.data?.programs || [];
+  const programDetails: {
+    classes: IProgramClass[];
+    students: IProgramStudent[];
+    stats: IProgramStat;
+  } | null = programData?.data
+    ? {
+        classes: programData.data.classes,
+        students: programData.data.students,
+        stats: programData.data.stats,
+      }
+    : null;
+  const classDetails: { students: any[] } | undefined = classData?.data
+    ? { students: classData.data.students || [] } // Add fallback for students
+    : undefined;
+
   const {
     createProgramMutation,
     updateProgramMutation,
@@ -85,7 +116,9 @@ export default function ProgramsPageRefactored() {
 
   // Filter and search programs
   const filteredPrograms = programs.filter((program) => {
-    const matchesSearch = program.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = program.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
 
     if (!filterBy) return matchesSearch;
 
@@ -103,86 +136,39 @@ export default function ProgramsPageRefactored() {
     }
   });
 
-  const fetchProgramDetails = async (programId: number) => {
-    setIsLoadingDetails(true);
-    try {
-      const response = await api.get<GetProgramByIdResponse>(`programs/${programId}`);
-      setProgramDetails({
-        classes: response.data.classes,
-        students: response.data.students,
-        stats: response.data.stats,
-      });
-    } catch (error) {
-      console.error("Error fetching program details:", error);
-      toast.error("Failed to load program details");
-      setProgramDetails({
-        classes: [],
-        students: [],
-        stats: {
-          totalClasses: 0,
-          totalEnrollments: 0,
-          uniqueStudents: 0,
-          totalRevenue: 0,
-          averageRevenuePerClass: 0,
-          averageEnrollmentsPerClass: 0,
-        },
-      });
-    } finally {
-      setIsLoadingDetails(false);
-    }
-  };
-
-  const fetchClassDetails = async (classId: number) => {
-    setIsLoadingClassDetails(true);
-    try {
-      const response = await api.get<GetProgramClassByIdResponse>(`classes/${classId}`);
-      setClassDetails({
-        students: response.data.students || [],
-      });
-    } catch (error) {
-      console.error("Error fetching class details:", error);
-      toast.error("Failed to load class details");
-      setClassDetails({ students: [] });
-    } finally {
-      setIsLoadingClassDetails(false);
-    }
-  };
-
-  const refetchProgramDetails = () => {
-    if (selectedProgram) {
-      fetchProgramDetails(selectedProgram.id);
-    }
-  };
-
   const handleViewDetails = (program: INewProgram) => {
     setSelectedProgram(program);
     setShowDetailsView(true);
-    fetchProgramDetails(program.id);
   };
 
   const handleBackFromDetails = () => {
     setShowDetailsView(false);
     setSelectedProgram(null);
-    setProgramDetails(null);
   };
 
   const handleBackFromClassDetails = () => {
     setShowClassView(false);
     setSelectedClass(null);
-    setClassDetails(undefined);
   };
 
   const handleDeleteProgram = () => {
     if (!selectedProgram) return;
 
     if (selectedProgram.is_published) {
-      toast.error("Cannot delete a published program. Please deactivate it instead.", {
-        duration: 4000,
-      });
+      toast.error(
+        "Cannot delete a published program. Please deactivate it instead.",
+        {
+          duration: 4000,
+        }
+      );
       return;
     }
 
-    if (window.confirm(`Are you sure you want to delete "${selectedProgram.name}"?`)) {
+    if (
+      window.confirm(
+        `Are you sure you want to delete "${selectedProgram.name}"?`
+      )
+    ) {
       deleteProgramMutation.mutate(selectedProgram.id, {
         onSuccess: () => {
           setShowDetailsView(false);
@@ -219,7 +205,6 @@ export default function ProgramsPageRefactored() {
         onSuccess: () => {
           setShowEditModal(false);
           setEditingProgram(null);
-          refetchProgramDetails();
         },
       }
     );
@@ -253,7 +238,6 @@ export default function ProgramsPageRefactored() {
     createClassMutation.mutate(payload, {
       onSuccess: () => {
         setShowCreateClassModal(false);
-        refetchProgramDetails();
       },
     });
   };
@@ -288,7 +272,6 @@ export default function ProgramsPageRefactored() {
         onSuccess: () => {
           setShowEditClassModal(false);
           setEditingClass(null);
-          refetchProgramDetails();
         },
       }
     );
@@ -297,14 +280,16 @@ export default function ProgramsPageRefactored() {
   const handleViewClass = (cls: IProgramClass) => {
     setSelectedClass(cls);
     setShowClassView(true);
-    fetchClassDetails(cls.id);
   };
 
   const handleDeleteClass = (cls: IProgramClass) => {
     if (cls.is_published) {
-      toast.error("Cannot delete a published class. Please deactivate it instead.", {
-        duration: 4000,
-      });
+      toast.error(
+        "Cannot delete a published class. Please deactivate it instead.",
+        {
+          duration: 4000,
+        }
+      );
       return;
     }
 
@@ -314,7 +299,6 @@ export default function ProgramsPageRefactored() {
           if (showClassView) {
             handleBackFromClassDetails();
           }
-          refetchProgramDetails();
         },
       });
     }
@@ -341,7 +325,9 @@ export default function ProgramsPageRefactored() {
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
               <h1 className="text-3xl font-bold text-[#121212]">Programs</h1>
-              <p className="text-[#6E6E73]">Manage your programs and workshops.</p>
+              <p className="text-[#6E6E73]">
+                Manage your programs and workshops.
+              </p>
             </div>
 
             {/* Action Buttons */}
@@ -381,7 +367,9 @@ export default function ProgramsPageRefactored() {
                   <DropdownMenuItem onClick={() => setFilterBy("with_classes")}>
                     With Classes
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setFilterBy("without_classes")}>
+                  <DropdownMenuItem
+                    onClick={() => setFilterBy("without_classes")}
+                  >
                     Without Classes
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -389,7 +377,10 @@ export default function ProgramsPageRefactored() {
 
               {/* Create New Program Button */}
               <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-                <Button className="gap-2" onClick={() => setShowCreateModal(true)}>
+                <Button
+                  className="gap-2"
+                  onClick={() => setShowCreateModal(true)}
+                >
                   <Plus className="h-4 w-4" />
                   Create Program
                 </Button>
@@ -420,7 +411,7 @@ export default function ProgramsPageRefactored() {
           <ProgramDetailsView
             program={selectedProgram}
             programDetails={programDetails}
-            isLoading={isLoadingDetails}
+            isLoading={isProgramLoading}
             userTimezone={userTimezone}
             onBack={handleBackFromDetails}
             onDelete={handleDeleteProgram}
@@ -444,7 +435,7 @@ export default function ProgramsPageRefactored() {
             selectedClass={selectedClass}
             selectedProgram={selectedProgram}
             classDetails={classDetails}
-            isLoadingClassDetails={isLoadingClassDetails}
+            isLoadingClassDetails={isClassLoading}
             userTimezone={userTimezone}
             onBack={handleBackFromClassDetails}
             onEdit={handleEditClass}

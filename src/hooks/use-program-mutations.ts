@@ -94,6 +94,7 @@ export function useProgramMutations() {
     onSuccess: (response: UpdateProgramResponse) => {
       toast.success(response.message, { id: "update-program" });
       queryClient.invalidateQueries({ queryKey: ["programs"] });
+      queryClient.invalidateQueries({ queryKey: ["program"] });
     },
     onError: (error: Error) => {
       toast.error(error?.message || "Failed to update program", {
@@ -174,6 +175,8 @@ export function useProgramMutations() {
     },
     onSuccess: (response: CreateProgramClassResponse) => {
       toast.success(response.message, { id: "create-class" });
+      queryClient.invalidateQueries({ queryKey: ["programs"] });
+      queryClient.invalidateQueries({ queryKey: ["program"] });
     },
     onError: (error: Error) => {
       toast.error(error?.message || "Failed to create class", {
@@ -221,6 +224,9 @@ export function useProgramMutations() {
     },
     onSuccess: (response: UpdateProgramClassResponse) => {
       toast.success(response.message, { id: "update-class" });
+      queryClient.invalidateQueries({ queryKey: ["programs"] });
+      queryClient.invalidateQueries({ queryKey: ["program"] });
+      queryClient.invalidateQueries({ queryKey: ["program-class", response.data.programClass.id] });
     },
     onError: (error: Error) => {
       toast.error(error?.message || "Failed to update class", {
@@ -253,6 +259,8 @@ export function useProgramMutations() {
       toast.success(response.message || "Class deleted successfully", {
         id: "delete-class",
       });
+      queryClient.invalidateQueries({ queryKey: ["programs"] });
+      queryClient.invalidateQueries({ queryKey: ["program"] });
     },
     onError: (error: Error) => {
       toast.error(error?.message || "Failed to delete class", {
