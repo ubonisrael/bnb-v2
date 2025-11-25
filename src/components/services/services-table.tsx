@@ -27,6 +27,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +44,10 @@ import { serviceDurationOptions } from "@/lib/helpers";
 interface ServicesTableProps {
   services: ServiceWithStaff[];
   categories: CategoryData[];
+  pagination?: PaginationData;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  onPageChange: (page: number) => void;
   onEdit: (service: Service) => void;
   onDelete: (serviceId: number) => void;
   isDeleting: boolean;
@@ -43,25 +56,26 @@ interface ServicesTableProps {
 export function ServicesTable({
   services,
   categories,
+  pagination,
+  searchQuery,
+  onSearchChange,
+  onPageChange,
   onEdit,
   onDelete,
   isDeleting,
 }: ServicesTableProps) {
   const [activeTab, setActiveTab] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<number | null>(null);
 
+  // Filter by category tab (search is handled server-side now)
   const filteredServices = useMemo(() => {
     return services.filter((service) => {
-      const matchesSearch =
-        service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        service.description?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory =
         activeTab === "all" || service.CategoryId === Number(activeTab);
-      return matchesSearch && matchesCategory;
+      return matchesCategory;
     });
-  }, [services, searchQuery, activeTab]);
+  }, [services, activeTab]);
 
   const getDurationLabel = (duration: number) => {
     const option = serviceDurationOptions.find((opt) => opt.value === duration.toString());
@@ -86,6 +100,70 @@ export function ServicesTable({
     }
   };
 
+  const renderPaginationItems = () => {
+    if (!pagination || pagination.totalPages <= 1) return null;
+
+    const items = [];
+    const currentPage = pagination.page;
+    const totalPages = pagination.totalPages;
+
+    // Always show first page
+    items.push(
+      <PaginationItem key="1">
+        <PaginationLink
+          onClick={() => onPageChange(1)}
+          isActive={currentPage === 1}
+        >
+          1
+        </PaginationLink>
+      </PaginationItem>
+    );
+
+    // Show ellipsis if needed
+    if (currentPage > 3) {
+      items.push(<PaginationEllipsis key="ellipsis-start" />);
+    }
+
+    // Show pages around current page
+    for (
+      let i = Math.max(2, currentPage - 1);
+      i <= Math.min(totalPages - 1, currentPage + 1);
+      i++
+    ) {
+      items.push(
+        <PaginationItem key={i}>
+          <PaginationLink
+            onClick={() => onPageChange(i)}
+            isActive={currentPage === i}
+          >
+            {i}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+
+    // Show ellipsis if needed
+    if (currentPage < totalPages - 2) {
+      items.push(<PaginationEllipsis key="ellipsis-end" />);
+    }
+
+    // Always show last page if more than 1 page
+    if (totalPages > 1) {
+      items.push(
+        <PaginationItem key={totalPages}>
+          <PaginationLink
+            onClick={() => onPageChange(totalPages)}
+            isActive={currentPage === totalPages}
+          >
+            {totalPages}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+
+    return items;
+  };
+
   return (
     <>
       <div className="space-y-4">
@@ -96,7 +174,7 @@ export function ServicesTable({
               placeholder="Search services..."
               className="pl-8"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => onSearchChange(e.target.value)}
             />
           </div>
         </div>
@@ -200,6 +278,44 @@ export function ServicesTable({
             )}
           </TabsContent>
         </Tabs>
+
+        {/* Pagination */}
+        {pagination && pagination.totalPages > 1 && (
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Showing {filteredServices.length} of {pagination.total} services
+            </p>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => onPageChange(Math.max(1, pagination.page - 1))}
+                    className={
+                      pagination.page === 1
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }
+                  />
+                </PaginationItem>
+                {renderPaginationItems()}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() =>
+                      onPageChange(
+                        Math.min(pagination.totalPages, pagination.page + 1)
+                      )
+                    }
+                    className={
+                      pagination.page === pagination.totalPages
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
       </div>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

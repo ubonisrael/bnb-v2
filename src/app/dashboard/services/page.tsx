@@ -22,27 +22,49 @@ export default function ServicesPage() {
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [editingCategory, setEditingCategory] = useState<ServiceCategory | null>(null);
+  
+  // Pagination and search state for categories
+  const [categoryPage, setCategoryPage] = useState(1);
+  const [categorySearch, setCategorySearch] = useState("");
+  const categoryPageSize = 9; // 3x3 grid
+
+  // Pagination and search state for services
+  const [servicePage, setServicePage] = useState(1);
+  const [serviceSearch, setServiceSearch] = useState("");
+  const servicePageSize = 10;
 
   const router = useRouter();
 
   const { data: categoriesData, isLoading: isLoadingCategories } = useQuery({
-    queryKey: ["categories"],
+    queryKey: ["categories", categoryPage, categorySearch],
     queryFn: async () => {
-      return await api.get<CategoriesDataResponse>("/sp/categories");
+      const params = new URLSearchParams({
+        page: categoryPage.toString(),
+        size: categoryPageSize.toString(),
+        ...(categorySearch && { search: categorySearch }),
+      });
+      return await api.get<CategoriesDataResponse>(`/sp/categories?${params}`);
     },
     staleTime: 5 * 60 * 1000,
   })
 
   const { data: servicesData, isLoading: isLoadingServices } = useQuery({
-    queryKey: ["services"],
+    queryKey: ["services", servicePage, serviceSearch],
     queryFn: async () => {
-      return await api.get<FetchServicesSuccessResponse>("/sp/services");
+      const params = new URLSearchParams({
+        page: servicePage.toString(),
+        size: servicePageSize.toString(),
+        ...(serviceSearch && { search: serviceSearch }),
+      });
+      return await api.get<FetchServicesSuccessResponse>(`/sp/services?${params}`);
     },
     staleTime: 5 * 60 * 1000,
   })
 
   const categories = categoriesData?.data.categories || [];
+  const categoriesPagination = categoriesData?.data.pagination;
   const services = servicesData?.data.services || [];
+  const servicesPagination = servicesData?.data.pagination;
 
   // Get mutations from custom hook
   const {
@@ -179,6 +201,10 @@ export default function ServicesPage() {
         ) : (
           <CategoriesList
             categories={categories}
+            pagination={categoriesPagination}
+            searchQuery={categorySearch}
+            onSearchChange={setCategorySearch}
+            onPageChange={setCategoryPage}
             onEdit={handleCategoryEdit}
             onDelete={handleCategoryDelete}
             isDeleting={deleteCategoryMutation.isPending}
@@ -199,6 +225,10 @@ export default function ServicesPage() {
           <ServicesTable
             services={services}
             categories={categories}
+            pagination={servicesPagination}
+            searchQuery={serviceSearch}
+            onSearchChange={setServiceSearch}
+            onPageChange={setServicePage}
             onEdit={handleServiceEdit}
             onDelete={handleServiceDelete}
             isDeleting={deleteServiceMutation.isPending}
