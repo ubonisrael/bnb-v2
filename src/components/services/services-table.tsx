@@ -83,6 +83,7 @@ interface ServicesTableProps {
     setSortOrder: (value: "ASC" | "DESC") => void;
   };
   onEdit: (service: ServiceWithStaff) => void;
+  onView: (service: ServiceWithStaff) => void;
   onDelete: (serviceId: number) => void;
   onBulkDelete: (serviceIds: number[]) => void;
   isDeleting: boolean;
@@ -101,6 +102,7 @@ export function ServicesTable({
   sorting,
   onSortingChange,
   onEdit,
+  onView,
   onDelete,
   onBulkDelete,
   isDeleting,
@@ -539,8 +541,23 @@ export function ServicesTable({
                   </TableHeader>
                   <TableBody>
                     {filteredServices.map((service) => (
-                      <TableRow key={service.id}>
-                        <TableCell>
+                      <TableRow 
+                        key={service.id}
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={(e) => {
+                          // Don't trigger row click if clicking on checkbox or dropdown
+                          const target = e.target as HTMLElement;
+                          if (
+                            target.closest('button') || 
+                            target.closest('[role="checkbox"]') ||
+                            target.closest('[data-radix-collection-item]')
+                          ) {
+                            return;
+                          }
+                          onView(service);
+                        }}
+                      >
+                        <TableCell onClick={(e) => e.stopPropagation()}>
                           <Checkbox
                             checked={selectedServices.includes(service.id)}
                             onCheckedChange={() => handleSelectService(service.id)}
@@ -570,7 +587,7 @@ export function ServicesTable({
                         </TableCell>
                         <TableCell>{getDurationLabel(service.duration)}</TableCell>
                         <TableCell>£{service.fullPrice.toFixed(2)}</TableCell>
-                        <TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button

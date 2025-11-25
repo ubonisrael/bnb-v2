@@ -13,6 +13,7 @@ import { categorySchema, ServiceFormValues } from "@/schemas/schema";
 import { useServiceMutations } from "@/hooks/use-service-mutations";
 import { CategoryFormDialog } from "@/components/services/category-form-dialog";
 import { ServiceFormDialog } from "@/components/services/service-form-dialog";
+import { ServiceDetailsDialog } from "@/components/services/service-details-dialog";
 import { CategoriesList } from "@/components/services/categories-list";
 import { ServicesTable } from "@/components/services/services-table";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,6 +24,8 @@ export default function ServicesPage() {
   const { settings } = useUserSettings();
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showServiceModal, setShowServiceModal] = useState(false);
+  const [showServiceDetailsModal, setShowServiceDetailsModal] = useState(false);
+  const [selectedService, setSelectedService] = useState<ServiceWithStaff | null>(null);
   const [editingService, setEditingService] = useState<ServiceWithStaff | null>(null);
   const [editingCategory, setEditingCategory] =
     useState<ServiceCategory | null>(null);
@@ -180,9 +183,21 @@ export default function ServicesPage() {
     }
   };
 
+  const handleServiceView = (service: ServiceWithStaff) => {
+    setSelectedService(service);
+    setShowServiceDetailsModal(true);
+  };
+
   const handleServiceEdit = (service: ServiceWithStaff) => {
     setEditingService(service);
     setShowServiceModal(true);
+  };
+
+  const handleServiceEditFromDetails = () => {
+    if (selectedService) {
+      setEditingService(selectedService);
+      setShowServiceModal(true);
+    }
   };
 
   const handleServiceDelete = async (serviceId: number) => {
@@ -190,6 +205,12 @@ export default function ServicesPage() {
       await deleteServiceMutation.mutateAsync(serviceId);
     } catch (error) {
       console.error("Failed to delete service:", error);
+    }
+  };
+
+  const handleServiceDeleteFromDetails = () => {
+    if (selectedService) {
+      handleServiceDelete(selectedService.id);
     }
   };
 
@@ -377,6 +398,7 @@ export default function ServicesPage() {
               setSortOrder,
             }}
             onEdit={handleServiceEdit}
+            onView={handleServiceView}
             onDelete={handleServiceDelete}
             onBulkDelete={handleBulkServiceDelete}
             isDeleting={deleteServiceMutation.isPending}
@@ -384,6 +406,20 @@ export default function ServicesPage() {
           />
         )}
       </div>
+
+      {/* Service Details Modal */}
+      <ServiceDetailsDialog
+        open={showServiceDetailsModal}
+        onOpenChange={setShowServiceDetailsModal}
+        service={selectedService}
+        category={
+          selectedService
+            ? categories.find((c) => c.id === selectedService.CategoryId)?.name || "Unknown"
+            : ""
+        }
+        onEdit={handleServiceEditFromDetails}
+        onDelete={handleServiceDeleteFromDetails}
+      />
     </div>
   );
 }
