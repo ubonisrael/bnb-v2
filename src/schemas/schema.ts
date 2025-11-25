@@ -35,7 +35,10 @@ export const serviceSchema = z.object({
   friday_enabled: z.boolean(),
   saturday_enabled: z.boolean(),
   sunday_enabled: z.boolean(),
+  staff_ids: z.array(z.number()).min(1, { message: "At least one staff member is required" }),
 });
+
+export type ServiceFormValues = z.infer<typeof serviceSchema>;
 
 export const baseBookingSettingsSchema = (allowedTimeZones: string[]) =>
   z

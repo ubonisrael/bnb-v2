@@ -10,11 +10,18 @@ export const days = [
 
 export const defaultServiceValues = {
   name: "",
-  categoryId: 0,
-  price: 0,
+  CategoryId: 0,
+  fullPrice: 0,
   duration: 60,
   description: "",
-  availableDays: [...days],
+  monday_enabled: true,
+  tuesday_enabled: true,
+  wednesday_enabled: true,
+  thursday_enabled: true,
+  friday_enabled: true,
+  saturday_enabled: true,
+  sunday_enabled: true,
+  staff_ids: [] as number[],
 };
 
 export const daysStatus = days.map((d) => `${d}_enabled`);

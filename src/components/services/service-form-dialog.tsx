@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, PoundSterling } from "lucide-react";
+import { Plus, PoundSterling, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -33,15 +33,32 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { serviceSchema } from "@/schemas/schema";
-import { days, defaultServiceValues, serviceDurationOptions } from "@/lib/helpers";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ServiceFormValues, serviceSchema } from "@/schemas/schema";
+import {
+  days,
+  defaultServiceValues,
+  serviceDurationOptions,
+} from "@/lib/helpers";
+import { MemberUser } from "@/types/response";
+
+interface StaffMember {
+  id: number;
+  UserId: number;
+  ServiceProviderId: number;
+  role: "owner" | "admin" | "staff";
+  status: "pending" | "accepted" | "rejected";
+  User: MemberUser;
+}
 
 interface ServiceFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  service?: Service | null;
+  service?: ServiceWithStaff | null;
   categories: { id: number; name: string }[];
-  onSubmit: (values: z.infer<typeof serviceSchema>, serviceId?: number) => void;
+  staffMembers: StaffMember[];
+  onSubmit: (values: ServiceFormValues, serviceId?: number) => void;
   isSubmitting: boolean;
   disabled?: boolean;
 }
@@ -51,6 +68,7 @@ export function ServiceFormDialog({
   onOpenChange,
   service,
   categories,
+  staffMembers,
   onSubmit,
   isSubmitting,
   disabled = false,
@@ -64,7 +82,12 @@ export function ServiceFormDialog({
   useEffect(() => {
     if (open) {
       if (service) {
-        form.reset(service);
+        // Extract staff IDs from service staff members
+        const staffIds = service.staff?.map((s) => s.id) || [];
+        form.reset({
+          ...service,
+          staff_ids: staffIds,
+        });
       } else {
         form.reset(defaultServiceValues);
       }
@@ -73,6 +96,21 @@ export function ServiceFormDialog({
 
   const handleSubmit = (values: z.infer<typeof serviceSchema>) => {
     onSubmit(values, service?.id);
+  };
+
+  // Get staff member details by ID
+  const getStaffMemberById = (staffId: number) => {
+    return staffMembers.find((member) => member.id === staffId);
+  };
+
+  // Get initials from full name
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   return (
@@ -95,7 +133,10 @@ export function ServiceFormDialog({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             <FormField
               control={form.control}
               name="name"
@@ -259,6 +300,111 @@ export function ServiceFormDialog({
                 />
               ))}
             </div>
+
+            <FormField
+              control={form.control}
+              name="staff_ids"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assign Staff</FormLabel>
+                  <FormDescription>
+                    Select staff members who can provide this service (at least
+                    one required)
+                  </FormDescription>
+
+                  {/* Selected Staff List */}
+                  {field.value && field.value.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {field.value.map((staffId) => {
+                        const staff = getStaffMemberById(staffId);
+                        if (!staff) return null;
+                        return (
+                          <Badge
+                            key={staffId}
+                            variant="secondary"
+                            className="flex items-center gap-2 py-1.5 px-3"
+                          >
+                            <Avatar className="h-5 w-5">
+                              <AvatarImage
+                                src={staff.User.avatar || undefined}
+                                alt={staff.User.full_name}
+                              />
+                              <AvatarFallback className="text-xs">
+                                {getInitials(staff.User.full_name)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm">
+                              {staff.User.full_name}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                field.onChange(
+                                  field.value.filter((id) => id !== staffId)
+                                );
+                              }}
+                              className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Staff Selection Dropdown */}
+                  <Select
+                    onValueChange={(value) => {
+                      const staffId = Number(value);
+                      if (!field.value.includes(staffId)) {
+                        field.onChange([...field.value, staffId]);
+                      }
+                    }}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select staff to add" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {staffMembers
+                        .filter((member) => !field.value.includes(member.id))
+                        .map((member) => (
+                          <SelectItem
+                            key={member.id}
+                            value={member.id.toString()}
+                          >
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-6 w-6">
+                                <AvatarFallback className="text-xs">
+                                  {getInitials(member.User.full_name)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex flex-col">
+                                <span className="text-sm">
+                                  {member.User.full_name}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {member.User.email}
+                                </span>
+                              </div>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      {staffMembers.filter(
+                        (member) => !field.value.includes(member.id)
+                      ).length === 0 && (
+                        <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                          All staff members have been added
+                        </div>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <DialogFooter>
               <Button

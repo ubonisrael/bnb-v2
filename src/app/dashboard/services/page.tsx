@@ -9,7 +9,7 @@ import api from "@/services/api-service";
 import { useUserSettings } from "@/contexts/UserSettingsContext";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { categorySchema, serviceSchema } from "@/schemas/schema";
+import { categorySchema, ServiceFormValues } from "@/schemas/schema";
 import { useServiceMutations } from "@/hooks/use-service-mutations";
 import { CategoryFormDialog } from "@/components/services/category-form-dialog";
 import { ServiceFormDialog } from "@/components/services/service-form-dialog";
@@ -17,14 +17,16 @@ import { CategoriesList } from "@/components/services/categories-list";
 import { ServicesTable } from "@/components/services/services-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { MembersResponse } from "@/types/response";
 
 export default function ServicesPage() {
   const { settings } = useUserSettings();
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showServiceModal, setShowServiceModal] = useState(false);
-  const [editingService, setEditingService] = useState<Service | null>(null);
-  const [editingCategory, setEditingCategory] = useState<ServiceCategory | null>(null);
-  
+  const [editingService, setEditingService] = useState<ServiceWithStaff | null>(null);
+  const [editingCategory, setEditingCategory] =
+    useState<ServiceCategory | null>(null);
+
   // Pagination and search state for categories
   const [categoryPage, setCategoryPage] = useState(1);
   const [categorySearch, setCategorySearch] = useState("");
@@ -57,10 +59,21 @@ export default function ServicesPage() {
       return await api.get<CategoriesDataResponse>(`/sp/categories?${params}`);
     },
     staleTime: 5 * 60 * 1000,
-  })
+  });
 
   const { data: servicesData, isLoading: isLoadingServices } = useQuery({
-    queryKey: ["services", servicePage, serviceSearch, minPrice, maxPrice, minDuration, maxDuration, availableOn, sortBy, sortOrder],
+    queryKey: [
+      "services",
+      servicePage,
+      serviceSearch,
+      minPrice,
+      maxPrice,
+      minDuration,
+      maxDuration,
+      availableOn,
+      sortBy,
+      sortOrder,
+    ],
     queryFn: async () => {
       const params = new URLSearchParams({
         page: servicePage.toString(),
@@ -74,15 +87,26 @@ export default function ServicesPage() {
         sortBy,
         sortOrder,
       });
-      return await api.get<FetchServicesSuccessResponse>(`/sp/services?${params}`);
+      return await api.get<FetchServicesSuccessResponse>(
+        `/sp/services?${params}`
+      );
     },
     staleTime: 5 * 60 * 1000,
-  })
+  });
+
+  const { data: membersData, isLoading: isMembersLoading } = useQuery({
+    queryKey: ["members"],
+    queryFn: async () => {
+      const response = await api.get<MembersResponse>("members");
+      return response;
+    },
+  });
 
   const categories = categoriesData?.data.categories || [];
   const categoriesPagination = categoriesData?.data.pagination;
   const services = servicesData?.data.services || [];
   const servicesPagination = servicesData?.data.pagination;
+  const staffMembers = membersData?.data.members || [];
 
   // Get mutations from custom hook
   const {
@@ -103,7 +127,9 @@ export default function ServicesPage() {
   }, [settings, router]);
 
   // Category handlers
-  const handleCategorySubmit = async (values: z.infer<typeof categorySchema>) => {
+  const handleCategorySubmit = async (
+    values: z.infer<typeof categorySchema>
+  ) => {
     try {
       await createCategoryMutation.mutateAsync({
         values,
@@ -138,7 +164,10 @@ export default function ServicesPage() {
   };
 
   // Service handlers
-  const handleServiceSubmit = async (values: z.infer<typeof serviceSchema>, serviceId?: number) => {
+  const handleServiceSubmit = async (
+    values: ServiceFormValues,
+    serviceId?: number
+  ) => {
     try {
       await createServiceMutation.mutateAsync({
         values,
@@ -151,7 +180,7 @@ export default function ServicesPage() {
     }
   };
 
-  const handleServiceEdit = (service: Service) => {
+  const handleServiceEdit = (service: ServiceWithStaff) => {
     setEditingService(service);
     setShowServiceModal(true);
   };
@@ -210,6 +239,7 @@ export default function ServicesPage() {
             onOpenChange={handleServiceModalChange}
             service={editingService}
             categories={categories}
+            staffMembers={staffMembers}
             onSubmit={handleServiceSubmit}
             isSubmitting={createServiceMutation.isPending}
             disabled={categories.length === 0}
@@ -234,7 +264,7 @@ export default function ServicesPage() {
           <>
             {/* Search Bar Skeleton */}
             <Skeleton className="h-10 w-full" />
-            
+
             {/* Categories Grid Skeleton */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {[...Array(6)].map((_, i) => (
@@ -278,14 +308,14 @@ export default function ServicesPage() {
           <div className="space-y-4">
             {/* Search Bar Skeleton */}
             <Skeleton className="h-10 w-full" />
-            
+
             {/* Tabs Skeleton */}
             <div className="flex space-x-2">
               <Skeleton className="h-10 w-32 rounded-md" />
               <Skeleton className="h-10 w-24 rounded-md" />
               <Skeleton className="h-10 w-28 rounded-md" />
             </div>
-            
+
             {/* Table Skeleton */}
             <div className="rounded-md border">
               <div className="p-4">
@@ -298,10 +328,13 @@ export default function ServicesPage() {
                   <Skeleton className="h-4 w-16" />
                   <Skeleton className="h-4 w-8" />
                 </div>
-                
+
                 {/* Table Rows */}
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="grid grid-cols-6 gap-4 py-3 border-b last:border-0">
+                  <div
+                    key={i}
+                    className="grid grid-cols-6 gap-4 py-3 border-b last:border-0"
+                  >
                     <Skeleton className="h-10 w-full" />
                     <Skeleton className="h-10 w-full hidden md:block" />
                     <Skeleton className="h-6 w-20 hidden sm:block rounded-full" />

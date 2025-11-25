@@ -82,7 +82,7 @@ interface ServicesTableProps {
     setSortBy: (value: string) => void;
     setSortOrder: (value: "ASC" | "DESC") => void;
   };
-  onEdit: (service: Service) => void;
+  onEdit: (service: ServiceWithStaff) => void;
   onDelete: (serviceId: number) => void;
   onBulkDelete: (serviceIds: number[]) => void;
   isDeleting: boolean;

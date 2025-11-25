@@ -41,8 +41,16 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import toast from "react-hot-toast";
-import { categorySchema, serviceSchema } from "@/schemas/schema";
-import { days, serviceDaysEnabled, serviceDurationOptions } from "@/lib/helpers";
+import {
+  categorySchema,
+  ServiceFormValues,
+  serviceSchema,
+} from "@/schemas/schema";
+import {
+  days,
+  serviceDaysEnabled,
+  serviceDurationOptions,
+} from "@/lib/helpers";
 
 interface ServicesSetupStepProps {
   data: OnboardingFormData;
@@ -68,7 +76,7 @@ export function ServicesSetupStep({
   });
 
   // Service form
-  const serviceForm = useForm<Omit<Service, "id">>({
+  const serviceForm = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceSchema),
     defaultValues: {
       name: "",
@@ -83,6 +91,7 @@ export function ServicesSetupStep({
       friday_enabled: false,
       saturday_enabled: false,
       sunday_enabled: false,
+      staff_ids: [1], // provide random value to pass validation, backend will ignore and assign user to all services during onnboarding
     },
   });
 
@@ -463,9 +472,7 @@ export function ServicesSetupStep({
                             className="flex items-center space-x-1 space-y-0"
                           >
                             <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                              />
+                              <Checkbox checked={field.value} />
                             </FormControl>
                             <FormLabel className="text-xs font-normal">
                               {day.charAt(0).toUpperCase() + day.slice(1)}
@@ -545,15 +552,17 @@ export function ServicesSetupStep({
                               <div className="flex items-center text-xs text-[#6E6E73]">
                                 <Calendar className="mr-1 h-3 w-3" />
                                 {(() => {
-                                  const enabledDays = serviceDaysEnabled(service);
-                                  if (enabledDays.length === 7) return "Every day";
+                                  const enabledDays =
+                                    serviceDaysEnabled(service);
+                                  if (enabledDays.length === 7)
+                                    return "Every day";
                                   if (enabledDays.length === 0)
                                     return "No days selected";
                                   if (enabledDays.length > 3)
                                     return `${enabledDays.length} days/week`;
                                   return enabledDays
                                     .map((day) => day.substring(0, 3))
-                                    .join(", ")
+                                    .join(", ");
                                 })()}
                               </div>
                             </div>
