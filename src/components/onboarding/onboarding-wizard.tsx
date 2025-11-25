@@ -11,14 +11,7 @@ import { BookingSettingsSetupStep } from "./steps/booking-settings";
 import { useOnboardingMutation } from "@/hooks/use-onboarding-mutation";
 import useLocalStorage from "use-local-storage";
 import toast from "react-hot-toast";
-
-const steps = [
-  { id: "business-info", title: "Business Information" },
-  { id: "services-setup", title: "Services" },
-  { id: "booking-settings", title: "Booking Settings" },
-  { id: "booking-template", title: "Booking Template" },
-  { id: "notification-settings", title: "Notifications" },
-];
+import { onboardingSteps } from "@/lib/helpers";
 
 export function OnboardingWizard() {
   const [currentStepIndex, setCurrentStepIndex] = useLocalStorage(
@@ -57,8 +50,6 @@ export function OnboardingWizard() {
         auto_generate_no_show_policy: true,
         absorb_service_charge: false,
         custom_policies: [],
-        break_times: [],
-        special_off_days: [],
         welcome_message: "",
         maximum_notice: 0,
         minimum_notice: 0,
@@ -111,7 +102,7 @@ export function OnboardingWizard() {
 
   const onboardingMutation = useOnboardingMutation();
 
-  const currentStep = steps[currentStepIndex];
+  const currentStep = onboardingSteps[currentStepIndex];
 
   const updateFormData = (stepId: string, data: any) => {
     setFormData((prev) => ({
@@ -166,9 +157,7 @@ export function OnboardingWizard() {
             auto_generate_reschedule_policy: true,
             auto_generate_no_show_policy: true,
             absorb_service_charge: false,
-            break_times: [],
             custom_policies: [],
-            special_off_days: [],
             allow_deposits: true,
             deposit_amount: 5,
             cancellation_allowed: false,
@@ -227,7 +216,7 @@ export function OnboardingWizard() {
   return (
     <>
       <div className="flex mb-8 min-w-max border-b border-[#E0E0E5]">
-        {steps.map((step, index) => (
+        {onboardingSteps.map((step, index) => (
           <div
             key={step.id}
             className={`flex-1 px-2 py-3 text-center text-sm font-medium ${
@@ -279,7 +268,7 @@ export function OnboardingWizard() {
             Set up your business
           </h1>
           <p className="text-sm text-[#6E6E73]">
-            Let's get your beauty business ready to accept bookings
+            Let's get your business ready to accept bookings
           </p>
         </div>
 
@@ -337,7 +326,7 @@ export function OnboardingWizard() {
             Back
           </Button>
 
-          {currentStepIndex < steps.length - 1 ? (
+          {currentStepIndex < onboardingSteps.length - 1 ? (
             <Button onClick={goToNextStep}>
               Next Step
               <ArrowRight className="ml-2 h-4 w-4" />

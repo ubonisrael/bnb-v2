@@ -1,11 +1,16 @@
 "use client";
 
 import { Ref, useImperativeHandle, useState } from "react";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Plus, Clock, Calendar, Edit, Trash, PoundSterling } from "lucide-react";
-
+import {
+  Plus,
+  Clock,
+  Calendar,
+  Edit,
+  Trash,
+  PoundSterling,
+} from "lucide-react";
 import {
   Form,
   FormControl,
@@ -36,99 +41,14 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import toast from "react-hot-toast";
+import { categorySchema, serviceSchema } from "@/schemas/schema";
+import { days, serviceDaysEnabled, serviceDurationOptions } from "@/lib/helpers";
 
 interface ServicesSetupStepProps {
   data: OnboardingFormData;
   onUpdate: (data: ServicesSetupData) => void;
   ref: Ref<{ validate: () => Promise<boolean> }>;
 }
-
-// Days of the week
-export const daysOfWeek = [
-  { id: "monday", label: "Monday" },
-  { id: "tuesday", label: "Tuesday" },
-  { id: "wednesday", label: "Wednesday" },
-  { id: "thursday", label: "Thursday" },
-  { id: "friday", label: "Friday" },
-  { id: "saturday", label: "Saturday" },
-  { id: "sunday", label: "Sunday" },
-];
-
-// Duration options in minutes
-export const durationOptions = [
-  { value: "15", label: "15 minutes" },
-  { value: "30", label: "30 minutes" },
-  { value: "45", label: "45 minutes" },
-  { value: "60", label: "1 hour" },
-  { value: "75", label: "1 hour 15 minutes" },
-  { value: "90", label: "1 hour 30 minutes" },
-  { value: "105", label: "1 hour 45 minutes" },
-  { value: "120", label: "2 hours" },
-  { value: "135", label: "2 hours 15 minutes" },
-  { value: "150", label: "2 hours 30 minutes" },
-  { value: "165", label: "2 hours 45 minutes" },
-  { value: "180", label: "3 hours" },
-  { value: "195", label: "3 hours 15 minutes" },
-  { value: "210", label: "3 hours 30 minutes" },
-  { value: "225", label: "3 hours 45 minutes" },
-  { value: "240", label: "4 hours" },
-  { value: "255", label: "4 hours 15 minutes" },
-  { value: "270", label: "4 hours 30 minutes" },
-  { value: "285", label: "4 hours 45 minutes" },
-  { value: "300", label: "5 hours" },
-  { value: "315", label: "5 hours 15 minutes" },
-  { value: "330", label: "5 hours 30 minutes" },
-  { value: "345", label: "5 hours 45 minutes" },
-  { value: "360", label: "6 hours" },
-  { value: "375", label: "6 hours 15 minutes" },
-  { value: "390", label: "6 hours 30 minutes" },
-  { value: "405", label: "6 hours 45 minutes" },
-  { value: "420", label: "7 hours" },
-  { value: "435", label: "7 hours 15 minutes" },
-  { value: "450", label: "7 hours 30 minutes" },
-  { value: "465", label: "7 hours 45 minutes" },
-  { value: "480", label: "8 hours" },
-  { value: "495", label: "8 hours 15 minutes" },
-  { value: "510", label: "8 hours 30 minutes" },
-  { value: "525", label: "8 hours 45 minutes" },
-  { value: "540", label: "9 hours" },
-  { value: "555", label: "9 hours 15 minutes" },
-  { value: "570", label: "9 hours 30 minutes" },
-  { value: "585", label: "9 hours 45 minutes" },
-  { value: "600", label: "10 hours" },
-  { value: "615", label: "10 hours 15 minutes" },
-  { value: "630", label: "10 hours 30 minutes" },
-  { value: "645", label: "10 hours 45 minutes" },
-  { value: "660", label: "11 hours" },
-  { value: "675", label: "11 hours 15 minutes" },
-  { value: "690", label: "11 hours 30 minutes" },
-  { value: "705", label: "11 hours 45 minutes" },
-  { value: "720", label: "12 hours" },
-];
-
-// Form schemas
-export const categorySchema = z.object({
-  name: z
-    .string()
-    .min(2, { message: "Category name must be at least 2 characters" }),
-});
-
-export const serviceSchema = z.object({
-  name: z
-    .string()
-    .min(2, { message: "Service name must be at least 2 characters" }),
-  categoryId: z.coerce.number().min(1, { message: "Please select a category" }),
-  price: z.coerce
-    .number()
-    .min(0, { message: "Price must be a positive number" }),
-  duration: z.coerce
-    .number()
-    .min(5, { message: "Duration must be at least 5 minutes" }),
-  description: z.string().min(16, { message: "Description must be at least 16 characters"}),
-  availableDays: z
-    .array(z.string())
-    .min(1, { message: "Select at least one day" }),
-});
 
 export function ServicesSetupStep({
   data,
@@ -152,11 +72,17 @@ export function ServicesSetupStep({
     resolver: zodResolver(serviceSchema),
     defaultValues: {
       name: "",
-      categoryId: 0,
-      price: 0,
+      CategoryId: 0,
+      fullPrice: 0,
       duration: 60,
       description: "",
-      availableDays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+      monday_enabled: false,
+      tuesday_enabled: false,
+      wednesday_enabled: false,
+      thursday_enabled: false,
+      friday_enabled: false,
+      saturday_enabled: false,
+      sunday_enabled: false,
     },
   });
 
@@ -165,9 +91,9 @@ export function ServicesSetupStep({
       const isValid =
         data.servicesSetup.categories.length > 0 &&
         data.servicesSetup.services.length > 0;
-        if (!isValid) {
-          toast.error("Please add at least one category and one service.");
-        }
+      if (!isValid) {
+        toast.error("Please add at least one category and one service.");
+      }
       return isValid;
     },
   }));
@@ -180,9 +106,9 @@ export function ServicesSetupStep({
     };
 
     onUpdate({
-        ...data.servicesSetup,
-        categories: [...data.servicesSetup.categories, newCategory],
-      });
+      ...data.servicesSetup,
+      categories: [...data.servicesSetup.categories, newCategory],
+    });
 
     categoryForm.reset();
     setIsAddingCategory(false);
@@ -206,7 +132,7 @@ export function ServicesSetupStep({
       // Add new service
       const newService: Service = {
         ...values,
-        id: `svc_${Date.now()}`,
+        id: Date.now(),
       };
 
       onUpdate({
@@ -221,7 +147,7 @@ export function ServicesSetupStep({
   };
 
   // Delete a service
-  const handleDeleteService = (serviceId: string) => {
+  const handleDeleteService = (serviceId: number) => {
     onUpdate({
       ...data.servicesSetup,
       services: data.servicesSetup.services.filter(
@@ -321,7 +247,7 @@ export function ServicesSetupStep({
                 <div className="mt-1 text-xs text-[#6E6E73]">
                   {
                     data.servicesSetup.services.filter(
-                      (svc) => svc.categoryId === category.id
+                      (svc) => svc.CategoryId === category.id
                     ).length
                   }{" "}
                   services
@@ -395,14 +321,22 @@ export function ServicesSetupStep({
 
                   <FormField
                     control={serviceForm.control}
-                    name="categoryId"
+                    name="CategoryId"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Category</FormLabel>
                         <Select
                           onValueChange={field.onChange}
-                          defaultValue={field.value && field.value !== 0 ? field.value.toString() : ""}
-                          value={field.value && field.value !== 0 ? field.value.toString() : ""}
+                          defaultValue={
+                            field.value && field.value !== 0
+                              ? field.value.toString()
+                              : ""
+                          }
+                          value={
+                            field.value && field.value !== 0
+                              ? field.value.toString()
+                              : ""
+                          }
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -411,7 +345,10 @@ export function ServicesSetupStep({
                           </FormControl>
                           <SelectContent>
                             {data.servicesSetup.categories.map((category) => (
-                              <SelectItem key={category.id} value={category.id.toString()}>
+                              <SelectItem
+                                key={category.id}
+                                value={category.id.toString()}
+                              >
                                 {category.name}
                               </SelectItem>
                             ))}
@@ -425,7 +362,7 @@ export function ServicesSetupStep({
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <FormField
                       control={serviceForm.control}
-                      name="price"
+                      name="fullPrice"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Price</FormLabel>
@@ -466,7 +403,7 @@ export function ServicesSetupStep({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {durationOptions.map((option) => (
+                              {serviceDurationOptions.map((option) => (
                                 <SelectItem
                                   key={option.value}
                                   value={option.value}
@@ -499,59 +436,45 @@ export function ServicesSetupStep({
                     )}
                   />
 
-                  <FormField
-                    control={serviceForm.control}
-                    name="availableDays"
-                    render={() => (
-                      <FormItem>
-                        <div className="mb-2">
-                          <FormLabel>Available Days</FormLabel>
-                          <FormDescription>
-                            Select the days when this service is available
-                          </FormDescription>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {daysOfWeek.map((day) => (
-                            <FormField
-                              key={day.id}
-                              control={serviceForm.control}
-                              name="availableDays"
-                              render={({ field }) => {
-                                return (
-                                  <FormItem
-                                    key={day.id}
-                                    className="flex items-center space-x-1 space-y-0"
-                                  >
-                                    <FormControl>
-                                      <Checkbox
-                                        checked={field.value?.includes(day.id)}
-                                        onCheckedChange={(checked) => {
-                                          return checked
-                                            ? field.onChange([
-                                                ...field.value,
-                                                day.id,
-                                              ])
-                                            : field.onChange(
-                                                field.value?.filter(
-                                                  (value) => value !== day.id
-                                                )
-                                              );
-                                        }}
-                                      />
-                                    </FormControl>
-                                    <FormLabel className="text-xs font-normal">
-                                      {day.label}
-                                    </FormLabel>
-                                  </FormItem>
-                                );
-                              }}
-                            />
-                          ))}
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="mb-2">
+                    <FormLabel>Available Days</FormLabel>
+                    <FormDescription>
+                      Select the days when this service is available
+                    </FormDescription>
+                  </div>
+                  {days.map((day) => (
+                    <FormField
+                      key={day}
+                      control={serviceForm.control}
+                      name={
+                        `${day}_enabled` as
+                          | "monday_enabled"
+                          | "tuesday_enabled"
+                          | "wednesday_enabled"
+                          | "thursday_enabled"
+                          | "friday_enabled"
+                          | "saturday_enabled"
+                          | "sunday_enabled"
+                      }
+                      render={({ field }) => {
+                        return (
+                          <FormItem
+                            key={day}
+                            className="flex items-center space-x-1 space-y-0"
+                          >
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                              />
+                            </FormControl>
+                            <FormLabel className="text-xs font-normal">
+                              {day.charAt(0).toUpperCase() + day.slice(1)}
+                            </FormLabel>
+                          </FormItem>
+                        );
+                      }}
+                    />
+                  ))}
 
                   <DialogFooter>
                     <Button
@@ -587,7 +510,7 @@ export function ServicesSetupStep({
           <div className="space-y-4">
             {data.servicesSetup.categories.map((category) => {
               const categoryServices = data.servicesSetup.services.filter(
-                (svc) => svc.categoryId === category.id
+                (svc) => svc.CategoryId === category.id
               );
               if (categoryServices.length === 0) return null;
 
@@ -613,7 +536,7 @@ export function ServicesSetupStep({
                             <div className="mt-2 flex flex-wrap items-center gap-3">
                               <div className="flex items-center text-xs text-[#6E6E73]">
                                 <PoundSterling className="mr-1 h-3 w-3" />
-                                {service.price.toFixed(2)}
+                                {service.fullPrice.toFixed(2)}
                               </div>
                               <div className="flex items-center text-xs text-[#6E6E73]">
                                 <Clock className="mr-1 h-3 w-3" />
@@ -621,13 +544,17 @@ export function ServicesSetupStep({
                               </div>
                               <div className="flex items-center text-xs text-[#6E6E73]">
                                 <Calendar className="mr-1 h-3 w-3" />
-                                {service.availableDays.length === 7
-                                  ? "Every day"
-                                  : service.availableDays.length > 3
-                                  ? `${service.availableDays.length} days/week`
-                                  : service.availableDays
-                                      .map((day) => day.substring(0, 3))
-                                      .join(", ")}
+                                {(() => {
+                                  const enabledDays = serviceDaysEnabled(service);
+                                  if (enabledDays.length === 7) return "Every day";
+                                  if (enabledDays.length === 0)
+                                    return "No days selected";
+                                  if (enabledDays.length > 3)
+                                    return `${enabledDays.length} days/week`;
+                                  return enabledDays
+                                    .map((day) => day.substring(0, 3))
+                                    .join(", ")
+                                })()}
                               </div>
                             </div>
                           </div>

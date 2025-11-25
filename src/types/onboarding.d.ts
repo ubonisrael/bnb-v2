@@ -15,25 +15,6 @@ interface ServiceCategory {
   name: string;
 }
 
-interface Service {
-  id: string;
-  name: string;
-  categoryId: number;
-  CategoryId?: number;
-  price: number;
-  fullPrice?: number;
-  duration: number;
-  description: string;
-  availableDays: string[];
-  monday_enabled?: boolean;
-  tuesday_enabled?: boolean;
-  wednesday_enabled?: boolean;
-  thursday_enabled?: boolean;
-  friday_enabled?: boolean;
-  saturday_enabled?: boolean;
-  sunday_enabled?: boolean;
-}
-
 interface ServicesSetupData {
   categories: ServiceCategory[];
   services: Service[];
@@ -60,8 +41,6 @@ interface BookingSettingsData {
   auto_generate_reschedule_policy: boolean;
   auto_generate_no_show_policy: boolean;
   absorb_service_charge: boolean;
-  break_times: BreakTime[];
-  special_off_days: OffDay[];
   custom_policies: CustomPolicy[];
   maximum_notice: number;
   minimum_notice: number;

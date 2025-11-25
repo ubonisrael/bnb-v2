@@ -968,15 +968,6 @@ export function BookingSettingsForm({
                         </div>
                       )}
                     </div>
-                    {field.value && (
-                      <div className="mt-4">
-                        <BreakTimesManager
-                          form={form}
-                          breakTimes={form.watch("break_times") || []}
-                          dayId={day.id}
-                        />
-                      </div>
-                    )}
                   </CardContent>
                 </Card>
               </FormItem>
@@ -984,39 +975,6 @@ export function BookingSettingsForm({
           />
         ))}
       </div>
-      {/* Add Off Days Manager */}
-      <FormField
-        control={form.control}
-        name="special_off_days"
-        render={({ field }) => (
-          <FormItem>
-            <FormControl>
-              <OffDaysManager
-                form={form}
-                offDays={field.value || []}
-                onAdd={(offDay) => {
-                  const newOffDays = [...(field.value || [])];
-                  const index = newOffDays.findIndex((d) => d.id === offDay.id);
-                  if (index >= 0) {
-                    newOffDays[index] = offDay;
-                  } else {
-                    newOffDays.push(offDay);
-                  }
-                  field.onChange(newOffDays);
-                }}
-                onRemove={(id) => {
-                  field.onChange(
-                    (field.value || []).filter((d) => d.id !== id)
-                  );
-                }}
-              />
-            </FormControl>
-            <FormDescription>
-              Set specific dates when your business will be closed
-            </FormDescription>
-          </FormItem>
-        )}
-      />
     </>
   );
 }

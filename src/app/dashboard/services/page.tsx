@@ -4,13 +4,9 @@ import { useState, useMemo, useEffect } from "react";
 import {
   Search,
   Plus,
-  Filter,
   MoreHorizontal,
   Clock,
-  Edit,
-  Trash2,
   FolderPlus,
-  Calendar,
   PoundSterling,
 } from "lucide-react";
 import { z } from "zod";
@@ -55,39 +51,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  categorySchema,
-  daysOfWeek,
-  durationOptions,
-  serviceSchema,
-} from "@/components/onboarding/steps/services-setup";
 import toast from "react-hot-toast";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/services/api-service";
 import { useUserSettings } from "@/contexts/UserSettingsContext";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter } from "next/navigation";
-
-const days = [
-  "monday",
-  "tuesday",
-  "wednesday",
-  "thursday",
-  "friday",
-  "saturday",
-  "sunday",
-] as const;
-const daysStatus = days.map((d) => `${d}_enabled`);
-type daysStatusType = (typeof daysStatus)[number];
-
-const defaultValues = {
-  name: "",
-  categoryId: 0,
-  price: 0,
-  duration: 60,
-  description: "",
-  availableDays: [...days],
-};
+import { days, daysStatusType, defaultServiceValues, serviceDurationOptions } from "@/lib/helpers";
+import { categorySchema, serviceSchema } from "@/schemas/schema";
 
 export default function ServicesPage() {
   const { settings, updateSettings } = useUserSettings();
@@ -102,6 +73,26 @@ export default function ServicesPage() {
     useState<ServiceCategory | null>(null);
 
   const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const { data: categoriesData, isLoading: isLoadingCategories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      return await api.get<CategoriesDataResponse>("/sp/categories");
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+
+  const { data: servicesData, isLoading: isLoadingServices } = useQuery({
+    queryKey: ["services"],
+    queryFn: async () => {
+      return await api.get<FetchServicesSuccessResponse>("/sp/services");
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+
+  const categories = categoriesData?.data.categories || [];
+  const services = servicesData?.data.services || [];
 
   // Category form
   const categoryForm = useForm<{ name: string }>({
@@ -114,7 +105,7 @@ export default function ServicesPage() {
   // Service form
   const serviceForm = useForm<Omit<Service, "id">>({
     resolver: zodResolver(serviceSchema),
-    defaultValues,
+    defaultValues: defaultServiceValues,
   });
 
   const createCategoryMutation = useMutation({
@@ -150,17 +141,7 @@ export default function ServicesPage() {
         `Category ${editingCategory ? "updated" : "created"} successfully`,
         { id: `${editingCategory ? "edit" : "create"}-category` }
       );
-      if (settings) {
-        if (editingCategory) {
-          const updatedCat = settings.categories.map((cat) =>
-            cat.id === editingCategory.id ? response.data : cat
-          );
-          updateSettings("categories", updatedCat);
-        } else {
-          // Add the new service to the existing services
-          updateSettings("categories", [...settings.categories, response.data]);
-        }
-      }
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
     },
     onError: (error: Error) => {
       toast.error(
@@ -187,21 +168,9 @@ export default function ServicesPage() {
       const signal = controller.signal;
 
       try {
-        const daysStatus: { [key in daysStatusType]: boolean } = {};
-        for (const day of days) {
-          if (values.availableDays.includes(day)) {
-            daysStatus[`${day}_enabled`] = true;
-            continue;
-          }
-          daysStatus[`${day}_enabled`] = false;
-        }
         const response = await api.post(
           editingService ? `sp/services/${editingService.id}` : "/sp/services",
-          {
-            ...values,
-            fullPrice: values.price,
-            ...daysStatus,
-          },
+          values,
           { signal }
         );
         return response;
@@ -223,17 +192,7 @@ export default function ServicesPage() {
         `Service ${editingService ? "updated" : "created"} successfully`,
         { id: editingService ? "update-service" : "create-service" }
       );
-      if (settings) {
-        if (editingService) {
-          const updatedServices = settings.services.map((service) =>
-            service.id === editingService.id ? response.data : service
-          );
-          updateSettings("services", updatedServices);
-        } else {
-          // Add the new service to the existing services
-          updateSettings("services", [...settings.services, response.data]);
-        }
-      }
+      queryClient.invalidateQueries({ queryKey: ["services"] });
       setShowServiceModal(false);
       setEditingService(null);
     },
@@ -268,18 +227,7 @@ export default function ServicesPage() {
     },
     onSuccess: (response: any) => {
       toast.success(`Category deleted successfully`, { id: "delete-category" });
-      if (settings) {
-        const updatedCats = settings.categories.filter(
-          (cat) => cat.id !== response.id
-        );
-        const updatedServices = settings.services.filter(
-          (service) => service.CategoryId !== response.id
-        );
-        updateSettings("batch", {
-          categories: updatedCats,
-          services: updatedServices,
-        });
-      }
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
       setShowCategoryModal(false);
       setEditingCategory(null);
     },
@@ -291,7 +239,7 @@ export default function ServicesPage() {
   });
 
   const deleteServiceMutation = useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async (id: number) => {
       const controller = new AbortController();
       const signal = controller.signal;
 
@@ -310,12 +258,7 @@ export default function ServicesPage() {
     },
     onSuccess: (response: any) => {
       toast.success(`Service deleted successfully`, { id: "delete-service" });
-      if (settings) {
-        const updatedServices = settings.services.filter(
-          (service) => service.id !== response.id
-        );
-        updateSettings("services", updatedServices);
-      }
+      queryClient.invalidateQueries({ queryKey: ["services"] });
       setShowServiceModal(false);
       setEditingService(null);
     },
@@ -327,20 +270,19 @@ export default function ServicesPage() {
   });
 
   const handleServiceSubmit = async (data: z.infer<typeof serviceSchema>) => {
-    // TODO: Implement service creation
     try {
       await createServiceMutation.mutateAsync(data);
     } catch (e) {
-      // console.error(error);
+      console.error(e);
     }
-    serviceForm.reset(defaultValues);
+    serviceForm.reset(defaultServiceValues);
   };
 
-  const handleServiceDelete = async (id: string) => {
+  const handleServiceDelete = async (id: number ) => {
     try {
       await deleteServiceMutation.mutateAsync(id);
     } catch (e) {
-      // console.error(error);
+      console.error(e);
     }
   };
 
@@ -348,26 +290,16 @@ export default function ServicesPage() {
     try {
       await deleteCategoryMutation.mutateAsync(id);
     } catch (e) {
-      // console.error(error);
+      console.error(e);
     }
   };
 
   const handleEditService = (service: Service) => {
     const days_enabled: string[] = [];
-    if (service.monday_enabled) days_enabled.push("monday");
-    if (service.tuesday_enabled) days_enabled.push("tuesday");
-    if (service.wednesday_enabled) days_enabled.push("wednesday");
-    if (service.thursday_enabled) days_enabled.push("thursday");
-    if (service.friday_enabled) days_enabled.push("friday");
-    if (service.saturday_enabled) days_enabled.push("saturday");
-    if (service.sunday_enabled) days_enabled.push("sunday");
 
     setEditingService(service);
     serviceForm.reset({
       ...service,
-      categoryId: service.CategoryId,
-      price: service.fullPrice,
-      availableDays: [...days_enabled],
     });
     setShowServiceModal(true);
   };
@@ -379,25 +311,25 @@ export default function ServicesPage() {
   };
 
   const filteredServices = useMemo(() => {
-    if (!settings?.services) return [];
+    if (!services.length) return [];
 
-    if (!searchQuery) return settings.services;
+    if (!searchQuery) return services;
 
     const query = searchQuery.toLowerCase().trim();
 
-    return settings.services.filter((service) => {
+    return services.filter((service) => {
       const matchesName = service.name.toLowerCase().includes(query);
       const matchesDescription = service.description
         ?.toLowerCase()
         .includes(query);
-      const matchesCategory = settings.categories
+      const matchesCategory = categories
         .find((cat) => cat.id === service.CategoryId)
         ?.name.toLowerCase()
         .includes(query);
 
       return matchesName || matchesDescription || matchesCategory;
     });
-  }, [settings?.services, settings?.categories, searchQuery]);
+  }, [services, categories, searchQuery]);
 
   // Restrict access to admin and owner only
   useEffect(() => {
@@ -472,7 +404,7 @@ export default function ServicesPage() {
             open={showServiceModal}
             onOpenChange={(val) => {
               if (!val) {
-                serviceForm.reset(defaultValues);
+                serviceForm.reset(defaultServiceValues);
               }
               setShowServiceModal(val);
             }}
@@ -519,7 +451,7 @@ export default function ServicesPage() {
 
                   <FormField
                     control={serviceForm.control}
-                    name="categoryId"
+                    name="CategoryId"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Category</FormLabel>
@@ -544,8 +476,7 @@ export default function ServicesPage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {settings &&
-                              settings.categories.map((category) => (
+                            {categories.map((category) => (
                                 <SelectItem
                                   key={category.id}
                                   value={category.id.toString()}
@@ -563,7 +494,7 @@ export default function ServicesPage() {
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <FormField
                       control={serviceForm.control}
-                      name="price"
+                      name="fullPrice"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Price</FormLabel>
@@ -604,7 +535,7 @@ export default function ServicesPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {durationOptions.map((option) => (
+                              {serviceDurationOptions.map((option) => (
                                 <SelectItem
                                   key={option.value}
                                   value={option.value}
@@ -637,59 +568,45 @@ export default function ServicesPage() {
                     )}
                   />
 
-                  <FormField
-                    control={serviceForm.control}
-                    name="availableDays"
-                    render={() => (
-                      <FormItem>
-                        <div className="mb-2">
-                          <FormLabel>Available Days</FormLabel>
-                          <FormDescription>
-                            Select the days when this service is available
-                          </FormDescription>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {daysOfWeek.map((day) => (
-                            <FormField
-                              key={day.id}
-                              control={serviceForm.control}
-                              name="availableDays"
-                              render={({ field }) => {
-                                return (
-                                  <FormItem
-                                    key={day.id}
-                                    className="flex items-center space-x-1 space-y-0"
-                                  >
-                                    <FormControl>
-                                      <Checkbox
-                                        checked={field.value?.includes(day.id)}
-                                        onCheckedChange={(checked) => {
-                                          return checked
-                                            ? field.onChange([
-                                                ...field.value,
-                                                day.id,
-                                              ])
-                                            : field.onChange(
-                                                field.value?.filter(
-                                                  (value) => value !== day.id
-                                                )
-                                              );
-                                        }}
-                                      />
-                                    </FormControl>
-                                    <FormLabel className="text-xs font-normal">
-                                      {day.label}
-                                    </FormLabel>
-                                  </FormItem>
-                                );
-                              }}
-                            />
-                          ))}
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="mb-2">
+                    <FormLabel>Available Days</FormLabel>
+                    <FormDescription>
+                      Select the days when this service is available
+                    </FormDescription>
+                  </div>
+                  {days.map((day) => (
+                    <FormField
+                      key={day}
+                      control={serviceForm.control}
+                      name={
+                        `${day}_enabled` as
+                          | "monday_enabled"
+                          | "tuesday_enabled"
+                          | "wednesday_enabled"
+                          | "thursday_enabled"
+                          | "friday_enabled"
+                          | "saturday_enabled"
+                          | "sunday_enabled"
+                      }
+                      render={({ field }) => {
+                        return (
+                          <FormItem
+                            key={day}
+                            className="flex items-center space-x-1 space-y-0"
+                          >
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                              />
+                            </FormControl>
+                            <FormLabel className="text-xs font-normal">
+                              {day.charAt(0).toUpperCase() + day.slice(1)}
+                            </FormLabel>
+                          </FormItem>
+                        );
+                      }}
+                    />
+                  ))}
 
                   <DialogFooter>
                     <Button
@@ -699,7 +616,7 @@ export default function ServicesPage() {
                         setIsAddingService(false);
                         setEditingService(null);
                         setShowServiceModal(false);
-                        serviceForm.reset(defaultValues);
+                        serviceForm.reset(defaultServiceValues);
                       }}
                     >
                       Cancel
@@ -719,7 +636,7 @@ export default function ServicesPage() {
           <CardTitle>Categories List</CardTitle>
         </CardHeader>
         <CardContent>
-          {settings?.categories.length === 0 ? (
+          {categories.length === 0 ? (
             <div className="rounded-md border border-dashed border-[#E0E0E5] p-6 text-center">
               <p className="text-sm text-[#6E6E73]">
                 No categories yet. Add your first service category.
@@ -727,7 +644,7 @@ export default function ServicesPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
-              {settings?.categories.map((category) => (
+              {categories.map((category) => (
                 <div
                   key={category.id}
                   className="flex justify-between rounded-md border border-[#E0E0E5] bg-[#F5F5F7]/50 p-3"
@@ -735,11 +652,7 @@ export default function ServicesPage() {
                   <div className="flex flex-col">
                     <div className="font-medium">{category.name}</div>
                     <div className="mt-1 text-xs text-[#6E6E73]">
-                      {
-                        settings?.services.filter(
-                          (svc) => svc.CategoryId === category.id
-                        ).length
-                      }{" "}
+                      {category.serviceCount}{" "}
                       services
                     </div>
                   </div>
@@ -828,7 +741,7 @@ export default function ServicesPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {settings?.services.length === 0 ? (
+          {services.length === 0 ? (
             <div className="rounded-md border border-dashed border-[#E0E0E5] p-6 text-center">
               <p className="text-sm text-[#6E6E73]">
                 No services yet. Add your first service.
@@ -980,8 +893,7 @@ export default function ServicesPage() {
                             </tr>
                           </thead>
                           <tbody>
-                            {settings &&
-                              settings.services
+                            {services
                                 .filter(
                                   (service) => service.CategoryId === cat.id
                                 )
