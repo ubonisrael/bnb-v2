@@ -33,7 +33,7 @@ import { Badge } from "@/components/ui/badge";
 import { serviceDurationOptions } from "@/lib/helpers";
 
 interface ServicesTableProps {
-  services: Service[];
+  services: ServiceWithStaff[];
   categories: ServiceCategory[];
   onEdit: (service: Service) => void;
   onDelete: (serviceId: number) => void;

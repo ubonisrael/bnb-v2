@@ -23,11 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 interface CategoriesListProps {
-  categories: Array<{
-    id: number;
-    name: string;
-    Services?: unknown[];
-  }>;
+  categories: Array<CategoryData>;
   onEdit: (category: { id: number; name: string }) => void;
   onDelete: (categoryId: number) => void;
   isDeleting: boolean;
@@ -101,10 +97,10 @@ export function CategoriesList({
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="text-2xl font-bold">
-                  {category.Services?.length ?? 0}
+                  {category.serviceCount ?? 0}
                 </div>
                 <Badge variant="secondary">
-                  {category.Services?.length === 1 ? "Service" : "Services"}
+                  {category.serviceCount === 1 ? "Service" : "Services"}
                 </Badge>
               </div>
             </CardContent>
