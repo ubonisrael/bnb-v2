@@ -34,7 +34,7 @@ import { serviceDurationOptions } from "@/lib/helpers";
 
 interface ServicesTableProps {
   services: ServiceWithStaff[];
-  categories: ServiceCategory[];
+  categories: CategoryData[];
   onEdit: (service: Service) => void;
   onDelete: (serviceId: number) => void;
   isDeleting: boolean;
@@ -107,12 +107,9 @@ export function ServicesTable({
               All Services ({services.length})
             </TabsTrigger>
             {categories.map((category) => {
-              const count = services.filter(
-                (s) => s.CategoryId === category.id
-              ).length;
               return (
                 <TabsTrigger key={category.id} value={category.id.toString()}>
-                  {category.name} ({count})
+                  {category.name} ({category.serviceCount ?? 0})
                 </TabsTrigger>
               );
             })}

@@ -8,15 +8,23 @@ interface CategoryResponse {
   success: boolean;
   message: string;
   data: {
-    category: CategoryData
+    category: CategoryData;
   };
 }
+
+interface PaginationData {
+    total: number;
+    page: number;
+    size: number;
+    totalPages: number;
+  };
 
 interface CategoriesDataResponse {
   success: boolean;
   message: string;
   data: {
     categories: CategoryData[];
+    pagination: PaginationData;
   };
 }
 
@@ -39,8 +47,8 @@ interface StaffUserInfo {
  */
 interface ServiceStaffMember {
   id: number;
-  role: 'owner' | 'admin' | 'staff';
-  status: 'pending' | 'accepted' | 'declined';
+  role: "owner" | "admin" | "staff";
+  status: "pending" | "accepted" | "declined";
   user: StaffUserInfo | null;
 }
 
@@ -82,6 +90,7 @@ interface ValidationError {
  */
 interface FetchServicesDataSchema {
   services: ServiceWithStaff[];
+  pagination: PaginationData;
 }
 
 /**
