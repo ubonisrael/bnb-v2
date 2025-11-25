@@ -408,18 +408,15 @@ export default function ServicesPage() {
       </div>
 
       {/* Service Details Modal */}
-      <ServiceDetailsDialog
-        open={showServiceDetailsModal}
-        onOpenChange={setShowServiceDetailsModal}
-        service={selectedService}
-        category={
-          selectedService
-            ? categories.find((c) => c.id === selectedService.CategoryId)?.name || "Unknown"
-            : ""
-        }
-        onEdit={handleServiceEditFromDetails}
-        onDelete={handleServiceDeleteFromDetails}
-      />
+      {selectedService && (
+        <ServiceDetailsDialog
+          open={showServiceDetailsModal}
+          onOpenChange={setShowServiceDetailsModal}
+          serviceId={selectedService.id}
+          onEdit={handleServiceEditFromDetails}
+          onDelete={handleServiceDeleteFromDetails}
+        />
+      )}
     </div>
   );
 }
