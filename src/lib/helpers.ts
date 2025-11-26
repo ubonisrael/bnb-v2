@@ -172,3 +172,25 @@ export const getAvailableDays = (service: any) => {
     ];
     return days.filter((day) => service[day.key as keyof typeof service]).map((d) => d.label);
   };
+
+export const formatTime = (minutes: number | null) => {
+    if (minutes === null) return "N/A";
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    const period = hours >= 12 ? "PM" : "AM";
+    const displayHours = hours % 12 || 12;
+    return `${displayHours}:${mins.toString().padStart(2, "0")} ${period}`;
+  };
+
+export const getRoleBadgeVariant = (
+    role: string
+  ): "default" | "secondary" | "outline" => {
+    switch (role) {
+      case "owner":
+        return "default";
+      case "admin":
+        return "secondary";
+      default:
+        return "outline";
+    }
+  };

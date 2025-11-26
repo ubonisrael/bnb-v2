@@ -12,7 +12,6 @@ import toast from "react-hot-toast";
 
 const UserSettingsContext = createContext<UserSettingsContextType>({
   settings: null,
-  updateSettings: async () => {},
   isLoading: false,
 });
 
@@ -47,33 +46,9 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
     loadSettings();
   }, []);
 
-  // Update settings
-  const updateSettings = async (
-    section: keyof UserSettings | "batch",
-    data: any
-  ) => {
-    setIsLoading(true);
-    try {
-      if (settings) {
-        setSettings((prev) => {
-          if (!prev) return null;
-          return {
-            ...prev,
-            ...data,
-          } as UserSettings;
-        });
-      }
-    } catch (error) {
-      toast.error(error as string);
-      console.error("Failed to update settings:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <UserSettingsContext.Provider
-      value={{ settings, updateSettings, isLoading }}
+      value={{ settings, isLoading }}
     >
       {children}
     </UserSettingsContext.Provider>
