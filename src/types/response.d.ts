@@ -255,15 +255,17 @@ export interface NotificationSettingsResponse {
 }
 
 export interface TemplateDataResponse {
-  status: boolean;
+  success: boolean;
   message: string;
   data: {
-    templateType: string;
-    bannerHeader: string;
-    bannerMessage: string;
-    aboutSubHeader: string;
-    description: string;
-    bannerUrl: string;
+    template: {
+      id: number;
+      ServiceProviderId: number;
+      about_us: string;
+      image_urls: string[];
+      createdAt: string;
+      updatedAt: string;
+    };
   };
 }
 

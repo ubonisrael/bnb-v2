@@ -6,7 +6,6 @@ import Image from "next/image";
 import { bookingTemplateSchema } from "@/components/onboarding/steps/booking-template";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useUserSettings } from "@/contexts/UserSettingsContext";
 import {
   Form,
   FormControl,
@@ -34,29 +33,44 @@ import {
 } from "firebase/storage";
 import { storage } from "@/services/firebase";
 import { Textarea } from "@/components/ui/textarea";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/services/api-service";
 import { TemplateDataResponse } from "@/types/response";
-import { useRouter } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function TemplatesPage() {
-  const {
-    settings,
-    updateSettings,
-    isLoading: settingsLoading,
-  } = useUserSettings();
-  const [images, setImages] = useState(settings?.template.imageUrls ?? []);
+  const queryClient = useQueryClient();
+  const [images, setImages] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
-  const router = useRouter();
+  // Fetch template data
+  const { data: templateData, isLoading: isLoadingTemplate } = useQuery({
+    queryKey: ["template"],
+    queryFn: async () => {
+      const response = await api.get<TemplateDataResponse>("sp/templates");
+      return response.data.template;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
   const form = useForm<Omit<BookingTemplateData, "images">>({
     resolver: zodResolver(bookingTemplateSchema),
     defaultValues: {
-      templateType: settings?.template.templateType || "",
-      aboutUs: settings?.template.aboutUs || "",
+      templateType: "",
+      aboutUs: "",
     },
   });
+
+  // Update form when template data is loaded
+  useEffect(() => {
+    if (templateData) {
+      form.reset({
+        templateType: "default", // Based on the schema, this seems to be the template type
+        aboutUs: templateData.about_us || "",
+      });
+      setImages(templateData.image_urls || []);
+    }
+  }, [templateData, form]);
 
   const formRef = useRef<HTMLFormElement | null>(null);
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
@@ -92,7 +106,6 @@ export default function TemplatesPage() {
     if (!file || (images && images.length >= 10)) return;
     setIsUploading(true);
     try {
-      // toast.loading('Uploading logo...', { id: 'logo-upload' });
       const storageRef = fRef(storage, `bnb/${Date.now()}/banner-image`);
       const uploadTask = uploadBytesResumable(storageRef, file);
       uploadTask.on(
@@ -100,12 +113,12 @@ export default function TemplatesPage() {
         (snapshot) => {
           const progress =
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          toast.loading(`Uploading logo... ${Math.round(progress)}%`, {
+          toast.loading(`Uploading banner image... ${Math.round(progress)}%`, {
             id: "banner-image-upload",
           });
           if (progress === 100) {
             toast.dismiss("banner-image-upload");
-            toast.success("Logo uploaded successfully", {
+            toast.success("Banner image uploaded successfully", {
               id: "banner-image-upload",
             });
           }
@@ -113,7 +126,7 @@ export default function TemplatesPage() {
         (error) => toast.error(error.message),
         () =>
           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            setImages((prev) => [...prev, downloadURL]);
+            setImages((prev: string[]) => [...prev, downloadURL]);
           })
       );
 
@@ -131,46 +144,39 @@ export default function TemplatesPage() {
   };
 
   const removeBanner = (id: string) => {
-    setImages((prev) => prev.filter((img) => img !== id));
+    setImages((prev: string[]) => prev.filter((img: string) => img !== id));
   };
 
   const updateTemplateMutation = useMutation({
     mutationFn: async (values: Omit<BookingTemplateData, "images">) => {
-      const controller = new AbortController();
-      const signal = controller.signal;
-
-      try {
-        const response = await api.patch<TemplateDataResponse>(
-          "sp/templates",
-          {
-            template_type: values.templateType,
-            image_urls: [...images],
-            about_us: values.aboutUs,
-            additional_policies: values.aboutUs,
-          },
-          { signal }
-        );
-        return response;
-      } catch (error: unknown) {
-        if (error instanceof Error && error.name === "AbortError") {
-          toast.error("Request was cancelled");
+      const response = await api.patch<TemplateDataResponse>(
+        "sp/templates",
+        {
+          about_us: values.aboutUs,
+          image_urls: [...images],
         }
-        throw error;
-      }
+      );
+      return response.data.template;
     },
     onMutate: () => {
       toast.loading("Saving template updates...", {
         id: "template-save",
       });
     },
-    onSuccess: (response) => {
+    onSuccess: () => {
       toast.success("Template data updated successfully", {
         id: "template-save",
       });
-      updateSettings("template", response.data);
+      // Invalidate and refetch template data
+      queryClient.invalidateQueries({ queryKey: ["template"] });
+      form.reset({
+        templateType: form.getValues("templateType"),
+        aboutUs: form.getValues("aboutUs"),
+      });
     },
-    onError: (error: Error) => {
-      toast.error(error?.message || "Failed to update template", {
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || error?.message || "Failed to update template";
+      toast.error(errorMessage, {
         id: "template-save",
       });
     },
@@ -227,13 +233,25 @@ export default function TemplatesPage() {
     />
   );
 
-  // Restrict access to admin and owner only
-  useEffect(() => {
-    if (settings && settings.role !== "owner" && settings.role !== "admin") {
-      toast.error("You don't have permission to access this page");
-      router.push("/dashboard");
-    }
-  }, [settings, router]);
+  // Show loading skeleton while fetching data
+  if (isLoadingTemplate) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-8">
+            <Skeleton className="h-9 w-48 mb-2" />
+            <Skeleton className="h-5 w-96" />
+          </div>
+          <div className="space-y-6">
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-80 w-full" />
+            <Skeleton className="h-40 w-full" />
+            <Skeleton className="h-10 w-32 ml-auto" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -363,7 +381,7 @@ export default function TemplatesPage() {
                     <div className="h-full w-full">
                       <div className="overflow-hidden h-full" ref={emblaRef}>
                         <div className="flex h-full">
-                          {images.map((img, i) => (
+                          {images.map((img: string, i: number) => (
                             <div
                               key={img}
                               className="relative flex-[0_0_100%] min-w-0"
@@ -400,7 +418,7 @@ export default function TemplatesPage() {
                             onClick={() => emblaApi?.scrollNext()}
                           />
                           <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-                            {images.map((_, index) => (
+                            {images.map((_: string, index: number) => (
                               <DotButton
                                 key={index}
                                 selected={index === selectedIndex}
@@ -445,7 +463,7 @@ export default function TemplatesPage() {
                 type="submit"
                 disabled={
                   updateTemplateMutation.isPending ||
-                  settingsLoading ||
+                  !form.formState.isDirty ||
                   isUploading
                 }
               >
@@ -455,7 +473,7 @@ export default function TemplatesPage() {
                     Saving...
                   </>
                 ) : (
-                  "Save Preferences"
+                  "Save Template"
                 )}
               </Button>
             </div>
