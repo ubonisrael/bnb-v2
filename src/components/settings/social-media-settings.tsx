@@ -13,7 +13,7 @@ import {
   Globe,
   Loader2,
 } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
 import { Button } from "@/components/ui/button";
@@ -27,11 +27,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useUserSettings } from "@/contexts/UserSettingsContext";
 import api from "@/services/api-service";
-import { BusinessSocialResponse } from "@/types/response";
 import { useEffect } from "react";
 import { UnsavedChangesBanner } from "../UnSavedChangesBanner";
+import { Skeleton } from "../ui/skeleton";
 
 const socialMediaSchema = z.object({
   website: z
@@ -49,81 +48,94 @@ const socialMediaSchema = z.object({
 
 type SocialMediaFormValues = z.infer<typeof socialMediaSchema>;
 
+interface SocialMediaData {
+  web_url: string | null;
+  instagram_url: string | null;
+  facebook_url: string | null;
+  linkedin_url: string | null;
+  twitter_url: string | null;
+  youtube_url: string | null;
+  tiktok_url: string | null;
+}
+
+interface SocialMediaResponse {
+  success: boolean;
+  message: string;
+  data: {
+    social: SocialMediaData;
+  };
+}
+
 export function SocialMediaSettings() {
-  const {
-    settings,
-    updateSettings,
-    isLoading: settingsLoading,
-  } = useUserSettings();
+  const queryClient = useQueryClient();
+
+  // Fetch social media data
+  const { data: socialData, isLoading: isLoadingSocial } = useQuery({
+    queryKey: ["business-socials"],
+    queryFn: async () => {
+      const response = await api.get<SocialMediaResponse>("sp/socials");
+      return response.data.social;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   const form = useForm<SocialMediaFormValues>({
     resolver: zodResolver(socialMediaSchema),
     defaultValues: {
-      website: settings?.social.website || "",
-      tiktok: settings?.social.tiktok || "",
-      twitter: settings?.social.twitter || "",
-      instagram: settings?.social.instagram || "",
-      linkedin: settings?.social.linkedin || "",
-      youtube: settings?.social.youtube || "",
-      facebook: settings?.social.facebook || "",
+      website: "",
+      tiktok: "",
+      twitter: "",
+      instagram: "",
+      linkedin: "",
+      youtube: "",
+      facebook: "",
     },
   });
 
   useEffect(() => {
-    if (settings) {
+    if (socialData) {
       form.reset({
-        website: settings.social.website || "",
-        tiktok: settings.social.tiktok || "",
-        twitter: settings.social.twitter || "",
-        instagram: settings.social.instagram || "",
-        linkedin: settings.social.linkedin || "",
-        youtube: settings.social.youtube || "",
-        facebook: settings.social.facebook || "",
+        website: socialData.web_url || "",
+        tiktok: socialData.tiktok_url || "",
+        twitter: socialData.twitter_url || "",
+        instagram: socialData.instagram_url || "",
+        linkedin: socialData.linkedin_url || "",
+        youtube: socialData.youtube_url || "",
+        facebook: socialData.facebook_url || "",
       });
     }
-  }, [form, settings?.social]);
+  }, [socialData, form]);
 
   const updateSocialMediaMutation = useMutation({
     mutationFn: async (values: SocialMediaFormValues) => {
-      const controller = new AbortController();
-      const signal = controller.signal;
-
-      try {
-        const response = await api.patch<BusinessSocialResponse>(
-          "sp/socials",
-          {
-            website_url: values.website,
-            instagram_url: values.instagram,
-            facebook_url: values.facebook,
-            twitter_url: values.twitter,
-            linkedin_url: values.linkedin,
-            youtube_url: values.youtube,
-            tiktok_url: values.tiktok,
-          },
-          { signal }
-        );
-        return response;
-      } catch (error: unknown) {
-        if (error instanceof Error && error.name === "AbortError") {
-          toast.error("Request was cancelled");
+      const response = await api.patch<SocialMediaResponse>(
+        "sp/socials",
+        {
+          website_url: values.website || null,
+          instagram_url: values.instagram || null,
+          facebook_url: values.facebook || null,
+          twitter_url: values.twitter || null,
+          linkedin_url: values.linkedin || null,
+          youtube_url: values.youtube || null,
+          tiktok_url: values.tiktok || null,
         }
-        throw error;
-      }
+      );
+      return response.data;
     },
     onMutate: () => {
       toast.loading("Saving social media links...", {
         id: "social-media-save",
       });
     },
-    onSuccess: (response) => {
+    onSuccess: () => {
       toast.success("Social media links updated successfully", {
         id: "social-media-save",
       });
-      updateSettings("social", response.data);
+      queryClient.invalidateQueries({ queryKey: ["business-socials"] });
       form.reset(form.getValues());
     },
-    onError: (error: Error) => {
-      toast.error(error?.message || "Failed to update social media links", {
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to update social media links", {
         id: "social-media-save",
       });
     },
@@ -138,6 +150,23 @@ export function SocialMediaSettings() {
   }
 
   const { isDirty } = form.formState;
+
+  if (isLoadingSocial) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-full" />
+        <div className="grid gap-4 md:grid-cols-2">
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -282,7 +311,7 @@ export function SocialMediaSettings() {
           <div className="flex justify-end">
             <Button
               type="submit"
-              disabled={updateSocialMediaMutation.isPending || settingsLoading}
+              disabled={updateSocialMediaMutation.isPending || !isDirty}
             >
               {updateSocialMediaMutation.isPending ? (
                 <>
@@ -296,7 +325,6 @@ export function SocialMediaSettings() {
           </div>
         </form>
       </Form>
-      \
     </>
   );
 }

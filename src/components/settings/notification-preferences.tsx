@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Loader2 } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
 import { Button } from "@/components/ui/button";
@@ -24,29 +24,77 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useUserSettings } from "@/contexts/UserSettingsContext";
 import api from "@/services/api-service";
 import {
   NotificationSettingsData,
   notificationSettingsSchema,
 } from "../onboarding/steps/notification-settings";
-import { NotificationSettingsResponse } from "@/types/response";
 import { Card, CardContent } from "../ui/card";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { UnsavedChangesBanner } from "../UnSavedChangesBanner";
+import { Skeleton } from "../ui/skeleton";
+
+interface NotificationSettings {
+  email_confirmation: boolean;
+  appointment_reminders: boolean;
+  reminder_time: number;
+  cancellation_notices: boolean;
+  no_show_notifications: boolean;
+  follow_up_emails: boolean;
+  follow_up_delay: number;
+}
+
+interface NotificationResponse {
+  success: boolean;
+  message: string;
+  data: NotificationSettings;
+}
 
 export function NotificationPreferences() {
-  const {
-    settings,
-    updateSettings,
-    isLoading: settingsLoading,
-  } = useUserSettings();
+  const queryClient = useQueryClient();
+
+  // Fetch notification settings
+  const { data: notificationData, isLoading: isLoadingNotifications } = useQuery({
+    queryKey: ["notification-settings"],
+    queryFn: async () => {
+      const response = await api.get<NotificationResponse>("sp/notifications");
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   const form = useForm<NotificationSettingsData>({
     mode: "all",
     resolver: zodResolver(notificationSettingsSchema),
-    defaultValues: settings?.notifications,
+    defaultValues: {
+      emailSettings: {
+        sendBookingConfirmations: false,
+        sendReminders: false,
+        reminderHours: 24,
+        sendCancellationNotices: false,
+        sendNoShowNotifications: false,
+        sendFollowUpEmails: false,
+        followUpDelayHours: 48,
+      },
+    },
   });
+
+  // Update form when notification data is loaded
+  useEffect(() => {
+    if (notificationData) {
+      form.reset({
+        emailSettings: {
+          sendBookingConfirmations: notificationData.email_confirmation,
+          sendReminders: notificationData.appointment_reminders,
+          reminderHours: notificationData.reminder_time,
+          sendCancellationNotices: notificationData.cancellation_notices,
+          sendNoShowNotifications: notificationData.no_show_notifications,
+          sendFollowUpEmails: notificationData.follow_up_emails,
+          followUpDelayHours: notificationData.follow_up_delay,
+        },
+      });
+    }
+  }, [notificationData, form]);
 
   const formRef = useRef<HTMLFormElement | null>(null);
 
@@ -64,57 +112,35 @@ export function NotificationPreferences() {
 
   const updateNotificationMutation = useMutation({
     mutationFn: async (values: NotificationSettingsData) => {
-      const controller = new AbortController();
-      const signal = controller.signal;
-
-      try {
-        const response = await api.patch<NotificationSettingsResponse>(
-          "sp/notifications",
-          {
-            email_confirmation: values.emailSettings.sendBookingConfirmations,
-            appointment_reminders: values.emailSettings.sendReminders,
-            reminder_time: values.emailSettings.reminderHours,
-            cancellation_notices: values.emailSettings.sendCancellationNotices,
-            no_show_notifications: values.emailSettings.sendNoShowNotifications,
-            follow_up_emails: values.emailSettings.sendFollowUpEmails,
-            follow_up_delay: values.emailSettings.followUpDelayHours,
-          },
-          { signal }
-        );
-        return response;
-      } catch (error: unknown) {
-        if (error instanceof Error && error.name === "AbortError") {
-          toast.error("Request was cancelled");
+      const response = await api.patch<NotificationResponse>(
+        "sp/notifications",
+        {
+          email_confirmation: values.emailSettings.sendBookingConfirmations,
+          appointment_reminders: values.emailSettings.sendReminders,
+          reminder_time: values.emailSettings.reminderHours,
+          cancellation_notices: values.emailSettings.sendCancellationNotices,
+          no_show_notifications: values.emailSettings.sendNoShowNotifications,
+          follow_up_emails: values.emailSettings.sendFollowUpEmails,
+          follow_up_delay: values.emailSettings.followUpDelayHours,
         }
-        throw error;
-      }
+      );
+      return response.data;
     },
     onMutate: () => {
       toast.loading("Saving notification preferences...", {
         id: "notification-save",
       });
     },
-    onSuccess: (response) => {
+    onSuccess: () => {
       toast.success("Notification preferences updated successfully", {
         id: "notification-save",
       });
-      updateSettings("notifications", {
-        emailSettings: {
-          sendBookingConfirmations: response.data.email_confirmation,
-          sendReminders: response.data.appointment_reminders,
-          reminderHours: response.data.reminder_time,
-          sendCancellationNotices: response.data.cancellation_notices,
-          sendNoShowNotifications: response.data.no_show_notifications,
-          sendFollowUpEmails: response.data.follow_up_emails,
-          followUpDelayHours: response.data.follow_up_delay,
-        },
-      });
-      // reset form after successful save
+      queryClient.invalidateQueries({ queryKey: ["notification-settings"] });
       form.reset(form.getValues());
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
       toast.error(
-        error?.message || "Failed to update notification preferences",
+        error?.response?.data?.message || "Failed to update notification preferences",
         { id: "notification-save" }
       );
     },
@@ -127,7 +153,28 @@ export function NotificationPreferences() {
       console.error("Failed to save notification preferences:", error);
     }
   }
+  
   const { isDirty } = form.formState;
+
+  if (isLoadingNotifications) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-full" />
+        <Card className="border-[#E0E0E5]">
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -380,7 +427,7 @@ export function NotificationPreferences() {
           <div className="flex justify-end">
             <Button
               type="submit"
-              disabled={updateNotificationMutation.isPending || settingsLoading}
+              disabled={updateNotificationMutation.isPending || !isDirty}
             >
               {updateNotificationMutation.isPending ? (
                 <>

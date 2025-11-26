@@ -114,9 +114,5 @@ interface UserSettings {
 
 type UserSettingsContextType = {
   settings: UserSettings | null;
-  updateSettings: (
-    section: keyof UserSettings | "batch",
-    data: any
-  ) => Promise<void>;
   isLoading: boolean;
 };

@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Loader2, Upload, X } from "lucide-react";
 import Image from "next/image";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { ref, getDownloadURL, uploadBytesResumable } from "firebase/storage";
 import { Button } from "@/components/ui/button";
@@ -20,10 +20,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useUserSettings } from "@/contexts/UserSettingsContext";
 import api from "@/services/api-service";
 import { storage } from "@/services/firebase";
-import { BusinessProfileResponse } from "@/types/response";
 import {
   Select,
   SelectContent,
@@ -34,10 +32,10 @@ import {
 import { countries } from "../onboarding/steps/business-info";
 import { Checkbox } from "../ui/checkbox";
 import { UnsavedChangesBanner } from "../UnSavedChangesBanner";
+import { Skeleton } from "../ui/skeleton";
 
 const profileSchema = z.object({
   name: z.string().min(2, "Business name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email address"),
   phone: z.string().min(10, "Please enter a valid phone number"),
   address: z.string().min(5, "Please enter a valid address"),
   display_address: z.boolean(),
@@ -50,42 +48,78 @@ const profileSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
+interface BusinessProfile {
+  logo: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  country: string;
+  display_address: boolean;
+}
+
+interface ProfileResponse {
+  success: boolean;
+  message: string;
+  data: {
+    profile: BusinessProfile;
+  };
+}
+
 export function ProfileSettings() {
-  const {
-    settings,
-    updateSettings,
-    isLoading: settingsLoading,
-  } = useUserSettings();
-
+  const queryClient = useQueryClient();
   const [isUploading, setIsUploading] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
-  const [logoUrl, setLogoUrl] = useState<string | null>(
-    settings?.profile.logo || null
-  );
-
-  useEffect(() => {
-    if (settings) {
-      setLogoUrl(settings.profile.logo);
-    }
-  }, [settings]);
+  // Fetch business profile
+  const { data: profileData, isLoading: isLoadingProfile } = useQuery({
+    queryKey: ["business-profile"],
+    queryFn: async () => {
+      const response = await api.get<ProfileResponse>("sp/profile");
+      return response.data.profile;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      address: settings?.profile.address,
-      display_address: settings?.profile.display_address,
-      city: settings?.profile.city,
-      state: settings?.profile.state,
-      postal_code: settings?.profile.postal_code,
-      country: settings?.profile.country,
-      name: settings?.profile.name,
-      email: settings?.profile.email,
-      phone: settings?.profile.phone,
-      logo: settings?.profile.logo || "",
+      address: "",
+      display_address: false,
+      city: "",
+      state: "",
+      postal_code: "",
+      country: "",
+      name: "",
+      phone: "",
+      logo: "",
     },
   });
 
   const formRef = useRef<HTMLFormElement | null>(null);
+
+  // Update form when profile data is loaded
+  useEffect(() => {
+    if (profileData) {
+      form.reset({
+        address: profileData.address,
+        display_address: profileData.display_address,
+        city: profileData.city,
+        state: profileData.state,
+        postal_code: profileData.postal_code,
+        country: profileData.country,
+        name: profileData.name,
+        phone: profileData.phone,
+        logo: profileData.logo || "",
+      });
+      if (profileData.logo) {
+        setLogoUrl(profileData.logo);
+      }
+    }
+  }, [profileData, form]);
 
   const onError = (errors: any) => {
     if (!formRef.current) return;
@@ -99,23 +133,6 @@ export function ProfileSettings() {
     }
   };
 
-  useEffect(() => {
-    if (settings) {
-      form.reset({
-        address: settings.profile.address,
-        display_address: settings.profile.display_address,
-        city: settings.profile.city,
-        state: settings.profile.state,
-        postal_code: settings.profile.postal_code,
-        country: settings.profile.country,
-        name: settings.profile.name,
-        email: settings.profile.email,
-        phone: settings.profile.phone,
-        logo: settings.profile.logo || "",
-      });
-    }
-  }, [form, settings?.profile]);
-
   // Handle logo upload
   const handleLogoUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -124,8 +141,7 @@ export function ProfileSettings() {
     if (!file) return;
     setIsUploading(true);
     try {
-      // toast.loading('Uploading logo...', { id: 'logo-upload' });
-      const storageRef = ref(storage, `bnb/${settings?.profile?.email}/logo`);
+      const storageRef = ref(storage, `bnb/${profileData?.email}/logo/${Date.now()}`);
       const uploadTask = uploadBytesResumable(storageRef, file);
       uploadTask.on(
         "state_changed",
@@ -137,21 +153,24 @@ export function ProfileSettings() {
           });
           if (progress === 100) {
             toast.dismiss("logo-upload-percentage");
-            toast.success("Logo uploaded successfully", { id: "logo-upload" });
           }
         },
-        (error) => toast.error(error.message),
-        () =>
+        (error) => {
+          toast.error(error.message);
+          setIsUploading(false);
+        },
+        () => {
           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
             setLogoUrl(downloadURL);
-          })
+            form.setValue("logo", downloadURL);
+            toast.success("Logo uploaded successfully");
+          });
+          setIsUploading(false);
+        }
       );
-
-      toast.success("Logo uploaded successfully", { id: "logo-upload" });
     } catch (error: unknown) {
       console.error("Failed to upload logo:", error);
-      toast.error("Failed to upload logo", { id: "logo-upload" });
-    } finally {
+      toast.error("Failed to upload logo");
       setIsUploading(false);
     }
   };
@@ -163,36 +182,25 @@ export function ProfileSettings() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (values: ProfileFormValues) => {
-      const controller = new AbortController();
-      const signal = controller.signal;
-
-      try {
-        const response = await api.patch<BusinessProfileResponse>(
-          "sp/info",
-          {
-            ...values,
-            logo: logoUrl || "",
-          },
-          { signal }
-        );
-        return response;
-      } catch (error: unknown) {
-        if (error instanceof Error && error.name === "AbortError") {
-          toast.error("Request was cancelled");
+      const response = await api.patch<ProfileResponse>(
+        "sp/profile",
+        {
+          ...values,
+          logo: logoUrl || values.logo || "",
         }
-        throw error;
-      }
+      );
+      return response.data;
     },
     onMutate: () => {
       toast.loading("Saving profile...", { id: "profile-save" });
     },
-    onSuccess: (response) => {
+    onSuccess: (data) => {
       toast.success("Profile updated successfully", { id: "profile-save" });
-      updateSettings("profile", response.data);
+      queryClient.invalidateQueries({ queryKey: ["business-profile"] });
       form.reset(form.getValues());
     },
-    onError: (error: Error) => {
-      toast.error(error?.message || "Failed to update profile", {
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to update profile", {
         id: "profile-save",
       });
     },
@@ -207,6 +215,26 @@ export function ProfileSettings() {
   }
 
   const { isDirty } = form.formState;
+
+  if (isLoadingProfile) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-40 w-40 rounded-full mx-auto" />
+        <Skeleton className="h-10 w-full" />
+        <div className="grid gap-4 md:grid-cols-2">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+        <Skeleton className="h-10 w-full" />
+        <div className="grid gap-4 md:grid-cols-3">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -296,20 +324,13 @@ export function ProfileSettings() {
             />
 
             <div className="grid gap-4 md:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="email"
-                disabled
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <Input type="email" value={profileData?.email || ""} disabled />
+                <FormDescription>
+                  Email cannot be changed
+                </FormDescription>
+              </FormItem>
 
               <FormField
                 control={form.control}
@@ -441,8 +462,8 @@ export function ProfileSettings() {
               type="submit"
               disabled={
                 updateProfileMutation.isPending ||
-                settingsLoading ||
-                isUploading
+                isUploading ||
+                !isDirty
               }
             >
               {updateProfileMutation.isPending ? (
