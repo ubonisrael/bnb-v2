@@ -16,6 +16,8 @@ import {
   Menu,
   X,
   School,
+  CircleUser,
+  Bookmark,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -38,6 +40,18 @@ const sidebarItems = [
     requireAdmin: false,
   },
   {
+    title: "Profile",
+    href: "/dashboard/profile",
+    icon: CircleUser,
+    requireAdmin: false,
+  },
+  {
+    title: "Appointments",
+    href: "/dashboard/appointments",
+    icon: Bookmark,
+    requireAdmin: false,
+  },
+  {
     title: "Calendar",
     href: "/dashboard/calendar",
     icon: Calendar,
@@ -48,6 +62,12 @@ const sidebarItems = [
     title: "Services",
     href: "/dashboard/services",
     icon: Scissors,
+    requireAdmin: true,
+  },
+  {
+    title: "Analytics",
+    href: "/dashboard/analytics",
+    icon: BarChart3,
     requireAdmin: true,
   },
   {
@@ -66,12 +86,6 @@ const sidebarItems = [
     title: "Programs",
     href: "/dashboard/programs",
     icon: School,
-    requireAdmin: true,
-  },
-  {
-    title: "Analytics",
-    href: "/dashboard/analytics",
-    icon: BarChart3,
     requireAdmin: true,
   },
   {
