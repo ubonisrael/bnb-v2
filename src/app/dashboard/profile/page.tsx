@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -8,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { SecuritySettings } from "@/components/settings/security-settings";
+import { SecuritySettings } from "@/components/profile/security-settings";
 import { UserProfileSettings } from "@/components/profile/user-profile-settings";
 
 export default function MyProfilePage() {
