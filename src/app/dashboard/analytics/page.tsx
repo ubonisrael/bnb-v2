@@ -49,12 +49,13 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { useQuery } from "@tanstack/react-query";
-import { AnalyticsResponse, AnalyticsServiceDataResponse, PeriodicStatsResponse } from "@/types/response";
+import { AnalyticsResponse, AnalyticsServiceDataResponse, PeriodicStatsResponse, StaffPerformanceResponse, DayBookingStatsResponse } from "@/types/response";
 import api from "@/services/api-service";
+import { COLORS, getDateRangeString } from "@/lib/helpers";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useUserSettings } from "@/contexts/UserSettingsContext";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { COLORS, getDateRangeString } from "@/lib/helpers";
 
 export default function AnalyticsPage() {
     const { settings } = useUserSettings();
@@ -69,45 +70,64 @@ export default function AnalyticsPage() {
     }
   }, [settings, router]);
 
-  const [dateRange, setDateRange] = useState<"week" | "month" | "quarter">(
-    "week"
-  );
   const [date, setDate] = useState<Date>(new Date());
 
   const { data: bookingsByDayOfWeek, isLoading: bookingsByDayOfWeekIsLoading } =
     useQuery({
       queryKey: ["bookings-by-day-of-week"],
-      queryFn: () => {
-        return api.get<AnalyticsResponse>("sp/analytics/day-booking-stats");
+      queryFn: async () => {
+        const response = await api.get<DayBookingStatsResponse>("sp/analytics/day-booking-stats");
+        return response.data.stats;
       },
+      staleTime: 5 * 60 * 1000,
     });
     
   const { data: servicesData, isLoading: servicesDataIsLoading } = useQuery({
-    queryKey: [settings?.services.map((service) => service.id).join(",")],
-    queryFn: () => {
-      return api.get<AnalyticsServiceDataResponse>("sp/analytics/service-booking-stats");
+    queryKey: ["services", period],
+    queryFn: async () => {
+      const response = await api.get<AnalyticsServiceDataResponse>(
+        `sp/analytics/services?period=${period}`
+      );
+      return response.data.serviceCount;
     },
+    staleTime: 5 * 60 * 1000,
+  });
+  
+  const { data: staffPerformance, isLoading: staffPerformanceIsLoading } = useQuery({
+    queryKey: ["staff-performance", period],
+    queryFn: async () => {
+      const response = await api.get<StaffPerformanceResponse>(
+        `sp/analytics/staff-performance?period=${period}`
+      );
+      return response.data.staffPerformance;
+    },
+    staleTime: 5 * 60 * 1000,
   });
   
   const { data: overview, isLoading: overviewIsLoading } = useQuery({
-    queryKey: [`overview-${dateRange}`],
-    queryFn: () => {
-      return api.get<AnalyticsResponse>(
-        `sp/analytics/overview?period=${dateRange}`
+    queryKey: ["overview", period],
+    queryFn: async () => {
+      const response = await api.get<AnalyticsResponse>(
+        `sp/analytics/overview?period=${period}`
       );
+      return response.data;
     },
+    staleTime: 5 * 60 * 1000,
   });
+  
   const { data: periodStats, isLoading: periodStatsIsLoading } = useQuery({
-    queryKey: [`period-${dateRange}`],
-    queryFn: () => {
-      return api.get<PeriodicStatsResponse>(
-        `sp/analytics/periodic-stats?period=${dateRange}`
+    queryKey: ["periodic-stats", period],
+    queryFn: async () => {
+      const response = await api.get<PeriodicStatsResponse>(
+        `sp/analytics/periodic-stats?period=${period}`
       );
+      return response.data.stats;
     },
+    staleTime: 5 * 60 * 1000,
   });
 
-  const avgBookingPerDay = (overview?.bookings.totalBookings / overview?.daysSinceCreation) || 0
-  const avgRevenuePerBooking = (overview?.revenue.totalRevenue / overview?.bookings.totalBookings) || 0
+  const avgBookingPerDay = overview ? (overview.bookings.totalBookings / overview.daysSinceCreation) : 0;
+  const avgRevenuePerBooking = overview ? (overview.revenue.totalRevenue / overview.bookings.totalBookings) : 0;
   
   return (
     <div className="space-y-6">
@@ -120,18 +140,20 @@ export default function AnalyticsPage() {
         </div>
         <div className="flex flex-col gap-2 md:flex-row">
           <Select
-            value={dateRange}
-            onValueChange={(value: "week" | "month" | "quarter") =>
-              setDateRange(value)
+            value={period}
+            onValueChange={(value: "last 7 days" | "month" | "quarter" | "year" | "all time") =>
+              setPeriod(value)
             }
           >
-            <SelectTrigger className="w-[150px] self-end md:self-auto border-[#E0E0E5] bg-white text-[#121212]">
-              <SelectValue placeholder="Select range" />
+            <SelectTrigger className="w-[180px] self-end md:self-auto border-[#E0E0E5] bg-white text-[#121212]">
+              <SelectValue placeholder="Select period" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="week">Weekly</SelectItem>
-              <SelectItem value="month">Monthly</SelectItem>
-              <SelectItem value="quarter">Quarterly</SelectItem>
+              <SelectItem value="last 7 days">Last 7 Days</SelectItem>
+              <SelectItem value="month">Month</SelectItem>
+              <SelectItem value="quarter">Quarter</SelectItem>
+              <SelectItem value="year">Year</SelectItem>
+              <SelectItem value="all time">All Time</SelectItem>
             </SelectContent>
           </Select>
 
@@ -142,7 +164,7 @@ export default function AnalyticsPage() {
                 className="justify-start gap-2 border-[#E0E0E5] bg-white text-[#121212]"
               >
                 <CalendarIconComponent className="h-4 w-4" />
-                {getDateRangeString(date, dateRange)}
+                {getDateRangeString(date, period === "last 7 days" ? "week" : period === "month" ? "month" : "quarter")}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
@@ -200,22 +222,22 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">
-                  {overview?.bookings.totalBookings}
+                  {overview?.bookings.totalBookings ?? 0}
                 </div>
                 <div className="mt-1 flex items-center">
                   <div
                     className={`text-sm font-medium ${
-                      overview?.bookings.bookingChange >= 0
+                      (overview?.bookings.bookingChange ?? 0) >= 0
                         ? "text-[#4CD964]"
                         : "text-[#FF6B6B]"
                     }`}
                   >
-                    {overview?.bookings.bookingChange >= 0 ? (
+                    {(overview?.bookings.bookingChange ?? 0) >= 0 ? (
                       <TrendingUp className="mr-1 inline-block h-4 w-4" />
                     ) : (
                       <TrendingDown className="mr-1 inline-block h-4 w-4" />
                     )}
-                    {Math.abs(overview?.bookings.bookingChange)}%
+                    {Math.abs(overview?.bookings.bookingChange ?? 0).toFixed(1)}%
                   </div>
                   <div className="text-sm text-muted-foreground ml-1">
                     vs. previous period
@@ -232,22 +254,22 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">
-                  ${overview?.revenue.totalRevenue.toLocaleString()}
+                  ${(overview?.revenue.totalRevenue ?? 0).toLocaleString()}
                 </div>
                 <div className="mt-1 flex items-center">
                   <div
                     className={`text-sm font-medium ${
-                      overview?.revenue.revenueChange >= 0
+                      (overview?.revenue.revenueChange ?? 0) >= 0
                         ? "text-[#4CD964]"
                         : "text-[#FF6B6B]"
                     }`}
                   >
-                    {overview?.revenue.revenueChange >= 0 ? (
+                    {(overview?.revenue.revenueChange ?? 0) >= 0 ? (
                       <TrendingUp className="mr-1 inline-block h-4 w-4" />
                     ) : (
                       <TrendingDown className="mr-1 inline-block h-4 w-4" />
                     )}
-                    {Math.abs(overview?.revenue.revenueChange)}%
+                    {Math.abs(overview?.revenue.revenueChange ?? 0).toFixed(1)}%
                   </div>
                   <div className="text-sm text-muted-foreground ml-1">
                     vs. previous period
@@ -264,22 +286,22 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">
-                  {overview?.clients.totalClients}
+                  {overview?.clients.totalClients ?? 0}
                 </div>
                 <div className="mt-1 flex items-center">
                   <div
                     className={`text-sm font-medium ${
-                      overview?.clients.clientChange >= 0
+                      (overview?.clients.clientChange ?? 0) >= 0
                         ? "text-[#4CD964]"
                         : "text-[#FF6B6B]"
                     }`}
                   >
-                    {overview?.clients.clientChange >= 0 ? (
+                    {(overview?.clients.clientChange ?? 0) >= 0 ? (
                       <TrendingUp className="mr-1 inline-block h-4 w-4" />
                     ) : (
                       <TrendingDown className="mr-1 inline-block h-4 w-4" />
                     )}
-                    {Math.abs(overview?.clients.clientChange)}%
+                    {Math.abs(overview?.clients.clientChange ?? 0).toFixed(1)}%
                   </div>
                   <div className="text-sm text-muted-foreground ml-1">
                     vs. previous period
@@ -321,7 +343,7 @@ export default function AnalyticsPage() {
                     className="h-[300px]"
                   >
                     <LineChart
-                      data={periodStats?.data}
+                      data={periodStats ?? []}
                       margin={{
                         top: 5,
                         right: 10,
@@ -372,7 +394,7 @@ export default function AnalyticsPage() {
                     className="h-[300px]"
                   >
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={periodStats?.data}>
+                      <LineChart data={periodStats ?? []}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="name" />
                         <YAxis />
@@ -415,7 +437,7 @@ export default function AnalyticsPage() {
                     className="h-[300px]"
                   >
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={periodStats?.data}>
+                      <LineChart data={periodStats ?? []}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="name" />
                         <YAxis />
@@ -444,33 +466,65 @@ export default function AnalyticsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={servicesData?.data}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) =>
-                      `${name} ${(percent * 100).toFixed(0)}%`
-                    }
-                  >
-                    {servicesData?.data.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
+            {servicesDataIsLoading ? (
+              <div className="h-[300px] w-full bg-gray-200 rounded animate-pulse" />
+            ) : (
+              <div className="space-y-4">
+                <div className="h-[250px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={servicesData ?? []}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label={({ name, percent }) =>
+                          `${name} ${(percent * 100).toFixed(0)}%`
+                        }
+                      >
+                        {(servicesData ?? []).map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                {period !== "all time" && (servicesData ?? []).some(s => s.percentageChange !== undefined) && (
+                  <div className="border-t pt-4 space-y-2">
+                    <h4 className="text-sm font-semibold text-[#121212]">vs. Previous Period</h4>
+                    {(servicesData ?? []).map((service) => (
+                      service.percentageChange !== undefined && (
+                        <div key={service.serviceId} className="flex items-center justify-between text-sm">
+                          <span className="text-[#6E6E73]">{service.name}</span>
+                          <span
+                            className={`font-medium flex items-center gap-1 ${
+                              service.percentageChange >= 0
+                                ? "text-[#4CD964]"
+                                : "text-[#FF6B6B]"
+                            }`}
+                          >
+                            {service.percentageChange >= 0 ? (
+                              <TrendingUp className="h-3 w-3" />
+                            ) : (
+                              <TrendingDown className="h-3 w-3" />
+                            )}
+                            {Math.abs(service.percentageChange).toFixed(1)}%
+                          </span>
+                        </div>
+                      )
                     ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -505,7 +559,7 @@ export default function AnalyticsPage() {
                 className="h-[300px]"
               >
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={bookingsByDayOfWeek?.data}>
+                  <BarChart data={bookingsByDayOfWeek ?? []}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="day" />
                     <YAxis />
@@ -550,6 +604,69 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Staff Performance Section */}
+      <Card className="border-0 shadow-card">
+        <CardHeader>
+          <CardTitle>Staff Performance</CardTitle>
+          <CardDescription>
+            Top performing team members by revenue and bookings
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {staffPerformanceIsLoading ? (
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-48" />
+                  </div>
+                  <div className="space-y-2 text-right">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {(staffPerformance ?? []).length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No staff performance data available
+                </div>
+              ) : (
+                (staffPerformance ?? []).map((staff) => (
+                  <div
+                    key={staff.staffId}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-semibold text-[#121212]">
+                          {staff.staffName}
+                        </h4>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-[#7B68EE]/10 text-[#7B68EE] capitalize">
+                          {staff.role}
+                        </span>
+                      </div>
+                      <p className="text-sm text-[#6E6E73]">{staff.staffEmail}</p>
+                    </div>
+                    <div className="text-right space-y-1">
+                      <div className="font-bold text-lg text-[#4CD964]">
+                        ${staff.revenue.toLocaleString()}
+                      </div>
+                      <div className="text-sm text-[#6E6E73]">
+                        {staff.completedBookings} bookings
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

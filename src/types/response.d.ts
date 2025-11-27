@@ -7,17 +7,75 @@ export interface VoidResponse {
 }
 
 export interface AnalyticsResponse {
-  [key: string]: any;
+  success: boolean;
+  message: string;
+  data: {
+    period: string;
+    revenue: {
+      totalRevenue: number;
+      revenueChange: number;
+    };
+    bookings: {
+      totalBookings: number;
+      bookingChange: number;
+    };
+    clients: {
+      totalClients: number;
+      clientChange: number;
+    };
+    daysSinceCreation: number;
+  };
 }
 
 export interface PeriodicStatsResponse {
-  status: boolean;
-  data: { name: string; bookings: number; revenue: number; clients: number }[];
+  success: boolean;
+  message: string;
+  data: {
+    period: string;
+    stats: { name: string; bookings: number; revenue: number; clients: number }[];
+  };
 }
 
 export interface AnalyticsServiceDataResponse {
-  status: boolean;
-  data: { serviceId: number; name: string; value: number }[];
+  success: boolean;
+  message: string;
+  data: {
+    period: string;
+    serviceCount: {
+      serviceId: number;
+      name: string;
+      value: number;
+      percentageChange?: number;
+    }[];
+  };
+}
+
+export interface StaffPerformanceResponse {
+  success: boolean;
+  message: string;
+  data: {
+    period: string;
+    staffPerformance: {
+      staffId: number;
+      staffUuid: string;
+      staffName: string;
+      staffEmail: string;
+      role: string;
+      completedBookings: number;
+      revenue: number;
+    }[];
+  };
+}
+
+export interface DayBookingStatsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    stats: {
+      day: string;
+      bookings: number;
+    }[];
+  };
 }
 
 export interface Summary {
