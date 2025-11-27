@@ -58,7 +58,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
 export default function AnalyticsPage() {
-    const { settings } = useUserSettings();
+  const { settings } = useUserSettings();
 
   const router = useRouter();
 
@@ -70,6 +70,9 @@ export default function AnalyticsPage() {
     }
   }, [settings, router]);
 
+  const [period, setPeriod] = useState<"last 7 days" | "month" | "quarter" | "year" | "all time">(
+    "last 7 days"
+  );
   const [date, setDate] = useState<Date>(new Date());
 
   const { data: bookingsByDayOfWeek, isLoading: bookingsByDayOfWeekIsLoading } =
