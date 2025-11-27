@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -17,23 +17,11 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import {
-  Download,
   TrendingUp,
   TrendingDown,
-  Users,
   CalendarIcon as CalendarIconComponent,
   PoundSterling,
 } from "lucide-react";
-import {
-  format,
-  startOfWeek,
-  endOfWeek,
-  startOfMonth,
-  endOfMonth,
-  startOfQuarter,
-  endOfQuarter,
-} from "date-fns";
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -64,22 +52,27 @@ import { useQuery } from "@tanstack/react-query";
 import { AnalyticsResponse, AnalyticsServiceDataResponse, PeriodicStatsResponse } from "@/types/response";
 import api from "@/services/api-service";
 import { useUserSettings } from "@/contexts/UserSettingsContext";
-
-const COLORS = [
-  "#7B68EE",
-  "#5AC8FA",
-  "#4CD964",
-  "#FFCC00",
-  "#FF6B6B",
-  "#E0E0E5",
-];
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { COLORS, getDateRangeString } from "@/lib/helpers";
 
 export default function AnalyticsPage() {
+    const { settings } = useUserSettings();
+
+  const router = useRouter();
+
+  // Restrict access to admin and owner only
+  useEffect(() => {
+    if (settings && settings.role !== "owner" && settings.role !== "admin") {
+      toast.error("You don't have permission to access this page");
+      router.push("/dashboard");
+    }
+  }, [settings, router]);
+
   const [dateRange, setDateRange] = useState<"week" | "month" | "quarter">(
     "week"
   );
   const [date, setDate] = useState<Date>(new Date());
-  const { settings } = useUserSettings()
 
   const { data: bookingsByDayOfWeek, isLoading: bookingsByDayOfWeekIsLoading } =
     useQuery({
@@ -116,35 +109,6 @@ export default function AnalyticsPage() {
   const avgBookingPerDay = (overview?.bookings.totalBookings / overview?.daysSinceCreation) || 0
   const avgRevenuePerBooking = (overview?.revenue.totalRevenue / overview?.bookings.totalBookings) || 0
   
-  // Get the date range string
-  const getDateRangeString = () => {
-    switch (dateRange) {
-      case "week":
-        const weekStart = startOfWeek(date, { weekStartsOn: 1 });
-        const weekEnd = endOfWeek(date, { weekStartsOn: 1 });
-        return `${format(weekStart, "MMM d, yyyy")} - ${format(
-          weekEnd,
-          "MMM d, yyyy"
-        )}`;
-      case "month":
-        const monthStart = startOfMonth(date);
-        const monthEnd = endOfMonth(date);
-        return `${format(monthStart, "MMM d, yyyy")} - ${format(
-          monthEnd,
-          "MMM d, yyyy"
-        )}`;
-      case "quarter":
-        const quarterStart = startOfQuarter(date);
-        const quarterEnd = endOfQuarter(date);
-        return `${format(quarterStart, "MMM d, yyyy")} - ${format(
-          quarterEnd,
-          "MMM d, yyyy"
-        )}`;
-      default:
-        return "";
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -178,7 +142,7 @@ export default function AnalyticsPage() {
                 className="justify-start gap-2 border-[#E0E0E5] bg-white text-[#121212]"
               >
                 <CalendarIconComponent className="h-4 w-4" />
-                {getDateRangeString()}
+                {getDateRangeString(date, dateRange)}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
@@ -582,14 +546,6 @@ export default function AnalyticsPage() {
                   £{avgRevenuePerBooking.toFixed(2)}
                 </div>
               </div>
-
-              {/* <div className="flex flex-col items-center justify-center rounded-lg border p-4">
-                <Users className="mb-2 h-8 w-8 text-[#7B68EE]" />
-                <div className="text-sm font-medium text-muted-foreground">
-                  Client Retention Rate
-                </div>
-                <div className="text-2xl font-bold">78%</div>
-              </div> */}
             </div>
           </CardContent>
         </Card>

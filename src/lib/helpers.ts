@@ -1,3 +1,22 @@
+import {
+  endOfMonth,
+  endOfQuarter,
+  endOfWeek,
+  format,
+  startOfMonth,
+  startOfQuarter,
+  startOfWeek,
+} from "date-fns";
+
+export const COLORS = [
+  "#7B68EE",
+  "#5AC8FA",
+  "#4CD964",
+  "#FFCC00",
+  "#FF6B6B",
+  "#E0E0E5",
+];
+
 export const days = [
   "monday",
   "tuesday",
@@ -89,7 +108,7 @@ export const serviceDurationOptions = [
 
 export const serviceDaysEnabled = (service: Service) => {
   return days.filter((day) => service[`${day}_enabled`]);
-}
+};
 
 export const getStatusBadgeStyles = (status: string) => {
   switch (status.toLowerCase()) {
@@ -120,10 +139,10 @@ export const getPaymentBadgeStyles = (status: string) => {
 export const getDurationLabel = (duration: number) => {
   const hours = Math.floor(duration / 60);
   const minutes = duration % 60;
-  
+
   if (hours === 0) return `${minutes} minutes`;
   if (minutes === 0) return hours === 1 ? "1 hour" : `${hours} hours`;
-  return `${hours} hour${hours > 1 ? 's' : ''} ${minutes} minutes`;
+  return `${hours} hour${hours > 1 ? "s" : ""} ${minutes} minutes`;
 };
 
 export const getInitials = (name: string) => {
@@ -137,16 +156,18 @@ export const getInitials = (name: string) => {
 
 export const formatDate = (dateString: string) => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 };
 
-export const getStatusBadgeVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
+export const getStatusBadgeVariant = (
+  status: string
+): "default" | "secondary" | "destructive" | "outline" => {
   switch (status.toLowerCase()) {
     case "confirmed":
       return "default";
@@ -160,37 +181,71 @@ export const getStatusBadgeVariant = (status: string): "default" | "secondary" |
 };
 
 export const getAvailableDays = (service: any) => {
-    if (!service) return [];
-    const days = [
-      { key: "monday_enabled", label: "Mon" },
-      { key: "tuesday_enabled", label: "Tue" },
-      { key: "wednesday_enabled", label: "Wed" },
-      { key: "thursday_enabled", label: "Thu" },
-      { key: "friday_enabled", label: "Fri" },
-      { key: "saturday_enabled", label: "Sat" },
-      { key: "sunday_enabled", label: "Sun" },
-    ];
-    return days.filter((day) => service[day.key as keyof typeof service]).map((d) => d.label);
-  };
+  if (!service) return [];
+  const days = [
+    { key: "monday_enabled", label: "Mon" },
+    { key: "tuesday_enabled", label: "Tue" },
+    { key: "wednesday_enabled", label: "Wed" },
+    { key: "thursday_enabled", label: "Thu" },
+    { key: "friday_enabled", label: "Fri" },
+    { key: "saturday_enabled", label: "Sat" },
+    { key: "sunday_enabled", label: "Sun" },
+  ];
+  return days
+    .filter((day) => service[day.key as keyof typeof service])
+    .map((d) => d.label);
+};
 
 export const formatTime = (minutes: number | null) => {
-    if (minutes === null) return "N/A";
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    const period = hours >= 12 ? "PM" : "AM";
-    const displayHours = hours % 12 || 12;
-    return `${displayHours}:${mins.toString().padStart(2, "0")} ${period}`;
-  };
+  if (minutes === null) return "N/A";
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  const period = hours >= 12 ? "PM" : "AM";
+  const displayHours = hours % 12 || 12;
+  return `${displayHours}:${mins.toString().padStart(2, "0")} ${period}`;
+};
 
 export const getRoleBadgeVariant = (
-    role: string
-  ): "default" | "secondary" | "outline" => {
-    switch (role) {
-      case "owner":
-        return "default";
-      case "admin":
-        return "secondary";
-      default:
-        return "outline";
-    }
-  };
+  role: string
+): "default" | "secondary" | "outline" => {
+  switch (role) {
+    case "owner":
+      return "default";
+    case "admin":
+      return "secondary";
+    default:
+      return "outline";
+  }
+};
+
+// Get the date range string
+export const getDateRangeString = (
+  date: Date,
+  dateRange: "week" | "month" | "quarter"
+) => {
+  switch (dateRange) {
+    case "week":
+      const weekStart = startOfWeek(date, { weekStartsOn: 1 });
+      const weekEnd = endOfWeek(date, { weekStartsOn: 1 });
+      return `${format(weekStart, "MMM d, yyyy")} - ${format(
+        weekEnd,
+        "MMM d, yyyy"
+      )}`;
+    case "month":
+      const monthStart = startOfMonth(date);
+      const monthEnd = endOfMonth(date);
+      return `${format(monthStart, "MMM d, yyyy")} - ${format(
+        monthEnd,
+        "MMM d, yyyy"
+      )}`;
+    case "quarter":
+      const quarterStart = startOfQuarter(date);
+      const quarterEnd = endOfQuarter(date);
+      return `${format(quarterStart, "MMM d, yyyy")} - ${format(
+        quarterEnd,
+        "MMM d, yyyy"
+      )}`;
+    default:
+      return "";
+  }
+};

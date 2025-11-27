@@ -37,8 +37,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/services/api-service";
 import { TemplateDataResponse } from "@/types/response";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useUserSettings } from "@/contexts/UserSettingsContext";
+import { useRouter } from "next/navigation";
 
 export default function TemplatesPage() {
+    const { settings } = useUserSettings();
+
+  const router = useRouter();
+
   const queryClient = useQueryClient();
   const [images, setImages] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -71,6 +77,14 @@ export default function TemplatesPage() {
       setImages(templateData.image_urls || []);
     }
   }, [templateData, form]);
+
+  // Restrict access to admin and owner only
+  useEffect(() => {
+    if (settings && settings.role !== "owner" && settings.role !== "admin") {
+      toast.error("You don't have permission to access this page");
+      router.push("/dashboard");
+    }
+  }, [settings, router]);
 
   const formRef = useRef<HTMLFormElement | null>(null);
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
