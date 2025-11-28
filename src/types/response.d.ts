@@ -1029,3 +1029,52 @@ interface BookingsListResponse {
   message: string;
   data: BookingsListData;
 }
+
+// Staff Member Details Types
+interface WorkSchedule {
+  id: number;
+  day_of_week: number;
+  opening_time: number | null;
+  closing_time: number | null;
+  enabled: boolean;
+}
+
+interface StaffBreak {
+  id: number;
+  day_of_week: number;
+  start: number;
+  end: number;
+}
+
+interface TimeOff {
+  id: number;
+  start_date: string;
+  end_date: string;
+  reason: string | null;
+}
+
+interface OverrideHours {
+  id: number;
+  date: string;
+  opening_time: number | null;
+  closing_time: number | null;
+}
+
+interface StaffMemberDetails {
+  id: number;
+  UserId: number;
+  ServiceProviderId: number;
+  role: "owner" | "admin" | "staff";
+  status: string;
+  User: MemberUser;
+  workSchedules: WorkSchedule[];
+  breaks: StaffBreak[];
+  timeOffs: TimeOff[];
+  overrideHours: OverrideHours[];
+}
+
+interface StaffMemberDetailsResponse {
+  success: boolean;
+  message: string;
+  data: StaffMemberDetails;
+}

@@ -1,240 +1,370 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Plus, Search, Filter, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { useState } from "react";
+import { Plus, Search, UserX, Trash2, X } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { TeamMemberDialog } from "@/components/team/team-member-dialog"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import api from "@/services/api-service";
+import { getInitials } from "@/lib/helpers";
+import { PendingInvitationsSection } from "@/components/team/pending-invitations-section";
+import { InviteStaffDialog } from "@/components/team/invite-staff-dialog";
+import { StaffDetailsSheet } from "@/components/team/staff-details-sheet";
 
-// Mock data for team members
-const initialTeamMembers = [
-  {
-    id: 1,
-    name: "Emma Johnson",
-    role: "Hair Stylist",
-    email: "emma@example.com",
-    phone: "(555) 123-4567",
-    bio: "Specializes in modern cuts and color techniques with over 8 years of experience.",
-    services: ["Haircut", "Hair Coloring", "Styling"],
-    avatar: "/placeholder.svg",
-    isActive: true,
-  },
-  {
-    id: 2,
-    name: "Michael Smith",
-    role: "Barber",
-    email: "michael@example.com",
-    phone: "(555) 234-5678",
-    bio: "Expert in traditional barbering and modern men's styles with 5 years of experience.",
-    services: ["Men's Haircut", "Beard Trim", "Hot Towel Shave"],
-    avatar: "/placeholder.svg",
-    isActive: true,
-  },
-  {
-    id: 3,
-    name: "Sophia Lee",
-    role: "Nail Technician",
-    email: "sophia@example.com",
-    phone: "(555) 345-6789",
-    bio: "Certified nail technician specializing in nail art and gel extensions.",
-    services: ["Manicure", "Pedicure", "Gel Nails", "Nail Art"],
-    avatar: "/placeholder.svg",
-    isActive: true,
-  },
-  {
-    id: 4,
-    name: "David Wilson",
-    role: "Massage Therapist",
-    email: "david@example.com",
-    phone: "(555) 456-7890",
-    bio: "Licensed massage therapist with expertise in deep tissue and relaxation techniques.",
-    services: ["Swedish Massage", "Deep Tissue Massage", "Hot Stone Massage"],
-    avatar: "/placeholder.svg",
-    isActive: false,
-  },
-]
+interface MemberUser {
+  id: number;
+  full_name: string;
+  email: string;
+  phone: string | null;
+  is_email_verified: boolean;
+  avatar: string | null;
+}
+
+interface Member {
+  id: number;
+  UserId: number;
+  ServiceProviderId: number;
+  role: "owner" | "admin" | "staff";
+  status: string;
+  invitedBy: number | null;
+  invitedAt: string;
+  acceptedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  User: MemberUser;
+}
+
+interface MembersResponse {
+  success: boolean;
+  message: string;
+  data: {
+    members: Member[];
+  };
+}
+
+const roleOrder = { owner: 0, admin: 1, staff: 2 };
+const roleBadgeColors = {
+  owner: "bg-purple-100 text-purple-800",
+  admin: "bg-blue-100 text-blue-800",
+  staff: "bg-gray-100 text-gray-800",
+};
 
 export default function TeamPage() {
-  const [teamMembers, setTeamMembers] = useState(initialTeamMembers)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [currentMember, setCurrentMember] = useState<any>(null)
+  const queryClient = useQueryClient();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
+  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+  const [selectedStaffId, setSelectedStaffId] = useState<number | null>(null);
 
-  // Filter team members based on search query
-  const filteredMembers = teamMembers.filter(
-    (member) =>
-      member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  // Fetch members
+  const { data: membersData, isLoading: isLoadingMembers } = useQuery({
+    queryKey: ["members"],
+    queryFn: async () => {
+      const response = await api.get<MembersResponse>("members");
+      return response.data.members;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
-  // Handle adding a new team member
-  const handleAddMember = (member: any) => {
-    if (currentMember) {
-      // Update existing member
-      setTeamMembers(teamMembers.map((m) => (m.id === currentMember.id ? { ...member, id: currentMember.id } : m)))
+  // Sort members by role and filter by search
+  const sortedMembers = (membersData ?? [])
+    .sort((a, b) => roleOrder[a.role] - roleOrder[b.role])
+    .filter((member) => {
+      if (!searchQuery) return true;
+      const searchLower = searchQuery.toLowerCase();
+      return (
+        member.User.full_name.toLowerCase().includes(searchLower) ||
+        member.User.email.toLowerCase().includes(searchLower) ||
+        member.role.toLowerCase().includes(searchLower)
+      );
+    });
+
+  // Bulk suspend mutation
+  const bulkSuspendMutation = useMutation({
+    mutationFn: async (memberIds: number[]) => {
+      const response = await api.post("members/bulk-suspend", { memberIds });
+      return (response as any).data;
+    },
+    onMutate: () => {
+      toast.loading("Suspending members...", { id: "bulk-suspend" });
+    },
+    onSuccess: (data: any) => {
+      toast.success(data.message, { id: "bulk-suspend" });
+      queryClient.invalidateQueries({ queryKey: ["members"] });
+      setSelectedMembers([]);
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to suspend members", {
+        id: "bulk-suspend",
+      });
+    },
+  });
+
+  // Bulk delete mutation
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (memberIds: number[]) => {
+      const response = await api.post("members/bulk-delete", { memberIds });
+      return (response as any).data;
+    },
+    onMutate: () => {
+      toast.loading("Deleting members...", { id: "bulk-delete" });
+    },
+    onSuccess: (data: any) => {
+      toast.success(data.message, { id: "bulk-delete" });
+      queryClient.invalidateQueries({ queryKey: ["members"] });
+      setSelectedMembers([]);
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to delete members", {
+        id: "bulk-delete",
+      });
+    },
+  });
+
+  const handleSelectAll = () => {
+    if (selectedMembers.length === sortedMembers.length) {
+      setSelectedMembers([]);
     } else {
-      // Add new member
-      setTeamMembers([...teamMembers, { ...member, id: Date.now() }])
+      setSelectedMembers(sortedMembers.map((m) => m.id));
     }
-    setIsDialogOpen(false)
-    setCurrentMember(null)
-  }
+  };
 
-  // Handle editing a team member
-  const handleEditMember = (member: any) => {
-    setCurrentMember(member)
-    setIsDialogOpen(true)
-  }
+  const handleSelectMember = (memberId: number) => {
+    setSelectedMembers((prev) =>
+      prev.includes(memberId)
+        ? prev.filter((id) => id !== memberId)
+        : [...prev, memberId]
+    );
+  };
 
-  // Handle deleting a team member
-  const handleDeleteMember = (id: number) => {
-    setTeamMembers(teamMembers.filter((member) => member.id !== id))
-  }
+  const handleBulkSuspend = () => {
+    if (selectedMembers.length === 0) {
+      toast.error("Please select at least one member");
+      return;
+    }
+    if (confirm(`Are you sure you want to suspend ${selectedMembers.length} member(s)?`)) {
+      bulkSuspendMutation.mutate(selectedMembers);
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedMembers.length === 0) {
+      toast.error("Please select at least one member");
+      return;
+    }
+    if (
+      confirm(
+        `Are you sure you want to delete ${selectedMembers.length} member(s)? This action cannot be undone.`
+      )
+    ) {
+      bulkDeleteMutation.mutate(selectedMembers);
+    }
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-[#121212] text-3xl font-bold">Team</h1>
-          <p className="text-[#6E6E73]">Manage your team members and their services.</p>
+          <h1 className="text-3xl font-bold text-[#121212]">Team Management</h1>
+          <p className="text-[#6E6E73]">Manage your team members and invitations</p>
         </div>
-        <Button
-          onClick={() => {
-            setCurrentMember(null)
-            setIsDialogOpen(true)
-          }}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Add Team Member
+        <Button onClick={() => setIsInviteDialogOpen(true)} className="gap-2">
+          <Plus className="h-4 w-4" />
+          Invite Staff
         </Button>
       </div>
 
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search team members..."
-            className="pl-9"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <Button variant="outline" size="icon">
-          <Filter className="h-4 w-4" />
-        </Button>
-      </div>
+      <Tabs defaultValue="members" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="members">Team Members</TabsTrigger>
+          <TabsTrigger value="invitations">Pending Invitations</TabsTrigger>
+        </TabsList>
 
-      {filteredMembers.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-8 text-center">
-          <h3 className="text-lg font-medium">No team members found</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {searchQuery
-              ? "No team members match your search criteria."
-              : "Get started by adding your first team member."}
-          </p>
-          {searchQuery ? (
-            <Button variant="outline" className="mt-4" onClick={() => setSearchQuery("")}>
-              Clear Search
-            </Button>
-          ) : (
-            <Button className="mt-4" onClick={() => setIsDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Team Member
-            </Button>
-          )}
-        </div>
-      ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredMembers.map((member) => (
-            <Card key={member.id} className="border-0 shadow-card">
-              <CardHeader className="relative flex flex-row items-start gap-4 space-y-0 pb-2">
-                <Avatar className="h-16 w-16 border-2 border-white">
-                  <AvatarImage src={member.avatar} alt={member.name} />
-                  <AvatarFallback className="text-lg">
-                    {member.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 space-y-1">
-                  <CardTitle className="flex items-center gap-2">
-                    {member.name}
-                    {!member.isActive && (
-                      <Badge variant="outline" className="ml-2 bg-[#6E6E73]/10 text-[#6E6E73]">
-                        Inactive
-                      </Badge>
-                    )}
-                  </CardTitle>
-                  <div className="text-sm font-medium text-[#7B68EE]">{member.role}</div>
-                  <div className="text-xs text-muted-foreground">{member.email}</div>
+        <TabsContent value="members" className="space-y-4">
+          {/* Search and Actions */}
+          <Card className="border-0 shadow-card">
+            <CardContent className="pt-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6E6E73]" />
+                  <Input
+                    placeholder="Search by name, email, or role..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="absolute right-6 top-6">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => handleEditMember(member)}>
-                      <Pencil className="mr-2 h-4 w-4" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="text-destructive focus:text-destructive"
-                      onClick={() => handleDeleteMember(member.id)}
+
+                {selectedMembers.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-[#6E6E73]">
+                      {selectedMembers.length} selected
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleBulkSuspend}
+                      disabled={bulkSuspendMutation.isPending}
+                      className="gap-2"
                     >
-                      <Trash2 className="mr-2 h-4 w-4" />
+                      <UserX className="h-4 w-4" />
+                      Suspend
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleBulkDelete}
+                      disabled={bulkDeleteMutation.isPending}
+                      className="gap-2"
+                    >
+                      <Trash2 className="h-4 w-4" />
                       Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground">Bio</h4>
-                    <p className="mt-1 text-sm">{member.bio}</p>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedMembers([])}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground">Services</h4>
-                    <div className="mt-1 flex flex-wrap gap-1">
-                      {member.services.map((service) => (
-                        <Badge key={service} variant="outline" className="bg-[#F5F5F7]">
-                          {service}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-      <TeamMemberDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        member={currentMember}
-        onSave={handleAddMember}
+          {/* Team Members List */}
+          <Card className="border-0 shadow-card">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Team Members ({sortedMembers.length})</CardTitle>
+                {sortedMembers.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleSelectAll}
+                    className="text-sm"
+                  >
+                    {selectedMembers.length === sortedMembers.length
+                      ? "Deselect All"
+                      : "Select All"}
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoadingMembers ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center gap-4 p-4 border rounded-lg">
+                      <Skeleton className="h-12 w-12 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-48" />
+                      </div>
+                      <Skeleton className="h-6 w-16" />
+                    </div>
+                  ))}
+                </div>
+              ) : sortedMembers.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-[#6E6E73]">No team members found</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {sortedMembers.map((member) => (
+                    <div
+                      key={member.id}
+                      className={`flex items-center gap-4 p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer ${
+                        selectedMembers.includes(member.id) ? "bg-blue-50 border-blue-200" : ""
+                      }`}
+                      onClick={(e) => {
+                        if ((e.target as HTMLElement).closest('input[type="checkbox"]')) {
+                          return;
+                        }
+                        setSelectedStaffId(member.id);
+                      }}
+                    >
+                      <Checkbox
+                        checked={selectedMembers.includes(member.id)}
+                        onCheckedChange={() => handleSelectMember(member.id)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={member.User.avatar || undefined} />
+                        <AvatarFallback className="bg-[#7B68EE] text-white">
+                          {getInitials(member.User.full_name)}
+                        </AvatarFallback>
+                      </Avatar>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-[#121212] truncate">
+                            {member.User.full_name}
+                          </h3>
+                          <Badge className={roleBadgeColors[member.role]}>
+                            {member.role}
+                          </Badge>
+                        </div>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm text-[#6E6E73]">
+                          <span className="truncate">{member.User.email}</span>
+                          {member.User.phone && (
+                            <>
+                              <span className="hidden sm:inline">•</span>
+                              <span>{member.User.phone}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="text-right text-sm text-[#6E6E73]">
+                        <div>Joined</div>
+                        <div>
+                          {new Date(member.createdAt).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="invitations">
+          <PendingInvitationsSection />
+        </TabsContent>
+      </Tabs>
+
+      {/* Invite Staff Dialog */}
+      <InviteStaffDialog
+        open={isInviteDialogOpen}
+        onOpenChange={setIsInviteDialogOpen}
       />
+
+      {/* Staff Details Sheet */}
+      {selectedStaffId && (
+        <StaffDetailsSheet
+          memberId={selectedStaffId}
+          open={!!selectedStaffId}
+          onOpenChange={(open: boolean) => !open && setSelectedStaffId(null)}
+        />
+      )}
     </div>
-  )
+  );
 }
 
