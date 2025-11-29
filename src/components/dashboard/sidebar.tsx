@@ -18,6 +18,7 @@ import {
   School,
   CircleUser,
   Bookmark,
+  ShieldHalf,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -86,6 +87,12 @@ const sidebarItems = [
     title: "Programs",
     href: "/dashboard/programs",
     icon: School,
+    requireAdmin: true,
+  },
+  {
+    title: "Team",
+    href: "/dashboard/team",
+    icon: ShieldHalf,
     requireAdmin: true,
   },
   {
