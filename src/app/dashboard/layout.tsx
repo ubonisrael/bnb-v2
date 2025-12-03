@@ -4,7 +4,6 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
-import { UserSettingsProvider } from "@/contexts/UserSettingsContext";
 import api, { getCsrfTokenFromCookie } from "@/services/api-service";
 import { InfoBar } from "@/components/dashboard/info-bar";
 import { SupportModalTrigger } from "@/components/ui/support-modal-trigger";
@@ -70,7 +69,7 @@ export default function DashboardLayout({
   }, []);
 
   return (
-    <UserSettingsProvider>
+    <>
       <CSRFInitializer />
       <div className="flex min-h-screen">
         <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
@@ -85,6 +84,6 @@ export default function DashboardLayout({
         </div>
         <SupportModalTrigger />
       </div>
-    </UserSettingsProvider>
+    </>
   );
 }

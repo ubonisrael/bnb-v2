@@ -19,17 +19,13 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  StaffDashboardOverviewResponse,
-  StaffBookingsByDateResponse,
-} from "@/types/response";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api-service";
-import { useUserSettings } from "@/contexts/UserSettingsContext";
 import { CopyTextComponent } from "../CopyText";
+import { useCompanyDetails } from "@/hooks/use-company-details";
 
 export const StaffDashboard = () => {
-  const { settings } = useUserSettings();
+  const { data: settings } = useCompanyDetails();
   const today = dayjs().format("YYYY-MM-DD");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -38,7 +34,7 @@ export const StaffDashboard = () => {
     queryKey: ["staff-dashboard-overview"],
     queryFn: async () => {
       const response = await api.get<StaffDashboardOverviewResponse>(
-        "members/me/dashboard/overview"
+        "members/my-dashboard/overview"
       );
       return response;
     },
@@ -85,11 +81,11 @@ export const StaffDashboard = () => {
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-3xl font-bold text-[#121212]">Dashboard</h1>
-          <p className="text-[#6E6E73]">Welcome back, {settings?.profile.name}!</p>
+          <p className="text-[#6E6E73]">Welcome back, {settings?.name}!</p>
         </div>
       </div>
 
-      <CopyTextComponent text={settings?.bookingSettings.url || "bookingurl"} />
+      <CopyTextComponent text={settings?.bookingUrl || "bookingurl"} />
 
       {/* Overview Stats */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

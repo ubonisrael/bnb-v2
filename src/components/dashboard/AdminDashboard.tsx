@@ -19,17 +19,13 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  KeyMetricsResponse,
-  TodayOverviewResponse,
-} from "@/types/response";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api-service";
-import { useUserSettings } from "@/contexts/UserSettingsContext";
 import { CopyTextComponent } from "../CopyText";
+import { useCompanyDetails } from "@/hooks/use-company-details";
 
 export const AdminDashboard = () => {
-  const { settings } = useUserSettings();
+  const { data: settings } = useCompanyDetails();
 
   const { data: keyMetrics, isLoading: metricsLoading } = useQuery({
     queryKey: ["dashboard-key-metrics"],
@@ -60,7 +56,7 @@ export const AdminDashboard = () => {
         </div>
       </div>
 
-      <CopyTextComponent text={settings?.bookingSettings.url || "bookingurl"} />
+      <CopyTextComponent text={settings?.bookingUrl || "bookingurl"} />
 
       {/* Key Business Metrics */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">

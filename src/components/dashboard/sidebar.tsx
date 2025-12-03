@@ -20,7 +20,6 @@ import {
   Bookmark,
   ShieldHalf,
 } from "lucide-react";
-
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,9 +28,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useUserSettings } from "@/contexts/UserSettingsContext";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { getInitials } from "@/lib/helpers";
+import { useCompanyDetails } from "@/hooks/use-company-details";
 
 const sidebarItems = [
   {
@@ -110,7 +110,8 @@ export function Sidebar({
   collapsed: boolean;
   setCollapsed: (state: boolean) => void;
 }) {
-  const { settings } = useUserSettings();
+  const { data } = useCompanyDetails();
+
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -196,8 +197,8 @@ export function Sidebar({
                   (item) =>
                     !item.requireAdmin ||
                     (item.requireAdmin &&
-                      (settings?.role === "admin" ||
-                        settings?.role === "owner"))
+                      (data?.role === "admin" ||
+                        data?.role === "owner"))
                 )
                 .map((item) => (
                   <Tooltip key={item.href}>
@@ -237,10 +238,10 @@ export function Sidebar({
         <div className="mt-auto p-4">
           {!collapsed ? (
             <div className="flex items-center gap-3 rounded-lg bg-[#2a3352] p-3">
-              {settings?.profile.logo ? (
+              {data?.logo ? (
                 <div className="relative h-9 w-9">
                   <Image
-                    src={settings.profile.logo}
+                    src={data?.logo}
                     alt="Business Logo"
                     fill
                     className="h-9 w-9 rounded-full object-cover"
@@ -251,22 +252,21 @@ export function Sidebar({
               )}
               <div>
                 <p className="text-sm font-medium">
-                  {settings?.profile.name || "Business"}
+                  {data?.name || "Business"}
                 </p>
                 <p className="text-xs text-[#a4b0d3]">Business Account</p>
               </div>
             </div>
           ) : (
             <div className="flex justify-center">
-              {settings && (
+              {data && (
                 <Avatar className="h-9 w-9">
                   <AvatarImage
-                    src={settings.profile.logo || "/placeholder.svg"}
+                    src={data.logo || "/placeholder.svg"}
                     alt="User"
                   />
                   <AvatarFallback className="text-black">
-                    {settings?.profile.name[0]}
-                    {settings?.profile.name[1]}
+                    {getInitials(data.name || "Business")}
                   </AvatarFallback>
                 </Avatar>
               )}

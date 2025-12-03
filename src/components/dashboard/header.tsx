@@ -1,6 +1,4 @@
 import { Calendar, LogOut, Loader2 } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,11 +8,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLogoutMutation } from "@/hooks/use-logout-mutation";
-import { useUserSettings } from "@/contexts/UserSettingsContext";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { getInitials } from "@/lib/helpers";
+import { useCompanyDetails } from "@/hooks/use-company-details";
 
 export function Header() {
-  const { settings } = useUserSettings();
+  const logoutMutation = useLogoutMutation();
+  
+const { data } = useCompanyDetails();
+
   const today = new Date();
   const formattedDate = today.toLocaleDateString("en-US", {
     weekday: "long",
@@ -22,7 +24,6 @@ export function Header() {
     day: "numeric",
     year: "numeric",
   });
-  const logoutMutation = useLogoutMutation();
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
@@ -111,15 +112,14 @@ export function Header() {
         </DropdownMenu> */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            {settings && (
+            {data && (
               <Avatar className="h-9 w-9 cursor-pointer">
                 <AvatarImage
-                  src={settings.profile.logo || "/placeholder.svg"}
+                  src={data.logo || "/placeholder.svg"}
                   alt="User"
                 />
                 <AvatarFallback className="text-black">
-                  {settings?.profile.name[0]}
-                  {settings?.profile.name[1]}
+                  {getInitials(data.name || "User")}
                 </AvatarFallback>
               </Avatar>
             )}

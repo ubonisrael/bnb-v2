@@ -6,10 +6,10 @@ import {
   Card,
   CardHeader,
 } from "@/components/ui/card";
-import { useUserSettings } from "@/contexts/UserSettingsContext";
+import { useCompanyDetails } from "@/hooks/use-company-details";
 
 export default function DashboardPage() {
-  const { settings, isLoading } = useUserSettings();
+  const { data, isLoading } = useCompanyDetails();
 
   if (isLoading) {
     return (
@@ -31,7 +31,7 @@ export default function DashboardPage() {
 
   // Render based on user role
   const isAdminOrOwner =
-    settings?.role === "owner" || settings?.role === "admin";
+    data?.role === "owner" || data?.role === "admin";
 
   return isAdminOrOwner ? <AdminDashboard /> : <StaffDashboard />;
 }
