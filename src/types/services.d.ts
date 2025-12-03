@@ -1,3 +1,5 @@
+type ServiceAnalyticsPeriod = "last7Days" | "last2Weeks" | "lastMonth" | "lastQuarter" | "lastYear" | "allTime"
+
 interface CategoryData {
   id: number;
   name: string;
@@ -187,51 +189,29 @@ type UpdateServiceApiResponse =
   | UpdateServiceSuccessResponse
   | UpdateServiceErrorResponse;
 
-interface ServiceDetailsData {
-  service: {
-    id: number;
-    name: string;
-    duration: number;
-    description: string;
-    fullPrice: number;
-    CategoryId: number;
-    category: {
-      id: number;
-      name: string;
-    } | null;
-    monday_enabled: boolean;
-    tuesday_enabled: boolean;
-    wednesday_enabled: boolean;
-    thursday_enabled: boolean;
-    friday_enabled: boolean;
-    saturday_enabled: boolean;
-    sunday_enabled: boolean;
-    staff: Array<{
-      id: number;
-      role: string;
-      status: string;
-      user: {
-        id: number;
-        full_name: string;
-        email: string;
-        avatar: string | null;
-      } | null;
-    }>;
+interface ServiceDetailsAnalytics {
+  bookings: {
+    last7Days: { count: number; percentageChange: number };
+    last2Weeks: { count: number; percentageChange: number };
+    lastMonth: { count: number; percentageChange: number };
+    lastQuarter: { count: number; percentageChange: number };
+    lastYear: { count: number; percentageChange: number };
+    allTime: { count: number };
   };
-  analytics: {
-    bookings: {
-      last7Days: { count: number; percentageChange: number };
-      last2Weeks: { count: number; percentageChange: number };
-      lastMonth: { count: number; percentageChange: number };
-      lastQuarter: { count: number; percentageChange: number };
-      lastYear: { count: number; percentageChange: number };
-      allTime: { count: number };
-    };
-    totalRevenue: number;
-    uniqueClients: number;
-  };
+  totalRevenue: number;
+  uniqueClients: number;
 }
 
+interface ServiceWithStaffAndCategory extends ServiceWithStaff {
+  category: {
+    id: number;
+    name: string;
+  } | null;
+}
+interface ServiceDetailsData {
+  service: ServiceWithStaffAndCategory;
+  analytics: ServiceDetailsAnalytics;
+}
 interface ServiceClient {
   id: number;
   name: string;
@@ -267,9 +247,9 @@ interface ServiceAppointment {
   } | null;
   customer: {
     id: number;
-    full_name: string;
+    name: string;
     email: string;
-    phone_number: string | null;
+    phone: string | null;
   } | null;
 }
 
