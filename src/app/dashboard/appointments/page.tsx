@@ -15,7 +15,6 @@ import {
 import { useUserSettings } from "@/contexts/UserSettingsContext";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api-service";
-import { BookingsListResponse, MembersResponse } from "@/types/response";
 import { AppointmentList } from "@/components/appointments/appointment-list";
 
 export default function AppointmentsPage() {
@@ -76,8 +75,8 @@ export default function AppointmentsPage() {
         // Staff fetches their own bookings
         const endpoint =
           activeTab === "upcoming"
-            ? `members/me/bookings/upcoming?${params}`
-            : `members/me/bookings/past?${params}`;
+            ? `members/my-bookings/upcoming?${params}`
+            : `members/my-bookings/past?${params}`;
         const response = await api.get<BookingsListResponse>(endpoint);
         return response;
       } else if (isAdminOrOwner && selectedMemberId) {

@@ -11,14 +11,8 @@ import { SecuritySettings } from "@/components/profile/security-settings";
 import { UserProfileSettings } from "@/components/profile/user-profile-settings";
 
 export default function MyProfilePage() {
-
   return (
       <div className="space-y-6">
-        <div>
-          <h1 className="text-[#121212] text-3xl font-bold">Profile</h1>
-          <p className="text-[#6E6E73]">Manage your profile and preferences.</p>
-        </div>
-
         <Card className="border-0 shadow-card">
           <CardHeader>
             <CardTitle>Profile Settings</CardTitle>

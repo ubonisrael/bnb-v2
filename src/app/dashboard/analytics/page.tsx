@@ -49,7 +49,6 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { useQuery } from "@tanstack/react-query";
-import { AnalyticsResponse, AnalyticsServiceDataResponse, PeriodicStatsResponse, StaffPerformanceResponse, DayBookingStatsResponse } from "@/types/response";
 import api from "@/services/api-service";
 import { COLORS, getDateRangeString } from "@/lib/helpers";
 import { Skeleton } from "@/components/ui/skeleton";

@@ -19,7 +19,7 @@ export function flattenObject(
   export function removeNullish(val: any) {
     const result: { [key: string]: any } = {};
     for (const [key, value] of Object.entries(val)) {
-      if (value !== null && value !== undefined) {
+      if (value !== null && value !== undefined && value !== "") {
         result[key] = value;
       }
     }

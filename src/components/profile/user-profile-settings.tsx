@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Loader2, Upload, X, Clock, Calendar, MapPin } from "lucide-react";
 import Image from "next/image";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { ref, getDownloadURL, uploadBytesResumable } from "firebase/storage";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { UnsavedChangesBanner } from "../UnSavedChangesBanner";
 import { formatDate, formatTime, getRoleBadgeVariant, getStatusBadgeVariant } from "@/lib/helpers";
+import { removeNullish } from "@/utils/flatten";
 
 const userProfileSchema = z.object({
   full_name: z.string().min(2, "Full name must be at least 2 characters"),
@@ -54,16 +55,18 @@ export function UserProfileSettings() {
 
   const formRef = useRef<HTMLFormElement | null>(null);
 
+  const query = useQueryClient();
+
   // Fetch staff member details
   const { data: staffDetails, isLoading: isLoadingStaffDetails } = useQuery({
     queryKey: ["staff-member-details"],
     queryFn: async () => {
       const response = await api.get<StaffMemberDetailsResponse>(
-        "members/me/details"
+        "members/my-details"
       );
       return response.data;
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 60 * 60 * 1000,
   });
 
   // Update form when data is loaded
@@ -141,7 +144,7 @@ export function UserProfileSettings() {
 
   const removeAvatar = () => {
     setAvatarUrl(null);
-    form.setValue("avatar", "");
+    form.setValue("avatar", "", { shouldDirty: true });
   };
 
   const updateProfileMutation = useMutation({
@@ -150,7 +153,7 @@ export function UserProfileSettings() {
       const signal = controller.signal;
 
       try {
-        const response = await api.patch("user/profile", values, { signal });
+        const response = await api.patch("user/profile", removeNullish(values), { signal });
         return response;
       } catch (error: unknown) {
         if (error instanceof Error && error.name === "AbortError") {
@@ -164,6 +167,7 @@ export function UserProfileSettings() {
     },
     onSuccess: (response) => {
       toast.success("Profile updated successfully", { id: "profile-save" });
+      query.invalidateQueries({ queryKey: ["staff-member-details"] });
     },
     onError: (error: Error) => {
       toast.error(error?.message || "Failed to update profile", {
