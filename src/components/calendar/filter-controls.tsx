@@ -11,12 +11,16 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Badge } from "../ui/badge";
+import { useFetchServices } from "@/hooks/use-fetch-services";
+import useFetchCategories from "@/hooks/use-fetch-categories";
 
 export function FilterControls({
   filters,
   setFilters,
   settings,
 }: Omit<CalendarControlsProps, "date" | "setDate">) {
+  const { data: servicesData } = useFetchServices({ all: true })
+  const { data: categoriesData } = useFetchCategories({ all: true })
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -38,7 +42,7 @@ export function FilterControls({
           Filter by Category
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {settings?.categories.map((cat) => (
+        {categoriesData?.data.categories.map((cat) => (
           <DropdownMenuItem
             key={cat.id}
             className="flex items-center gap-3 py-2"
@@ -67,7 +71,7 @@ export function FilterControls({
           Filter by Service
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {settings?.services.map((service) => (
+        {servicesData?.data.services.map((service) => (
           <DropdownMenuItem
             key={service.id}
             className="flex items-center gap-3 py-2"

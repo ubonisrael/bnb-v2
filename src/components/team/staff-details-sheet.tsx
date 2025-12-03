@@ -25,63 +25,6 @@ import { OverrideHoursSection } from "./override-hours-section";
 import { StaffBookingsTab } from "./staff-bookings-tab";
 import { TimeOffSection } from "./time-off-section";
 
-interface MemberUser {
-  id: number;
-  full_name: string;
-  email: string;
-  phone: string | null;
-  is_email_verified: boolean;
-  avatar: string | null;
-}
-
-interface WorkSchedule {
-  id: number;
-  day_of_week: number;
-  opening_time: number | null;
-  closing_time: number | null;
-  enabled: boolean;
-}
-
-interface StaffBreak {
-  id: number;
-  day_of_week: number;
-  start: number;
-  end: number;
-}
-
-interface TimeOff {
-  id: number;
-  start_date: string;
-  end_date: string;
-  reason: string | null;
-}
-
-interface OverrideHours {
-  id: number;
-  date: string;
-  opening_time: number | null;
-  closing_time: number | null;
-}
-
-interface StaffMemberDetails {
-  id: number;
-  UserId: number;
-  ServiceProviderId: number;
-  role: "owner" | "admin" | "staff";
-  status: string;
-  User: MemberUser;
-  workSchedules: WorkSchedule[];
-  breaks: StaffBreak[];
-  timeOffs: TimeOff[];
-  overrideHours: OverrideHours[];
-}
-
-interface StaffMemberDetailsResponse {
-  success: boolean;
-  message: string;
-  data: StaffMemberDetails;
-}
-
 interface StaffDetailsSheetProps {
   memberId: number;
   open: boolean;
@@ -164,9 +107,7 @@ export function StaffDetailsSheet({
 
   const handleSuspend = () => {
     if (
-      confirm(
-        `Are you sure you want to suspend ${staffData?.User.full_name}?`
-      )
+      confirm(`Are you sure you want to suspend ${staffData?.member.user.full_name}?`)
     ) {
       suspendMutation.mutate();
     }
@@ -175,7 +116,7 @@ export function StaffDetailsSheet({
   const handleDelete = () => {
     if (
       confirm(
-        `Are you sure you want to delete ${staffData?.User.full_name}? This action cannot be undone.`
+        `Are you sure you want to delete ${staffData?.member.user.full_name}? This action cannot be undone.`
       )
     ) {
       deleteMutation.mutate();
@@ -206,7 +147,9 @@ export function StaffDetailsSheet({
           </div>
         ) : !staffData ? (
           <div className="text-center py-12">
-            <p className="text-[#6E6E73]">Failed to load staff member details</p>
+            <p className="text-[#6E6E73]">
+              Failed to load staff member details
+            </p>
           </div>
         ) : (
           <div className="space-y-6 mt-6">
@@ -215,31 +158,31 @@ export function StaffDetailsSheet({
               <CardContent className="pt-6">
                 <div className="flex items-start gap-4">
                   <Avatar className="h-20 w-20">
-                    <AvatarImage src={staffData.User.avatar || undefined} />
+                    <AvatarImage src={staffData?.member.user.avatar || undefined} />
                     <AvatarFallback className="bg-[#7B68EE] text-white text-xl">
-                      {getInitials(staffData.User.full_name)}
+                      {getInitials(staffData.member.user.full_name)}
                     </AvatarFallback>
                   </Avatar>
 
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-2">
                       <h2 className="text-2xl font-bold text-[#121212]">
-                        {staffData.User.full_name}
+                        {staffData.member.user.full_name}
                       </h2>
-                      <Badge className={roleBadgeColors[staffData.role]}>
-                        {staffData.role}
+                      <Badge className={roleBadgeColors[staffData.member.role]}>
+                        {staffData.member.role}
                       </Badge>
                     </div>
 
                     <div className="space-y-1 text-sm text-[#6E6E73]">
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4" />
-                        <span>{staffData.User.email}</span>
+                        <span>{staffData.member.user.email}</span>
                       </div>
-                      {staffData.User.phone && (
+                      {staffData.member.user.phone && (
                         <div className="flex items-center gap-2">
                           <span>📞</span>
-                          <span>{staffData.User.phone}</span>
+                          <span>{staffData.member.user.phone}</span>
                         </div>
                       )}
                     </div>
@@ -281,15 +224,12 @@ export function StaffDetailsSheet({
               <TabsContent value="schedule" className="space-y-4">
                 <WorkScheduleSection
                   memberId={memberId}
-                  workSchedules={staffData.workSchedules}
+                  workSchedules={staffData.workingHours}
                 />
-                <BreaksSection
-                  memberId={memberId}
-                  breaks={staffData.breaks}
-                />
+                {/* <BreaksSection memberId={memberId} breaks={staffData.workSchedules.flatMap(ws => ws.breaks)} /> */}
                 <OverrideHoursSection
                   memberId={memberId}
-                  overrideHours={staffData.overrideHours}
+                  overrideHours={staffData.upcomingOverrideHours}
                 />
               </TabsContent>
 
@@ -300,7 +240,7 @@ export function StaffDetailsSheet({
               <TabsContent value="time-off">
                 <TimeOffSection
                   memberId={memberId}
-                  timeOffs={staffData.timeOffs}
+                  timeOffs={staffData.upcomingTimeOffs}
                 />
               </TabsContent>
             </Tabs>

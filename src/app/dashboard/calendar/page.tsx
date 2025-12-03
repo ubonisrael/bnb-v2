@@ -4,16 +4,18 @@ import dayjs from "@/utils/dayjsConfig";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useUserSettings } from "@/contexts/UserSettingsContext";
 import api from "@/services/api-service";
 import { useQuery } from "@tanstack/react-query";
-import { StaffBookingsByDateResponse, MembersResponse } from "@/types/response";
 import "react-day-picker/style.css";
 import { MarkDNSDialog } from "@/components/calendar/mark-dns-dialog";
 import { CalendarHeader } from "@/components/calendar/calendar-header";
 import { CalendarControls } from "@/components/calendar/calendar-controls";
 import { DayView } from "@/components/calendar/day-view";
-import { generateTimeSlots, getTimeSlotIndex, heightOfCalendarRow } from "@/utils/calendar";
+import {
+  generateTimeSlots,
+  getTimeSlotIndex,
+  heightOfCalendarRow,
+} from "@/utils/calendar";
 import { CancelAppointmentDialog } from "@/components/calendar/cancel-appointment-dialog";
 import { RescheduleAppointmentDialog } from "@/components/calendar/reschdedule-appointment-dialog";
 import {
@@ -23,14 +25,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useCompanyDetails } from "@/hooks/use-company-details";
+import { useFetchServices } from "@/hooks/use-fetch-services";
 
 export default function CalendarPage() {
-  const { settings } = useUserSettings();
+  const { data: settings } = useCompanyDetails();
   const [date, setDate] = useState<Date>(new Date());
   const [appointment, setAppointment] = useState<AppointmentProps | null>(null);
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
 
-  const isAdminOrOwner = settings?.role === "owner" || settings?.role === "admin";
+  const isAdminOrOwner =
+    settings?.role === "owner" || settings?.role === "admin";
   const isStaff = settings?.role === "staff";
 
   // Fetch members list for admin/owner
@@ -48,7 +53,7 @@ export default function CalendarPage() {
     queryKey: ["bookings", date.toISOString(), selectedMemberId, isStaff],
     queryFn: async () => {
       const dateParam = format(date, "yyyy-MM-dd");
-      
+
       if (isStaff) {
         // Staff fetches their own bookings
         const response = await api.get<StaffBookingsByDateResponse>(
@@ -66,6 +71,8 @@ export default function CalendarPage() {
     },
     enabled: isStaff || (isAdminOrOwner && !!selectedMemberId),
   });
+
+  const { data: servicesData } = useFetchServices({ all: true });
 
   // Set default selected member to the first staff member for admin/owner
   useEffect(() => {
@@ -93,22 +100,22 @@ export default function CalendarPage() {
 
     return bookingsData.data.bookings.filter((booking) => {
       const serviceId = booking.Service.id;
-      
+
       // Check if the booking's service matches the selected service filters
       const matchesService =
         filters.service.length === 0 ||
-        filters.service.some((filter) => Number(filter.id) === Number(serviceId));
+        filters.service.some(
+          (filter) => Number(filter.id) === Number(serviceId)
+        );
 
       // Check if the booking's service belongs to selected categories
       const matchesCategory =
         filters.category.length === 0 ||
         (() => {
-          const service = settings?.services.find(
+          const service = servicesData?.data.services.find(
             (s) => Number(s.id) === Number(serviceId)
           );
-          return filters.category.some(
-            (cat) => cat.id === service?.CategoryId
-          );
+          return filters.category.some((cat) => cat.id === service?.CategoryId);
         })();
 
       return matchesService && matchesCategory;
@@ -116,20 +123,19 @@ export default function CalendarPage() {
   })();
 
   const timeSlots = (() => {
-
     if (!bookingsData?.data) return [];
-    
+
     const dayOfWeek = format(date, "EEEE").toLowerCase();
     const dayKey = `${dayOfWeek}_enabled` as keyof typeof bookingsData.data;
     const openingKey = `${dayOfWeek}_opening` as keyof typeof bookingsData.data;
     const closingKey = `${dayOfWeek}_closing` as keyof typeof bookingsData.data;
-    
+
     const isDayEnabled = bookingsData?.data[dayKey];
     if (!isDayEnabled) return [];
-    
+
     const openingTime = bookingsData?.data[openingKey] as number;
     const closingTime = bookingsData?.data[closingKey] as number;
-    
+
     return generateTimeSlots(
       openingTime ?? 420,
       closingTime ?? 1380,
@@ -162,8 +168,8 @@ export default function CalendarPage() {
     }
   }, [bookingsData, timeSlots, isBookingsLoading]);
 
-  const isDayDataLoading = isBookingsLoading || (isAdminOrOwner && isMembersLoading);
-
+  const isDayDataLoading =
+    isBookingsLoading || (isAdminOrOwner && isMembersLoading);
   // Convert bookings data to format expected by DayView
   const dayViewData = bookingsData?.success
     ? {
@@ -177,7 +183,7 @@ export default function CalendarPage() {
           dns: false,
           amount_paid: booking.Booking.amountPaid,
         })),
-        timeSlotDuration: settings?.bookingSettings?.time_slot_duration || 15,
+        timeSlotDuration: settings?.timeslot_duration || 15,
         dayEnabled: true,
         closingTime: timeSlots.length > 0 ? 1380 : 0,
         openingTime: timeSlots.length > 0 ? 420 : 0,
@@ -246,10 +252,7 @@ export default function CalendarPage() {
                   membersData.data.members
                     .filter((member) => member.status === "accepted")
                     .map((member) => (
-                      <SelectItem
-                        key={member.id}
-                        value={member.id.toString()}
-                      >
+                      <SelectItem key={member.id} value={member.id.toString()}>
                         {member.User.full_name} ({member.User.email})
                       </SelectItem>
                     ))
@@ -279,7 +282,7 @@ export default function CalendarPage() {
                 Please select a staff member to view their schedule
               </p>
             </div>
-          ) : (
+          ) : dayViewData ? (
             <CardContent className="w-full p-0">
               <DayView
                 data={dayViewData}
@@ -290,7 +293,7 @@ export default function CalendarPage() {
                 settings={settings}
               />
             </CardContent>
-          )}
+          ): null }
         </Card>
       </div>
     </>

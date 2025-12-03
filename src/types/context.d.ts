@@ -18,6 +18,7 @@ interface UserSettingsData {
   role: string; // User's role: "owner" | "admin" | "staff"
   memberId: number; // ServiceProviderMember ID from session
   bookingUrl: string; // Booking URL for the service provider
+  timeslot_duration: number; // timeslot duration in minutes
   logo: string | null; // URL of the business logo image
   name: string; // Business name
 }

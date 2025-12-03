@@ -1,7 +1,8 @@
-import { useUserSettings } from "@/contexts/UserSettingsContext";
+import { useCompanyDetails } from "@/hooks/use-company-details";
+
 
 export function InfoBar() {
-  const { settings } = useUserSettings();
+  const { data: settings } = useCompanyDetails();
   // check if user has an active subscription
   const hasActiveSubscription =
     settings?.subscription && settings.subscription.status === "active";

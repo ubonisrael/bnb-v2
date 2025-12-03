@@ -451,10 +451,10 @@ export function ServiceDetailsDialog({
                             <div className="flex items-center gap-3">
                               <Avatar className="h-8 w-8">
                                 <AvatarFallback className="text-xs">
-                                  {getInitials(client.full_name)}
+                                  {getInitials(client.name)}
                                 </AvatarFallback>
                               </Avatar>
-                              <span className="font-medium text-sm">{client.full_name}</span>
+                              <span className="font-medium text-sm">{client.name}</span>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -463,10 +463,10 @@ export function ServiceDetailsDialog({
                                 <Mail className="h-3 w-3 text-muted-foreground" />
                                 <span className="text-muted-foreground">{client.email}</span>
                               </div>
-                              {client.phone_number && (
+                              {client.phone && (
                                 <div className="flex items-center gap-2 text-sm">
                                   <Phone className="h-3 w-3 text-muted-foreground" />
-                                  <span className="text-muted-foreground">{client.phone_number}</span>
+                                  <span className="text-muted-foreground">{client.phone}</span>
                                 </div>
                               )}
                             </div>

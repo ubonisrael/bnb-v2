@@ -196,7 +196,7 @@ interface BookingDataResponse {
   status: boolean;
   message: string;
   timeSlotDuration: number;
-  dayEnabled: string;
+  dayEnabled: boolean;
   closingTime: number;
   openingTime: number;
   timezone: string;
@@ -982,6 +982,7 @@ interface BookingListItem {
     payment_status: string;
     amount_paid: number;
     amount_due: number;
+    dns: boolean;
     Customer: {
       id: number;
       name: string;
@@ -991,7 +992,7 @@ interface BookingListItem {
   };
   Service: {
     id: number;
-    title: string;
+    name: string;
     description: string | null;
   };
 }

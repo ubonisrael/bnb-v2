@@ -41,7 +41,6 @@ import {
   defaultServiceValues,
   serviceDurationOptions,
 } from "@/lib/helpers";
-import { MemberUser } from "@/types/response";
 
 interface StaffMember {
   id: number;

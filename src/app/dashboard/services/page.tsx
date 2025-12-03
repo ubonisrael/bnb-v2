@@ -6,7 +6,6 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api-service";
-import { useUserSettings } from "@/contexts/UserSettingsContext";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { categorySchema, ServiceFormValues } from "@/schemas/schema";
@@ -18,15 +17,20 @@ import { CategoriesList } from "@/components/services/categories-list";
 import { ServicesTable } from "@/components/services/services-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { MembersResponse } from "@/types/response";
+import { useCompanyDetails } from "@/hooks/use-company-details";
+import { useFetchServices } from "@/hooks/use-fetch-services";
+import useFetchCategories from "@/hooks/use-fetch-categories";
 
 export default function ServicesPage() {
-  const { settings } = useUserSettings();
+  const { data: settings } = useCompanyDetails();
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [showServiceDetailsModal, setShowServiceDetailsModal] = useState(false);
-  const [selectedService, setSelectedService] = useState<ServiceWithStaff | null>(null);
-  const [editingService, setEditingService] = useState<ServiceWithStaff | null>(null);
+  const [selectedService, setSelectedService] =
+    useState<ServiceWithStaff | null>(null);
+  const [editingService, setEditingService] = useState<ServiceWithStaff | null>(
+    null
+  );
   const [editingCategory, setEditingCategory] =
     useState<ServiceCategory | null>(null);
 
@@ -51,22 +55,14 @@ export default function ServicesPage() {
 
   const router = useRouter();
 
-  const { data: categoriesData, isLoading: isLoadingCategories } = useQuery({
-    queryKey: ["categories", categoryPage, categorySearch],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        page: categoryPage.toString(),
-        size: categoryPageSize.toString(),
-        ...(categorySearch && { search: categorySearch }),
-      });
-      return await api.get<CategoriesDataResponse>(`/sp/categories?${params}`);
-    },
-    staleTime: 5 * 60 * 1000,
+  const { data: categoriesData, isLoading: isLoadingCategories } = useFetchCategories({
+    categoryPage,
+    categoryPageSize,
+    categorySearch,
   });
 
-  const { data: servicesData, isLoading: isLoadingServices } = useQuery({
-    queryKey: [
-      "services",
+  const { data: servicesData, isLoading: isLoadingServices } = useFetchServices(
+    {
       servicePage,
       serviceSearch,
       minPrice,
@@ -76,28 +72,11 @@ export default function ServicesPage() {
       availableOn,
       sortBy,
       sortOrder,
-    ],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        page: servicePage.toString(),
-        size: servicePageSize.toString(),
-        ...(serviceSearch && { search: serviceSearch }),
-        ...(minPrice && { minPrice }),
-        ...(maxPrice && { maxPrice }),
-        ...(minDuration && { minDuration }),
-        ...(maxDuration && { maxDuration }),
-        ...(availableOn && { availableOn }),
-        sortBy,
-        sortOrder,
-      });
-      return await api.get<FetchServicesSuccessResponse>(
-        `/sp/services?${params}`
-      );
-    },
-    staleTime: 5 * 60 * 1000,
-  });
+      servicePageSize,
+    }
+  );
 
-  const { data: membersData, isLoading: isMembersLoading } = useQuery({
+  const { data: membersData } = useQuery({
     queryKey: ["members"],
     queryFn: async () => {
       const response = await api.get<MembersResponse>("members");

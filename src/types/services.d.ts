@@ -13,18 +13,19 @@ interface CategoryResponse {
 }
 
 interface PaginationData {
-    total: number;
-    page: number;
-    size: number;
-    totalPages: number;
-  };
+  total: number;
+  page: number;
+  size: number;
+  totalPages: number;
+}
 
 interface CategoriesDataResponse {
   success: boolean;
   message: string;
   data: {
     categories: CategoryData[];
-    pagination: PaginationData;
+    pagination?: PaginationData;
+    total?: number;
   };
 }
 
@@ -90,7 +91,8 @@ interface ValidationError {
  */
 interface FetchServicesDataSchema {
   services: ServiceWithStaff[];
-  pagination: PaginationData;
+  pagination?: PaginationData;
+  total?: number;
 }
 
 /**
@@ -232,9 +234,9 @@ interface ServiceDetailsData {
 
 interface ServiceClient {
   id: number;
-  full_name: string;
+  name: string;
   email: string;
-  phone_number: string | null;
+  phone: string | null;
   bookingCount: number;
 }
 

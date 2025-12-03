@@ -1,5 +1,4 @@
 import { Dispatch, SetStateAction } from "react";
-import { BookingsResponse } from "@/types/response";
 import dayjs from "@/utils/dayjsConfig";
 import { cn } from "@/lib/utils";
 import {
@@ -18,7 +17,7 @@ import {
 } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { ClipboardList, Mail, MoreHorizontal, Phone } from "lucide-react";
-import { useUserSettings } from "@/contexts/UserSettingsContext";
+import { useFetchServices } from "@/hooks/use-fetch-services";
 
 export default function CalendarCard({
   appointment,
@@ -27,20 +26,21 @@ export default function CalendarCard({
   timezone,
   view,
 }: {
-  appointment: BookingsResponse;
+  appointment: BookingListItem;
   setAppointment: Dispatch<SetStateAction<AppointmentProps | null>>;
   timeSlots: string[];
   timezone: string;
   view: "day" | "week";
 }) {
-  const { settings } = useUserSettings();
-  const date = dayjs(appointment.event_date).tz(timezone || "UTC");
+  const date = dayjs(appointment.start_time).tz(timezone || "UTC");
   const startTime = date.format("HH:mm");
   const endTime = date
-    .add(appointment.event_duration, "minutes")
+    .add(appointment.duration, "minutes")
     .format("HH:mm");
   const startTimeIndex = getTimeSlotIndex(startTime, timeSlots);
-  const duration = appointment.event_duration / 15;
+  const duration = appointment.duration / 15;
+
+  const { data } = useFetchServices({ all: true });
 
   if (startTimeIndex === -1) return null;
   return (
@@ -58,13 +58,13 @@ export default function CalendarCard({
       <div className="relative flex flex-col">
         <div className="flex flex-col gap-2">
           <div className="font-medium text-[#121212]">
-            {appointment.Customer?.name}
+            {appointment.Booking.Customer.name}
           </div>
           <div className="text-sm text-[#121212]">
             <p className="flex items-center gap-2">
               <Mail size={16} />{" "}
               <span className="inline-block text-ellipsis overflow-hidden">
-                {appointment.Customer?.email}
+                {appointment.Booking.Customer.email}
               </span>
             </p>
           </div>
@@ -72,11 +72,11 @@ export default function CalendarCard({
             <p className="flex items-center gap-2">
               <Phone size={16} />{" "}
               <span className="inline-block">
-                {appointment.Customer?.phone || "N/A"}
+                {appointment.Booking.Customer.phone || "N/A"}
               </span>
             </p>
           </div>
-          {appointment.dns && (
+          {appointment.Booking.dns && (
             <Badge className="w-12 bg-red-400 text-white">DNS</Badge>
           )}
         </div>
@@ -95,7 +95,7 @@ export default function CalendarCard({
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                disabled={appointment.dns}
+                disabled={appointment.Booking.dns}
                 onClick={() =>
                   setAppointment({ data: appointment, type: "cancel" })
                 }
@@ -104,7 +104,7 @@ export default function CalendarCard({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                disabled={appointment.dns}
+                disabled={appointment.Booking.dns}
                 onClick={() =>
                   setAppointment({ data: appointment, type: "reschedule" })
                 }
@@ -113,7 +113,7 @@ export default function CalendarCard({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                disabled={appointment.dns}
+                disabled={appointment.Booking.dns}
                 onClick={() =>
                   setAppointment({ data: appointment, type: "dns" })
                 }
@@ -128,14 +128,7 @@ export default function CalendarCard({
         <p className="flex items-center gap-2">
           <ClipboardList size={16} />{" "}
           <span className="inline-block">
-            {appointment.service_ids
-              .map((s: string) => {
-                const service = settings?.services.find(
-                  (service: Service) => Number(service.id) === Number(s)
-                );
-                return service?.name;
-              })
-              .join(", ")}
+            {appointment.Service.name}
           </span>
         </p>
       </div>
