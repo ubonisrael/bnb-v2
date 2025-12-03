@@ -82,7 +82,7 @@ export function ServiceFormDialog({
     if (open) {
       if (service) {
         // Extract staff IDs from service staff members
-        const staffIds = service.staff?.map((s) => s.id) || [];
+        const staffIds = staffMembers.map((s) => s.id) || [];
         form.reset({
           ...service,
           staff_ids: staffIds,
@@ -354,6 +354,7 @@ export function ServiceFormDialog({
 
                   {/* Staff Selection Dropdown */}
                   <Select
+                    value=""
                     onValueChange={(value) => {
                       const staffId = Number(value);
                       if (!field.value.includes(staffId)) {
