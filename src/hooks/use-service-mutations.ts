@@ -123,6 +123,7 @@ export function useServiceMutations() {
         { id: `${serviceId ? "update" : "create"}-service` }
       );
       queryClient.invalidateQueries({ queryKey: ["services"] });
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
     },
     onError: (error: Error, { serviceId }) => {
       toast.error(
@@ -154,6 +155,7 @@ export function useServiceMutations() {
     onSuccess: () => {
       toast.success("Service deleted successfully", { id: "delete-service" });
       queryClient.invalidateQueries({ queryKey: ["services"] });
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
     },
     onError: (error: Error) => {
       toast.error(error?.message || "Failed to delete service", {
