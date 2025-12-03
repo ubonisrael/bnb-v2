@@ -52,12 +52,12 @@ import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api-service";
 import { COLORS, getDateRangeString } from "@/lib/helpers";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useUserSettings } from "@/contexts/UserSettingsContext";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { useCompanyDetails } from "@/hooks/use-company-details";
 
 export default function AnalyticsPage() {
-  const { settings } = useUserSettings();
+  const { data: settings } = useCompanyDetails();
 
   const router = useRouter();
 

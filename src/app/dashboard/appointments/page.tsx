@@ -12,13 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useUserSettings } from "@/contexts/UserSettingsContext";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api-service";
 import { AppointmentList } from "@/components/appointments/appointment-list";
+import { useCompanyDetails } from "@/hooks/use-company-details";
 
 export default function AppointmentsPage() {
-  const { settings } = useUserSettings();
+  const { data: settings } = useCompanyDetails();
   const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
