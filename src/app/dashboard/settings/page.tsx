@@ -12,15 +12,13 @@ import {
 import { SocialMediaSettings } from "@/components/settings/social-media-settings";
 import { ProfileSettings } from "@/components/settings/profile-settings";
 import { NotificationPreferences } from "@/components/settings/notification-preferences";
-import {
-  useUserSettings,
-} from "@/contexts/UserSettingsContext";
 import { BookingDaysSettings } from "@/components/settings/booking-days-settings";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { useCompanyDetails } from "@/hooks/use-company-details";
 
 export default function SettingsPage() {
-  const { settings } = useUserSettings();
+  const { data: settings } = useCompanyDetails();
   const [activeTab, setActiveTab] = useState("profile");
 
   const router = useRouter();
