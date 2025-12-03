@@ -1,12 +1,9 @@
-import { Service } from "@/types/onboarding";
-import { boolean, number } from "zod";
-
-export interface VoidResponse {
+interface VoidResponse {
   status: boolean;
   message: string;
 }
 
-export interface AnalyticsResponse {
+interface AnalyticsResponse {
   success: boolean;
   message: string;
   data: {
@@ -27,7 +24,7 @@ export interface AnalyticsResponse {
   };
 }
 
-export interface PeriodicStatsResponse {
+interface PeriodicStatsResponse {
   success: boolean;
   message: string;
   data: {
@@ -36,7 +33,7 @@ export interface PeriodicStatsResponse {
   };
 }
 
-export interface AnalyticsServiceDataResponse {
+interface AnalyticsServiceDataResponse {
   success: boolean;
   message: string;
   data: {
@@ -50,7 +47,7 @@ export interface AnalyticsServiceDataResponse {
   };
 }
 
-export interface StaffPerformanceResponse {
+interface StaffPerformanceResponse {
   success: boolean;
   message: string;
   data: {
@@ -67,7 +64,7 @@ export interface StaffPerformanceResponse {
   };
 }
 
-export interface DayBookingStatsResponse {
+interface DayBookingStatsResponse {
   success: boolean;
   message: string;
   data: {
@@ -78,27 +75,27 @@ export interface DayBookingStatsResponse {
   };
 }
 
-export interface Summary {
+interface Summary {
   total_bookings: number;
   total_earnings: number;
   total_unique_customers: number;
   total_upcoming_bookings: number;
 }
 
-export interface AnalyticsData {
+interface AnalyticsData {
   summary: Summary;
   ageCategory: any[];
   gender: any[];
   topCustomers: any[];
 }
 
-export interface SettingsResponse {
+interface SettingsResponse {
   status: boolean;
   message: string;
   data: SettingsData;
 }
 
-export interface SettingsData {
+interface SettingsData {
   url: string;
   minimum_notice: number;
   maximum_notice: number;
@@ -127,7 +124,7 @@ export interface SettingsData {
   saturday_closing: number;
 }
 
-export interface BusinessData {
+interface BusinessData {
   name: string;
   type: string;
   email: string;
@@ -159,7 +156,7 @@ export interface BusinessData {
   uuid: string;
 }
 
-export interface BusinessSocialData {
+interface BusinessSocialData {
   website_url: null;
   facebook_url: null;
   linkedin_url: null;
@@ -169,7 +166,7 @@ export interface BusinessSocialData {
   youtube_url: null;
 }
 
-export interface BusinessProfileData {
+interface BusinessProfileData {
   name: string;
   email: string;
   phone: string;
@@ -183,34 +180,19 @@ export interface BusinessProfileData {
   postal_code: string;
 }
 
-export interface BusinessProfileResponse {
+interface BusinessProfileResponse {
   status: boolean;
   message: string;
   data: BusinessProfileData;
 }
 
-export interface BusinessSocialResponse {
+interface BusinessSocialResponse {
   status: boolean;
   message: string;
   data: BusinessSocialData;
 }
 
-interface BookingsResponse extends Service {
-  Customer: {
-    name: string;
-    email: string;
-    phone: string;
-  };
-  service_ids: string[];
-  event_date: string;
-  event_time: string;
-  event_duration: number;
-  dns: boolean;
-  id: number;
-  amount_paid: number;
-}
-
-export interface BookingDataResponse {
+interface BookingDataResponse {
   status: boolean;
   message: string;
   timeSlotDuration: number;
@@ -221,25 +203,25 @@ export interface BookingDataResponse {
   bookings: BookingsResponse[];
 }
 
-export interface BusinessSettingsResponse {
+interface BusinessSettingsResponse {
   status: boolean;
   message: string;
   data: SettingsData;
 }
 
-export interface SignupResponse {
+interface SignupResponse {
   status: boolean;
   message: string;
   token: string;
 }
 
-export interface UserResponse {
+interface UserResponse {
   status: boolean;
   message: string;
   data: UserData;
 }
 
-export interface UserData {
+interface UserData {
   uuid: string;
   name: string;
   email: string;
@@ -247,12 +229,12 @@ export interface UserData {
   has_password: boolean;
 }
 
-export interface SignoutResponse {
+interface SignoutResponse {
   status: boolean;
   message: string;
 }
 
-export interface AuthResponse {
+interface AuthResponse {
   status: boolean;
   message: string;
   data: Data;
@@ -260,25 +242,25 @@ export interface AuthResponse {
   onBoardingCompleted: boolean;
 }
 
-export interface ResendVerificationResponse {
+interface ResendVerificationResponse {
   status: boolean;
   message: string;
 }
 
-export interface Data {
+interface Data {
   uuid: string;
   name: string;
   email: string;
 }
 
-export interface Token {
+interface Token {
   token: string;
   tokenExpires: number;
   refreshToken: string;
   refreshTokenExpires: number;
 }
 
-export interface ErrorResponse {
+interface ErrorResponse {
   status: boolean;
   errors: {
     field: string;
@@ -286,18 +268,18 @@ export interface ErrorResponse {
   }[];
 }
 
-export interface AvailableTimeSlotsResponse {
+interface AvailableTimeSlotsResponse {
   status: boolean;
   message: string;
   timeSlots: number[];
 }
 
-export interface BookingResponse {
+interface BookingResponse {
   status: boolean;
   url: string;
 }
 
-export interface NotificationSettingsResponse {
+interface NotificationSettingsResponse {
   status: boolean;
   message: string;
   data: {
@@ -312,7 +294,7 @@ export interface NotificationSettingsResponse {
   };
 }
 
-export interface TemplateDataResponse {
+interface TemplateDataResponse {
   success: boolean;
   message: string;
   data: {
@@ -387,7 +369,7 @@ interface FetchReschedulingPolicyResponse {
   rescheduleOptions: ReschedulingOptions;
 }
 
-export interface ServiceFrontend {
+interface ServiceFrontend {
   id: string;
   name: string;
   description: string;
@@ -396,13 +378,13 @@ export interface ServiceFrontend {
   availableDays: string[];
 }
 
-export interface ServiceCategory {
+interface ServiceCategory {
   id: number;
   name: string;
   services: ServiceFrontend[];
 }
 
-export interface SocialMedia {
+interface SocialMedia {
   platform: string;
   url: string;
   icon: string;
@@ -410,12 +392,12 @@ export interface SocialMedia {
   hoverColor: string;
 }
 
-export interface CarouselImage {
+interface CarouselImage {
   src: string;
   alt: string;
 }
 
-export interface Review {
+interface Review {
   id: string;
   customerName: string;
   rating: number;
@@ -478,7 +460,7 @@ interface BusinessDataResponse {
   minNotice: number;
 }
 
-export interface ServicesTabPropsInterface {
+interface ServicesTabPropsInterface {
   name: string;
   logo: string;
   businessUrl: string;
