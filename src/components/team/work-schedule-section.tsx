@@ -53,16 +53,24 @@ export function WorkScheduleSection({
 }: WorkScheduleSectionProps) {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
+
+  const createCompleteSchedule = () => {
+    return daysOfWeek.map((_, idx) => {
+      const existingSchedule = workSchedules.find(
+        (s) => s.day_of_week === idx
+      );
+      return existingSchedule || {
+        id: idx,
+        day_of_week: idx,
+        opening_time: 540, // 9 AM
+        closing_time: 1020, // 5 PM
+        enabled: false,
+      };
+    });
+  };
+  
   const [schedules, setSchedules] = useState<WorkSchedule[]>(
-    workSchedules.length > 0
-      ? workSchedules
-      : daysOfWeek.map((_, idx) => ({
-          id: 0,
-          day_of_week: idx,
-          opening_time: 540, // 9 AM
-          closing_time: 1020, // 5 PM
-          enabled: idx >= 1 && idx <= 5, // Monday to Friday
-        }))
+    createCompleteSchedule()
   );
 
   const updateMutation = useMutation({
@@ -119,7 +127,7 @@ export function WorkScheduleSection({
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setSchedules(workSchedules);
+                  setSchedules(createCompleteSchedule());
                   setIsEditing(false);
                 }}
               >
