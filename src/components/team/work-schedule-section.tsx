@@ -40,7 +40,9 @@ const minutesToTime = (minutes: number | null): string => {
   if (minutes === null) return "";
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
-  return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
+  return `${hours.toString().padStart(2, "0")}:${mins
+    .toString()
+    .padStart(2, "0")}`;
 };
 
 const timeToMinutes = (time: string): number => {
@@ -57,28 +59,36 @@ export function WorkScheduleSection({
 
   const createCompleteSchedule = () => {
     return daysOfWeek.map((_, idx) => {
-      const existingSchedule = workSchedules.find(
-        (s) => s.day_of_week === idx
+      const existingSchedule = workSchedules.find((s) => s.day_of_week === idx);
+      return (
+        existingSchedule || {
+          id: idx,
+          day_of_week: idx,
+          opening_time: 540, // 9 AM
+          closing_time: 1020, // 5 PM
+          enabled: false,
+        }
       );
-      return existingSchedule || {
-        id: idx,
-        day_of_week: idx,
-        opening_time: 540, // 9 AM
-        closing_time: 1020, // 5 PM
-        enabled: false,
-      };
     });
   };
-  
+
   const [schedules, setSchedules] = useState<WorkSchedule[]>(
     createCompleteSchedule()
   );
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      // remove disable days from data
-      const cleanedData: WorkSchedule[] = data.schedules.filter((s: WorkSchedule) => s.enabled);
-      const response = await api.post(`members/${memberId}/schedule`, removeNullish({ schedules: cleanedData }));
+      // for disabled days, set opening_time and closing_time to 100
+      const schedules: WorkSchedule[] = data.schedules.map(
+        (s: WorkSchedule) => ({
+          ...s,
+          opening_time: s.enabled ? s.opening_time : 540,
+          closing_time: s.enabled ? s.closing_time : 1020,
+        })
+      );
+      const response = await api.post(`members/${memberId}/schedule`, {
+        schedules,
+      });
       return response;
     },
     onMutate: () => {
@@ -180,7 +190,10 @@ export function WorkScheduleSection({
                       setSchedules((prev) =>
                         prev.map((s) =>
                           s.day_of_week === schedule.day_of_week
-                            ? { ...s, opening_time: timeToMinutes(e.target.value) }
+                            ? {
+                                ...s,
+                                opening_time: timeToMinutes(e.target.value),
+                              }
                             : s
                         )
                       );
@@ -196,7 +209,10 @@ export function WorkScheduleSection({
                       setSchedules((prev) =>
                         prev.map((s) =>
                           s.day_of_week === schedule.day_of_week
-                            ? { ...s, closing_time: timeToMinutes(e.target.value) }
+                            ? {
+                                ...s,
+                                closing_time: timeToMinutes(e.target.value),
+                              }
                             : s
                         )
                       );
