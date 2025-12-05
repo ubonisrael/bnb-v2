@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { loadStripe } from "@stripe/stripe-js";
 import api from "@/services/api-service";
 import toast from "react-hot-toast";
-import { useUserSettings } from "@/contexts/UserSettingsContext";
+import { useCompanyDetails } from "@/hooks/use-company-details";
 
 export default function SubscriptionDetails() {
-  const { settings } = useUserSettings();
+  const { data: settings } = useCompanyDetails();
 
   if (!settings) {
     return (
@@ -49,14 +49,14 @@ export default function SubscriptionDetails() {
                     settings.subscription.nextBillingDate
                   ).toLocaleDateString()}
             </p>
-            {settings.subscription.trialEndDate && (
+            {/* {settings.subscription.tr && (
               <p>
                 <strong>Trial Ends:</strong>{" "}
                 {new Date(
                   settings.subscription.trialEndDate
                 ).toLocaleDateString()}
               </p>
-            )}
+            )} */}
             <p>
               <strong>Auto-renew:</strong>{" "}
               {settings.subscription.cancelAtPeriodEnd

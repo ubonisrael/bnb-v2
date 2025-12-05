@@ -12,12 +12,12 @@ import {
 import { Button } from "@/components/ui/button";
 import api from "@/services/api-service";
 import toast from "react-hot-toast";
-import { useUserSettings } from "@/contexts/UserSettingsContext";
 import SubscriptionDetails from "@/components/payments/subscription-card";
+import { useCompanyDetails } from "@/hooks/use-company-details";
 
 // ------------------- Component -------------------
 export default function PaymentDashboardPage() {
-  const { settings } = useUserSettings();
+  const { data: settings } = useCompanyDetails();
   const router = useRouter();
 
   // Restrict access to admin and owner only
@@ -52,7 +52,7 @@ export default function PaymentDashboardPage() {
             <div className="flex items-center justify-center py-6">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
-          ) : settings.stripeAccount.id ? (
+          ) : settings?.stripeAccount?.id ? (
             <>
               <div className="space-y-2">
                 <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
