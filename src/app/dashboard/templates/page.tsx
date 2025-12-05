@@ -35,13 +35,12 @@ import { storage } from "@/services/firebase";
 import { Textarea } from "@/components/ui/textarea";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/services/api-service";
-import { TemplateDataResponse } from "@/types/response";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useUserSettings } from "@/contexts/UserSettingsContext";
 import { useRouter } from "next/navigation";
+import { useCompanyDetails } from "@/hooks/use-company-details";
 
 export default function TemplatesPage() {
-    const { settings } = useUserSettings();
+    const { data: settings } = useCompanyDetails();
 
   const router = useRouter();
 
