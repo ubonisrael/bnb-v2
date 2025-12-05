@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, X } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,13 @@ const timeToMinutes = (time: string): number => {
   return hours * 60 + minutes;
 };
 
+interface BreakInput {
+  id: string;
+  day_of_week: number;
+  start: string;
+  end: string;
+}
+
 export function BreaksSection({ memberId, breaks, workSchedules }: BreaksSectionProps) {
   const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -64,31 +71,43 @@ export function BreaksSection({ memberId, breaks, workSchedules }: BreaksSection
   // Set default day to first enabled day or 1 (Monday)
   const defaultDay = enabledWorkDays.length > 0 ? enabledWorkDays[0] : 1;
   
-  const [newBreak, setNewBreak] = useState({
-    day_of_week: defaultDay,
-    start: "12:00",
-    end: "13:00",
-  });
+  const [newBreaks, setNewBreaks] = useState<BreakInput[]>([
+    {
+      id: crypto.randomUUID(),
+      day_of_week: defaultDay,
+      start: "12:00",
+      end: "13:00",
+    },
+  ]);
 
   const createMutation = useMutation({
-    mutationFn: async (data: { day_of_week: number; start: number; end: number }) => {
-      const response = await api.post(`members/${memberId}/breaks`, data);
+    mutationFn: async (data: { breaks: { day_of_week: number; start: number; end: number }[] }) => {
+      // remove generated id before sending to API
+      const breaks = data.breaks.map(({ day_of_week, start, end }) => ({ day_of_week, start, end }));
+      const response = await api.post(`members/${memberId}/breaks`, { breaks });
       return response;
     },
     onMutate: () => {
-      toast.loading("Adding break...", { id: "add-break" });
+      toast.loading("Adding breaks...", { id: "add-breaks" });
     },
     onSuccess: (data: any) => {
-      toast.success(data.message || "Break added successfully", {
-        id: "add-break",
+      toast.success(data.message || "Breaks added successfully", {
+        id: "add-breaks",
       });
       queryClient.invalidateQueries({ queryKey: ["staff-details", memberId] });
       setIsAddDialogOpen(false);
-      setNewBreak({ day_of_week: defaultDay, start: "12:00", end: "13:00" });
+      setNewBreaks([
+        {
+          id: crypto.randomUUID(),
+          day_of_week: defaultDay,
+          start: "12:00",
+          end: "13:00",
+        },
+      ]);
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Failed to add break", {
-        id: "add-break",
+      toast.error(error?.response?.data?.message || "Failed to add breaks", {
+        id: "add-breaks",
       });
     },
   });
@@ -114,12 +133,115 @@ export function BreaksSection({ memberId, breaks, workSchedules }: BreaksSection
     },
   });
 
+  const hasDuplicateBreaks = () => {
+    const breakSignatures = new Set<string>();
+    
+    // Add existing breaks to the set
+    for (const existingBreak of breaks) {
+      const signature = `${existingBreak.day_of_week}-${minutesToTime(existingBreak.start)}-${minutesToTime(existingBreak.end)}`;
+      breakSignatures.add(signature);
+    }
+    
+    // Check new breaks for duplicates (against existing and each other)
+    for (const brk of newBreaks) {
+      const signature = `${brk.day_of_week}-${brk.start}-${brk.end}`;
+      if (breakSignatures.has(signature)) {
+        return true;
+      }
+      breakSignatures.add(signature);
+    }
+    return false;
+  };
+
+  const hasOverlappingBreaks = () => {
+    // Group all breaks (existing + new) by day
+    const breaksByDay: { [key: number]: Array<{ start: number; end: number }> } = {};
+    
+    // Add existing breaks
+    for (const existingBreak of breaks) {
+      if (!breaksByDay[existingBreak.day_of_week]) {
+        breaksByDay[existingBreak.day_of_week] = [];
+      }
+      breaksByDay[existingBreak.day_of_week].push({
+        start: existingBreak.start,
+        end: existingBreak.end,
+      });
+    }
+    
+    // Add new breaks
+    for (const brk of newBreaks) {
+      if (!breaksByDay[brk.day_of_week]) {
+        breaksByDay[brk.day_of_week] = [];
+      }
+      breaksByDay[brk.day_of_week].push({
+        start: timeToMinutes(brk.start),
+        end: timeToMinutes(brk.end),
+      });
+    }
+    
+    // Check for overlaps within each day
+    for (const day in breaksByDay) {
+      const dayBreaks = breaksByDay[day];
+      for (let i = 0; i < dayBreaks.length; i++) {
+        for (let j = i + 1; j < dayBreaks.length; j++) {
+          const break1 = dayBreaks[i];
+          const break2 = dayBreaks[j];
+          
+          // Check if breaks overlap
+          // Break1 starts before Break2 ends AND Break1 ends after Break2 starts
+          if (break1.start < break2.end && break1.end > break2.start) {
+            return true;
+          }
+        }
+      }
+    }
+    
+    return false;
+  };
+
   const handleAddBreak = () => {
-    createMutation.mutate({
-      day_of_week: newBreak.day_of_week,
-      start: timeToMinutes(newBreak.start),
-      end: timeToMinutes(newBreak.end),
-    });
+    if (hasDuplicateBreaks()) {
+      toast.error("You cannot add identical breaks. Please ensure all breaks are unique.");
+      return;
+    }
+
+    if (hasOverlappingBreaks()) {
+      toast.error("Breaks on the same day cannot overlap. Please adjust the times.");
+      return;
+    }
+
+    const breaksData = newBreaks.map((brk) => ({
+      day_of_week: brk.day_of_week,
+      start: timeToMinutes(brk.start),
+      end: timeToMinutes(brk.end),
+    }));
+    createMutation.mutate({ breaks: breaksData });
+  };
+
+  const addBreakInput = () => {
+    setNewBreaks([
+      ...newBreaks,
+      {
+        id: crypto.randomUUID(),
+        day_of_week: defaultDay,
+        start: "12:00",
+        end: "13:00",
+      },
+    ]);
+  };
+
+  const removeBreakInput = (id: string) => {
+    if (newBreaks.length > 1) {
+      setNewBreaks(newBreaks.filter((brk) => brk.id !== id));
+    }
+  };
+
+  const updateBreakInput = (id: string, field: keyof BreakInput, value: any) => {
+    setNewBreaks(
+      newBreaks.map((brk) =>
+        brk.id === id ? { ...brk, [field]: value } : brk
+      )
+    );
   };
 
   return (
@@ -152,7 +274,7 @@ export function BreaksSection({ memberId, breaks, workSchedules }: BreaksSection
                 className="flex items-center justify-between p-3 border rounded-lg"
               >
                 <div>
-                  <span className="font-medium">
+                  <span className="font-medium capitalize">
                     {days[breakItem.day_of_week]}
                   </span>
                   <span className="text-[#6E6E73] ml-2">
@@ -176,62 +298,85 @@ export function BreaksSection({ memberId, breaks, workSchedules }: BreaksSection
     </Card>
 
     <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add Break</DialogTitle>
+          <DialogTitle>Add Breaks</DialogTitle>
           <DialogDescription>
-            Set up a break time for this staff member
+            Set up break times for this staff member. You can add multiple breaks at once.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label>Day of Week</Label>
-            <Select
-              value={newBreak.day_of_week.toString()}
-              onValueChange={(value) =>
-                setNewBreak({ ...newBreak, day_of_week: parseInt(value) })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {enabledWorkDays.length > 0 ? (
-                  enabledWorkDays.map((dayIndex) => (
-                    <SelectItem key={dayIndex} value={dayIndex.toString()}>
-                      {days[dayIndex].charAt(0).toUpperCase() + days[dayIndex].slice(1)}
-                    </SelectItem>
-                  ))
-                ) : (
-                  <SelectItem value="" disabled>
-                    No work days configured
-                  </SelectItem>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Start Time</Label>
-              <Input
-                type="time"
-                value={newBreak.start}
-                onChange={(e) =>
-                  setNewBreak({ ...newBreak, start: e.target.value })
-                }
-              />
+          {newBreaks.map((breakInput, index) => (
+            <div key={breakInput.id} className="space-y-3 p-4 border rounded-lg relative">
+              {newBreaks.length > 1 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeBreakInput(breakInput.id)}
+                  className="absolute top-2 right-2 h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+              <div className="space-y-2">
+                <Label>Day of Week</Label>
+                <Select
+                  value={breakInput.day_of_week.toString()}
+                  onValueChange={(value) =>
+                    updateBreakInput(breakInput.id, "day_of_week", parseInt(value))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {enabledWorkDays.length > 0 ? (
+                      enabledWorkDays.map((dayIndex) => (
+                        <SelectItem className="capitalize" key={dayIndex} value={dayIndex.toString()}>
+                          {days[dayIndex]}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="" disabled>
+                        No work days configured
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Start Time</Label>
+                  <Input
+                    type="time"
+                    value={breakInput.start}
+                    onChange={(e) =>
+                      updateBreakInput(breakInput.id, "start", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>End Time</Label>
+                  <Input
+                    type="time"
+                    value={breakInput.end}
+                    onChange={(e) =>
+                      updateBreakInput(breakInput.id, "end", e.target.value)
+                    }
+                  />
+                </div>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>End Time</Label>
-              <Input
-                type="time"
-                value={newBreak.end}
-                onChange={(e) =>
-                  setNewBreak({ ...newBreak, end: e.target.value })
-                }
-              />
-            </div>
-          </div>
+          ))}
+          <Button
+            variant="outline"
+            onClick={addBreakInput}
+            className="w-full"
+            type="button"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Another Break
+          </Button>
         </div>
         <DialogFooter>
           <Button
@@ -245,7 +390,9 @@ export function BreaksSection({ memberId, breaks, workSchedules }: BreaksSection
             onClick={handleAddBreak}
             disabled={createMutation.isPending}
           >
-            {createMutation.isPending ? "Adding..." : "Add Break"}
+            {createMutation.isPending 
+              ? "Adding..." 
+              : `Add ${newBreaks.length} Break${newBreaks.length > 1 ? "s" : ""}`}
           </Button>
         </DialogFooter>
       </DialogContent>
