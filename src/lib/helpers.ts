@@ -18,13 +18,13 @@ export const COLORS = [
 ];
 
 export const days = [
+  "sunday",
   "monday",
   "tuesday",
   "wednesday",
   "thursday",
   "friday",
   "saturday",
-  "sunday",
 ] as const;
 
 export const defaultServiceValues = {

@@ -226,7 +226,7 @@ export function StaffDetailsSheet({
                   memberId={memberId}
                   workSchedules={staffData.workingHours}
                 />
-                {/* <BreaksSection memberId={memberId} breaks={staffData.workSchedules.flatMap(ws => ws.breaks)} /> */}
+                <BreaksSection memberId={memberId} breaks={staffData.workingHours.flatMap(ws => ws.breaks)} />
                 <OverrideHoursSection
                   memberId={memberId}
                   overrideHours={staffData.upcomingOverrideHours}

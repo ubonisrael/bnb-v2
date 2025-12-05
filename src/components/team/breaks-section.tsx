@@ -8,20 +8,12 @@ import { Plus, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import api from "@/services/api-service";
-
-interface StaffBreak {
-  id: number;
-  day_of_week: number;
-  start: number;
-  end: number;
-}
+import { days } from "@/lib/helpers";
 
 interface BreaksSectionProps {
   memberId: number;
   breaks: StaffBreak[];
 }
-
-const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const minutesToTime = (minutes: number): string => {
   const hours = Math.floor(minutes / 60);
@@ -74,7 +66,7 @@ export function BreaksSection({ memberId, breaks }: BreaksSectionProps) {
               >
                 <div>
                   <span className="font-medium">
-                    {daysOfWeek[breakItem.day_of_week]}
+                    {days[breakItem.day_of_week]}
                   </span>
                   <span className="text-[#6E6E73] ml-2">
                     {minutesToTime(breakItem.start)} - {minutesToTime(breakItem.end)}

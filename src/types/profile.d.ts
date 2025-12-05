@@ -55,7 +55,7 @@ interface StaffMemberDetails {
     user: MemberUser;
   };
   workingHours: (WorkSchedule & {
-    breaks: Omit<StaffBreak, "day_of_week">[];
+    breaks: StaffBreak[];
   })[];
   upcomingTimeOffs: TimeOff[];
   upcomingOverrideHours: OverrideHours[];
