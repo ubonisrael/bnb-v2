@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import api from "@/services/api-service";
+import { removeNullish } from "@/utils/flatten";
 
 interface WorkSchedule {
   id: number;
@@ -75,7 +76,9 @@ export function WorkScheduleSection({
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await api.post(`members/${memberId}/schedule`, data);
+      // remove disable days from data
+      const cleanedData: WorkSchedule[] = data.schedules.filter((s: WorkSchedule) => s.enabled);
+      const response = await api.post(`members/${memberId}/schedule`, removeNullish({ schedules: cleanedData }));
       return response;
     },
     onMutate: () => {
