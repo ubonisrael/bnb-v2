@@ -27,7 +27,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { UnsavedChangesBanner } from "../UnSavedChangesBanner";
-import { formatDate, formatTime, getRoleBadgeVariant, getStatusBadgeVariant } from "@/lib/helpers";
+import {
+  formatDate,
+  formatTime,
+  getRoleBadgeVariant,
+  getStatusBadgeVariant,
+} from "@/lib/helpers";
 import { removeNullish } from "@/utils/flatten";
 
 const userProfileSchema = z.object({
@@ -41,19 +46,6 @@ type ProfileFormValues = z.infer<typeof userProfileSchema>;
 
 export function UserProfileSettings() {
   const [isUploading, setIsUploading] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-
-  const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(userProfileSchema),
-    defaultValues: {
-      full_name: "",
-      email: "",
-      phone: "",
-      avatar: "",
-    },
-  });
-
-  const formRef = useRef<HTMLFormElement | null>(null);
 
   const query = useQueryClient();
 
@@ -69,21 +61,27 @@ export function UserProfileSettings() {
     staleTime: 60 * 60 * 1000,
   });
 
+  const form = useForm<ProfileFormValues>({
+    resolver: zodResolver(userProfileSchema),
+    values: staffDetails?.member?.user
+      ? {
+          full_name: staffDetails.member.user.full_name,
+          email: staffDetails.member.user.email,
+          phone: staffDetails.member.user.phone ?? "",
+          avatar: staffDetails.member.user.avatar ?? "",
+        }
+      : {
+          full_name: "",
+          email: "",
+          phone: "",
+          avatar: "",
+        },
+  });
+
+  const formRef = useRef<HTMLFormElement | null>(null);
   // Update form when data is loaded
-  useEffect(() => {
-    if (staffDetails?.member?.user) {
-      const user = staffDetails.member.user;
-      form.reset({
-        full_name: user.full_name || "",
-        email: user.email || "",
-        phone: user.phone || "",
-        avatar: user.avatar || "",
-      });
-      if (user.avatar) {
-        setAvatarUrl(user.avatar);
-      }
-    }
-  }, [staffDetails, form]);
+
+  const avatar = form.watch("avatar");
 
   const onError = (errors: any) => {
     if (!formRef.current) return;
@@ -128,7 +126,6 @@ export function UserProfileSettings() {
         },
         () => {
           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            setAvatarUrl(downloadURL);
             form.setValue("avatar", downloadURL);
             toast.success("Avatar uploaded successfully");
           });
@@ -143,7 +140,6 @@ export function UserProfileSettings() {
   };
 
   const removeAvatar = () => {
-    setAvatarUrl(null);
     form.setValue("avatar", "", { shouldDirty: true });
   };
 
@@ -153,7 +149,11 @@ export function UserProfileSettings() {
       const signal = controller.signal;
 
       try {
-        const response = await api.patch("user/profile", removeNullish(values), { signal });
+        const response = await api.patch(
+          "user/profile",
+          removeNullish(values),
+          { signal }
+        );
         return response;
       } catch (error: unknown) {
         if (error instanceof Error && error.name === "AbortError") {
@@ -381,10 +381,10 @@ export function UserProfileSettings() {
             <FormItem>
               <FormLabel>Profile Picture</FormLabel>
               <div className="mt-2">
-                {avatarUrl ? (
+                {avatar ? (
                   <div className="relative h-32 w-32 mx-auto">
                     <Image
-                      src={avatarUrl}
+                      src={avatar}
                       alt="Profile Picture"
                       fill
                       className="rounded-full object-cover"
@@ -455,7 +455,11 @@ export function UserProfileSettings() {
                 <FormItem>
                   <FormLabel>Phone Number</FormLabel>
                   <FormControl>
-                    <Input type="tel" placeholder="+1 (555) 000-0000" {...field} />
+                    <Input
+                      type="tel"
+                      placeholder="+1 (555) 000-0000"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -57,7 +57,7 @@ export default function CalendarPage() {
       if (isStaff) {
         // Staff fetches their own bookings
         const response = await api.get<StaffBookingsByDateResponse>(
-          `members/me/booking/date?date=${dateParam}&all=true`
+          `members/my-bookings/date?date=${dateParam}&all=true`
         );
         return response;
       } else if (isAdminOrOwner && selectedMemberId) {
