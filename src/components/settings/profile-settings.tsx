@@ -72,7 +72,6 @@ interface ProfileResponse {
 export function ProfileSettings() {
   const queryClient = useQueryClient();
   const [isUploading, setIsUploading] = useState(false);
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   // Fetch business profile
   const { data: profileData, isLoading: isLoadingProfile } = useQuery({
@@ -97,29 +96,21 @@ export function ProfileSettings() {
       phone: "",
       logo: "",
     },
+    values: profileData ? {
+      address: profileData.address,
+      display_address: profileData.display_address,
+      city: profileData.city,
+      state: profileData.state,
+      postal_code: profileData.postal_code,
+      country: profileData.country,
+      name: profileData.name,
+      phone: profileData.phone,
+      logo: profileData.logo || "",
+    } : undefined,
   });
 
   const formRef = useRef<HTMLFormElement | null>(null);
-
-  // Update form when profile data is loaded
-  useEffect(() => {
-    if (profileData) {
-      form.reset({
-        address: profileData.address,
-        display_address: profileData.display_address,
-        city: profileData.city,
-        state: profileData.state,
-        postal_code: profileData.postal_code,
-        country: profileData.country,
-        name: profileData.name,
-        phone: profileData.phone,
-        logo: profileData.logo || "",
-      });
-      if (profileData.logo) {
-        setLogoUrl(profileData.logo);
-      }
-    }
-  }, [profileData, form]);
+  const logoUrl = form.watch("logo") || null;
 
   const onError = (errors: any) => {
     if (!formRef.current) return;
@@ -161,8 +152,7 @@ export function ProfileSettings() {
         },
         () => {
           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            setLogoUrl(downloadURL);
-            form.setValue("logo", downloadURL);
+            form.setValue("logo", downloadURL, { shouldDirty: true });
             toast.success("Logo uploaded successfully");
           });
           setIsUploading(false);
@@ -176,19 +166,12 @@ export function ProfileSettings() {
   };
 
   const removeLogo = () => {
-    setLogoUrl(null);
-    form.setValue("logo", "");
+    form.setValue("logo", "", { shouldDirty: true });
   };
 
   const updateProfileMutation = useMutation({
     mutationFn: async (values: ProfileFormValues) => {
-      const response = await api.patch<ProfileResponse>(
-        "sp/profile",
-        {
-          ...values,
-          logo: logoUrl || values.logo || "",
-        }
-      );
+      const response = await api.patch<ProfileResponse>("sp/profile", values);
       return response.data;
     },
     onMutate: () => {

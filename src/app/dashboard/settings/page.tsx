@@ -45,7 +45,7 @@ export default function SettingsPage() {
           onValueChange={setActiveTab}
           className="space-y-4"
         >
-          <TabsList className="h-full flex flex-col space-y-2 sm:grid sm:grid-cols-3 md:grid-cols-5 sm:space-y-0 sm:gap-2">
+          <TabsList className="h-full flex flex-col space-y-2 sm:grid sm:grid-cols-3 md:grid-cols-4 sm:space-y-0 sm:gap-2">
             <TabsTrigger value="profile" className="w-full">
               Business Profile
             </TabsTrigger>
