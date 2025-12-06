@@ -28,7 +28,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import api from "@/services/api-service";
-import { useEffect } from "react";
 import { UnsavedChangesBanner } from "../UnSavedChangesBanner";
 import { Skeleton } from "../ui/skeleton";
 
@@ -81,45 +80,38 @@ export function SocialMediaSettings() {
 
   const form = useForm<SocialMediaFormValues>({
     resolver: zodResolver(socialMediaSchema),
-    defaultValues: {
-      website: "",
-      tiktok: "",
-      twitter: "",
-      instagram: "",
-      linkedin: "",
-      youtube: "",
-      facebook: "",
-    },
+    values: socialData
+      ? {
+          website: socialData.web_url || "",
+          tiktok: socialData.tiktok_url || "",
+          twitter: socialData.twitter_url || "",
+          instagram: socialData.instagram_url || "",
+          linkedin: socialData.linkedin_url || "",
+          youtube: socialData.youtube_url || "",
+          facebook: socialData.facebook_url || "",
+        }
+      : {
+          website: "",
+          tiktok: "",
+          twitter: "",
+          instagram: "",
+          linkedin: "",
+          youtube: "",
+          facebook: "",
+        },
   });
-
-  useEffect(() => {
-    if (socialData) {
-      form.reset({
-        website: socialData.web_url || "",
-        tiktok: socialData.tiktok_url || "",
-        twitter: socialData.twitter_url || "",
-        instagram: socialData.instagram_url || "",
-        linkedin: socialData.linkedin_url || "",
-        youtube: socialData.youtube_url || "",
-        facebook: socialData.facebook_url || "",
-      });
-    }
-  }, [socialData, form]);
 
   const updateSocialMediaMutation = useMutation({
     mutationFn: async (values: SocialMediaFormValues) => {
-      const response = await api.patch<SocialMediaResponse>(
-        "sp/socials",
-        {
-          website_url: values.website || null,
-          instagram_url: values.instagram || null,
-          facebook_url: values.facebook || null,
-          twitter_url: values.twitter || null,
-          linkedin_url: values.linkedin || null,
-          youtube_url: values.youtube || null,
-          tiktok_url: values.tiktok || null,
-        }
-      );
+      const response = await api.patch<SocialMediaResponse>("sp/socials", {
+        website_url: values.website || null,
+        instagram_url: values.instagram || null,
+        facebook_url: values.facebook || null,
+        twitter_url: values.twitter || null,
+        linkedin_url: values.linkedin || null,
+        youtube_url: values.youtube || null,
+        tiktok_url: values.tiktok || null,
+      });
       return response.data;
     },
     onMutate: () => {
@@ -132,12 +124,14 @@ export function SocialMediaSettings() {
         id: "social-media-save",
       });
       queryClient.invalidateQueries({ queryKey: ["business-socials"] });
-      form.reset(form.getValues());
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Failed to update social media links", {
-        id: "social-media-save",
-      });
+      toast.error(
+        error?.response?.data?.message || "Failed to update social media links",
+        {
+          id: "social-media-save",
+        }
+      );
     },
   });
 

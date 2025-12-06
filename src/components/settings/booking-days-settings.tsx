@@ -25,19 +25,22 @@ export function BookingDaysSettings() {
   const queryClient = useQueryClient();
 
   // Fetch booking settings
-  const { data: bookingSettings, isLoading: isLoadingBookingSettings } = useQuery({
-    queryKey: ["booking-settings"],
-    queryFn: async () => {
-      const response = await api.get<BookingSettingsResponse>("sp/booking_settings");
-      return response.data;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
+  const { data: bookingSettings, isLoading: isLoadingBookingSettings } =
+    useQuery({
+      queryKey: ["booking-settings"],
+      queryFn: async () => {
+        const response = await api.get<BookingSettingsResponse>(
+          "sp/booking_settings"
+        );
+        return response.data;
+      },
+      staleTime: 5 * 60 * 1000,
+    });
 
   const form = useForm<z.infer<typeof bookingSettingsSchema>>({
     mode: "all",
     resolver: zodResolver(bookingSettingsSchema),
-    defaultValues: {
+    values: bookingSettings ?? {
       reschedule_penalty_enabled: false,
       absorb_service_charge: false,
       welcome_message: "",
@@ -122,12 +125,14 @@ export function BookingDaysSettings() {
         id: "booking-settings-save",
       });
       queryClient.invalidateQueries({ queryKey: ["booking-settings"] });
-      form.reset(form.getValues());
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Failed to update booking settings", {
-        id: "booking-settings-save",
-      });
+      toast.error(
+        error?.response?.data?.message || "Failed to update booking settings",
+        {
+          id: "booking-settings-save",
+        }
+      );
     },
   });
 
@@ -161,15 +166,11 @@ export function BookingDaysSettings() {
           onSubmit={form.handleSubmit(onSubmit, onError)}
           className="space-y-4 md:space-y-6 xl:space-y-8"
         >
-          <BookingSettingsForm
-            form={form}
-          />
+          <BookingSettingsForm form={form} />
           <div className="flex justify-end">
             <Button
               type="submit"
-              disabled={
-                updateBookingSettingsMutation.isPending || !isDirty
-              }
+              disabled={updateBookingSettingsMutation.isPending || !isDirty}
             >
               {updateBookingSettingsMutation.isPending ? (
                 <>

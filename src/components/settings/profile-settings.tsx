@@ -85,28 +85,29 @@ export function ProfileSettings() {
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
-    defaultValues: {
-      address: "",
-      display_address: false,
-      city: "",
-      state: "",
-      postal_code: "",
-      country: "",
-      name: "",
-      phone: "",
-      logo: "",
-    },
-    values: profileData ? {
-      address: profileData.address,
-      display_address: profileData.display_address,
-      city: profileData.city,
-      state: profileData.state,
-      postal_code: profileData.postal_code,
-      country: profileData.country,
-      name: profileData.name,
-      phone: profileData.phone,
-      logo: profileData.logo || "",
-    } : undefined,
+    values: profileData
+      ? {
+          address: profileData.address,
+          display_address: profileData.display_address,
+          city: profileData.city,
+          state: profileData.state,
+          postal_code: profileData.postal_code,
+          country: profileData.country,
+          name: profileData.name,
+          phone: profileData.phone,
+          logo: profileData.logo || "",
+        }
+      : {
+          address: "",
+          display_address: false,
+          city: "",
+          state: "",
+          postal_code: "",
+          country: "",
+          name: "",
+          phone: "",
+          logo: "",
+        },
   });
 
   const formRef = useRef<HTMLFormElement | null>(null);
@@ -132,7 +133,10 @@ export function ProfileSettings() {
     if (!file) return;
     setIsUploading(true);
     try {
-      const storageRef = ref(storage, `bnb/${profileData?.email}/logo/${Date.now()}`);
+      const storageRef = ref(
+        storage,
+        `bnb/${profileData?.email}/logo/${Date.now()}`
+      );
       const uploadTask = uploadBytesResumable(storageRef, file);
       uploadTask.on(
         "state_changed",
@@ -180,12 +184,14 @@ export function ProfileSettings() {
     onSuccess: (data) => {
       toast.success("Profile updated successfully", { id: "profile-save" });
       queryClient.invalidateQueries({ queryKey: ["business-profile"] });
-      form.reset(form.getValues());
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Failed to update profile", {
-        id: "profile-save",
-      });
+      toast.error(
+        error?.response?.data?.message || "Failed to update profile",
+        {
+          id: "profile-save",
+        }
+      );
     },
   });
 
@@ -221,7 +227,7 @@ export function ProfileSettings() {
 
   return (
     <>
-      {isDirty && <UnsavedChangesBanner form={form}/>}
+      {isDirty && <UnsavedChangesBanner form={form} />}
       <Form {...form}>
         <form
           ref={formRef}
@@ -310,9 +316,7 @@ export function ProfileSettings() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <Input type="email" value={profileData?.email || ""} disabled />
-                <FormDescription>
-                  Email cannot be changed
-                </FormDescription>
+                <FormDescription>Email cannot be changed</FormDescription>
               </FormItem>
 
               <FormField
@@ -444,9 +448,7 @@ export function ProfileSettings() {
             <Button
               type="submit"
               disabled={
-                updateProfileMutation.isPending ||
-                isUploading ||
-                !isDirty
+                updateProfileMutation.isPending || isUploading || !isDirty
               }
             >
               {updateProfileMutation.isPending ? (

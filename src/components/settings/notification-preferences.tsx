@@ -54,47 +54,45 @@ export function NotificationPreferences() {
   const queryClient = useQueryClient();
 
   // Fetch notification settings
-  const { data: notificationData, isLoading: isLoadingNotifications } = useQuery({
-    queryKey: ["notification-settings"],
-    queryFn: async () => {
-      const response = await api.get<NotificationResponse>("sp/notifications");
-      return response.data;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
+  const { data: notificationData, isLoading: isLoadingNotifications } =
+    useQuery({
+      queryKey: ["notification-settings"],
+      queryFn: async () => {
+        const response = await api.get<NotificationResponse>(
+          "sp/notifications"
+        );
+        return response.data;
+      },
+      staleTime: 5 * 60 * 1000,
+    });
 
   const form = useForm<NotificationSettingsData>({
     mode: "all",
     resolver: zodResolver(notificationSettingsSchema),
-    defaultValues: {
-      emailSettings: {
-        sendBookingConfirmations: false,
-        sendReminders: false,
-        reminderHours: 24,
-        sendCancellationNotices: false,
-        sendNoShowNotifications: false,
-        sendFollowUpEmails: false,
-        followUpDelayHours: 48,
-      },
-    },
-  });
-
-  // Update form when notification data is loaded
-  useEffect(() => {
-    if (notificationData) {
-      form.reset({
-        emailSettings: {
-          sendBookingConfirmations: notificationData.email_confirmation,
-          sendReminders: notificationData.appointment_reminders,
-          reminderHours: notificationData.reminder_time,
-          sendCancellationNotices: notificationData.cancellation_notices,
-          sendNoShowNotifications: notificationData.no_show_notifications,
-          sendFollowUpEmails: notificationData.follow_up_emails,
-          followUpDelayHours: notificationData.follow_up_delay,
+    values: notificationData
+      ? {
+          emailSettings: {
+            sendBookingConfirmations: notificationData.email_confirmation,
+            sendReminders: notificationData.appointment_reminders,
+            reminderHours: notificationData.reminder_time,
+            sendCancellationNotices: notificationData.cancellation_notices,
+            sendNoShowNotifications: notificationData.no_show_notifications,
+            sendFollowUpEmails: notificationData.follow_up_emails,
+            followUpDelayHours: notificationData.follow_up_delay,
+          },
+        }
+      : {
+          emailSettings: {
+            sendBookingConfirmations: false,
+            sendReminders: false,
+            reminderHours: 24,
+            sendCancellationNotices: false,
+            sendNoShowNotifications: false,
+            sendFollowUpEmails: false,
+            followUpDelayHours: 48,
+          },
         },
-      });
-    }
-  }, [notificationData, form]);
+  });
 
   const formRef = useRef<HTMLFormElement | null>(null);
 
@@ -136,11 +134,11 @@ export function NotificationPreferences() {
         id: "notification-save",
       });
       queryClient.invalidateQueries({ queryKey: ["notification-settings"] });
-      form.reset(form.getValues());
     },
     onError: (error: any) => {
       toast.error(
-        error?.response?.data?.message || "Failed to update notification preferences",
+        error?.response?.data?.message ||
+          "Failed to update notification preferences",
         { id: "notification-save" }
       );
     },
@@ -153,7 +151,7 @@ export function NotificationPreferences() {
       console.error("Failed to save notification preferences:", error);
     }
   }
-  
+
   const { isDirty } = form.formState;
 
   if (isLoadingNotifications) {
