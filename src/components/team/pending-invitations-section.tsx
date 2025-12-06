@@ -72,8 +72,7 @@ export function PendingInvitationsSection() {
   // Delete invitation mutation
   const deleteInvitationMutation = useMutation({
     mutationFn: async (invitationId: number) => {
-      const response = await api.delete(`members/invitations/${invitationId}`);
-      return (response as any).data;
+      return await api.delete(`members/invitations/${invitationId}`);
     },
     onMutate: () => {
       toast.loading("Deleting invitation...", { id: "delete-invitation" });

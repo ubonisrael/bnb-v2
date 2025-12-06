@@ -44,7 +44,7 @@ export const StaffDashboard = () => {
     queryKey: ["staff-today-bookings", today, currentPage, pageSize],
     queryFn: async () => {
       const response = await api.get<StaffBookingsByDateResponse>(
-        `members/me/booking/date?date=${today}&page=${currentPage}&size=${pageSize}`
+        `members/my-bookings/date?date=${today}&page=${currentPage}&size=${pageSize}`
       );
       return response;
     },
