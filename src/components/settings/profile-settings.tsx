@@ -421,9 +421,9 @@ export function ProfileSettings() {
                 <FormItem>
                   <FormLabel>Country</FormLabel>
                   <Select
-                    name="country"
+                    key={field.value || 'empty'}
                     onValueChange={field.onChange}
-                    value={field.value}
+                    defaultValue={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>

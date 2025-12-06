@@ -144,7 +144,7 @@ export function BookingDaysSettings() {
     }
   };
 
-  const { isDirty } = form.formState;
+  const { isDirty, defaultValues } = form.formState;
 
   if (isLoadingBookingSettings) {
     return (
@@ -156,6 +156,9 @@ export function BookingDaysSettings() {
       </div>
     );
   }
+
+  console.log("Default Values:", defaultValues);
+  console.log("Booking Settings Form Values:", form.getValues());
 
   return (
     <>

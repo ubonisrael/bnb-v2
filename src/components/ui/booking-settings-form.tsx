@@ -109,6 +109,7 @@ export function BookingSettingsForm({
             <FormLabel>Time Zone</FormLabel>
             <FormControl>
               <Select
+                key={field.value || 'empty-timezone'}
                 onValueChange={field.onChange}
                 defaultValue={field.value}
                 name="time_zone"
@@ -141,6 +142,7 @@ export function BookingSettingsForm({
             <FormLabel>Time Slot Duration</FormLabel>
             <FormControl>
               <Select
+                key={field.value ?? 'empty-duration'}
                 onValueChange={(value) => {
                   field.onChange(Number(value));
                 }}
@@ -890,7 +892,7 @@ export function BookingSettingsForm({
               <FormItem>
                 <Card className="border-[#E0E0E5]">
                   <CardContent className="pt-6">
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
+                    <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center space-x-4">
                         <FormControl>
                           <Switch
@@ -906,7 +908,7 @@ export function BookingSettingsForm({
                         </Label>
                       </div>
                       {field.value && (
-                        <div className="flex flex-col md:flex-row md:items-center md:space-x-4 gap-2 md:gap-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 gap-2 sm:gap-0">
                           <FormField
                             control={form.control}
                             name={
