@@ -448,7 +448,7 @@ interface BusinessDataResponse {
   phone: string;
   latitude?: number;
   longitude?: number;
-  staffs: ServiceStaffMember[];
+  staffs: MemberUser[];
   reviews: Review[];
   bookingPolicy: PolicyData[];
   customPolicies: CustomPolicy[];

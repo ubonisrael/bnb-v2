@@ -5,6 +5,7 @@ import BusinessInfo from "./tabs/components/business-info";
 import BusinessDetails from "./tabs/components/business-details";
 import Link from "next/link";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useEffect } from "react";
 import api from "@/services/api-service";
 import dayjs from "@/utils/dayjsConfig";
@@ -20,6 +21,8 @@ export function BusinessLanding(props: BusinessDataResponse) {
     (sum, category) => sum + category.services.length,
     0
   );
+
+  console.log("Business Data Props:", props);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -94,6 +97,50 @@ export function BusinessLanding(props: BusinessDataResponse) {
                 </CardContent>
               </Card>
               {/* <ReviewsSection reviews={props.reviews} /> */}
+
+              {/* Staff Section */}
+              {props.staffs && props.staffs.length > 0 && (
+                <Card className="">
+                  <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <h2 className="text-2xl font-bold text-slate-800">
+                      Our Team ({props.staffs.length})
+                    </h2>
+                  </CardHeader>
+                  <CardContent className="p-4 md:p-8 !pt-0">
+                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                      {props.staffs
+                        .map((staff) => (
+                          <div
+                            key={staff.id}
+                            className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow bg-white p-4"
+                          >
+                            <div className="flex flex-col items-center text-center space-y-3">
+                              {/* Avatar */}
+                              <Avatar className="h-24 w-24">
+                                <AvatarImage src={staff.avatar || undefined} alt={staff.full_name} />
+                                <AvatarFallback className="bg-gradient-to-br from-blue-400 to-blue-600 text-white text-2xl font-semibold">
+                                  {staff.full_name?.charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+
+                              {/* Name */}
+                              <h3 className="text-lg font-semibold text-slate-800">
+                                {staff.full_name}
+                              </h3>
+
+                              {/* Email */}
+                              {staff.email && (
+                                <p className="text-sm text-gray-600 break-all">
+                                  {staff.email}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Display Programs section */}
               {props.programs && props.programs.length > 0 && (
