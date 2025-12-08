@@ -1020,6 +1020,7 @@ interface BookingListItem {
   end_time: string;
   duration: number;
   status: string;
+  price: number;
   Booking: {
     id: number;
     uuid: string;

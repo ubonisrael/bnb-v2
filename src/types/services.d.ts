@@ -237,7 +237,7 @@ interface ServiceAppointment {
     uuid: string;
     status: string;
     payment_status: string;
-  } | null;
+  };
   customer: {
     id: number;
     name: string;

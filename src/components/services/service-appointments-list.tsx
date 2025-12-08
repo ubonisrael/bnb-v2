@@ -111,9 +111,9 @@ export default function ServiceAppointmentsList({
                     </TableCell>
                     <TableCell>
                       <Badge
-                        variant={getStatusBadgeVariant(appointment.status)}
+                        variant={getStatusBadgeVariant(appointment.booking.payment_status)}
                       >
-                        {appointment.status}
+                        {appointment.booking?.payment_status}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">

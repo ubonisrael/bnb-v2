@@ -10,7 +10,6 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { getPaymentBadgeStyles, getStatusBadgeStyles } from "@/lib/helpers";
-import { BookingListItem } from "@/types/response";
 
 interface AppointmentListProps {
   bookings: BookingListItem[];
@@ -51,8 +50,8 @@ export function AppointmentList({
                   {booking.Booking.Customer.name}
                 </div>
                 <div className="text-sm text-[#6E6E73]">
-                  {booking.Service.title} • £
-                  {booking.Booking.amount_paid + booking.Booking.amount_due}
+                  {booking.Service.name} • £
+                  {booking.price}
                 </div>
                 <div className="flex items-center gap-2 mt-1">
                   <div className="text-xs text-[#6E6E73] flex items-center gap-1">
@@ -67,12 +66,6 @@ export function AppointmentList({
                   )}
                 </div>
                 <div className="flex items-center gap-2 mt-2">
-                  <Badge
-                    variant="outline"
-                    className={getStatusBadgeStyles(booking.status)}
-                  >
-                    {booking.status}
-                  </Badge>
                   <Badge
                     variant="outline"
                     className={getPaymentBadgeStyles(
@@ -93,7 +86,7 @@ export function AppointmentList({
               </div>
               <div className="text-xs text-[#6E6E73] mt-1">
                 £{booking.Booking.amount_paid} / £
-                {booking.Booking.amount_paid + booking.Booking.amount_due}
+                {booking.price}
               </div>
             </div>
           </div>
