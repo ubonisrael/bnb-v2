@@ -39,7 +39,7 @@ export function TimeOffSection({ memberId, timeOffs }: TimeOffSectionProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [offDay, setOffDay] = useState<OffDay>({
     id: crypto.randomUUID(),
-    mode: "multiple",
+    mode: "single",
   });
   const [reason, setReason] = useState("");
 
@@ -173,29 +173,41 @@ export function TimeOffSection({ memberId, timeOffs }: TimeOffSectionProps) {
           </div>
         ) : (
           <div className="space-y-3">
-            {timeOffs.map((timeOff) => (
-              <div
-                key={timeOff.id}
-                className="flex items-center justify-between p-4 border rounded-lg"
-              >
-                <div className="space-y-1">
-                  <div className="font-medium text-[#121212]">
-                    {new Date(timeOff.start_date).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}{" "}
-                    -{" "}
-                    {new Date(timeOff.end_date).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
+            {timeOffs.map((timeOff) => {
+              const isSingleDay = timeOff.start_date === timeOff.end_date;
+              return (
+                <div
+                  key={timeOff.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
+                  <div className="space-y-1">
+                    <div className="font-medium text-[#121212]">
+                      {isSingleDay ? (
+                        new Date(timeOff.start_date).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      ) : (
+                        <>
+                          {new Date(timeOff.start_date).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}{" "}
+                          -{" "}
+                          {new Date(timeOff.end_date).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </>
+                      )}
+                    </div>
+                    {timeOff.reason && (
+                      <p className="text-sm text-[#6E6E73]">{timeOff.reason}</p>
+                    )}
                   </div>
-                  {timeOff.reason && (
-                    <p className="text-sm text-[#6E6E73]">{timeOff.reason}</p>
-                  )}
-                </div>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -206,7 +218,7 @@ export function TimeOffSection({ memberId, timeOffs }: TimeOffSectionProps) {
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
-            ))}
+            )})}
           </div>
         )}
       </CardContent>
