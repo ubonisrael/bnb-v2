@@ -6,7 +6,6 @@ import {
   convertTimeSlotsToUserLocalTime,
   minutesToTimeString,
 } from "@/utils/time";
-import { AvailableTimeSlotsResponse } from "@/types/response";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/services/api-service";
 import dayjs from "@/utils/dayjsConfig";
@@ -16,7 +15,7 @@ interface TimeSlotsProps {
   selectedDate: string | null;
   selectedTime: number | null;
   onSelectTime: (time: number) => void;
-  selectedServices: { id: string | number; name: string }[];
+  selectedServices: { id: string | number; name: string; duration: number }[];
   totalDuration: number;
   bUrl: string;
   utcOffset: number;
@@ -33,9 +32,16 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
 }) => {
   const timezone = dayjs.tz.guess();
   const clientOffset = dayjs().tz(timezone).utcOffset();
-  const urlString = `sp/${bUrl}/available-time-slots?date=${selectedDate}&clientTz=${timezone}${selectedServices
-    .map((s) => `&service_ids[]=${s.id}`)
-    .join("")}&duration=${totalDuration}`;
+
+  // Build services query string with id and duration
+  const servicesQuery = selectedServices
+    .map((s) => {
+      const serviceObj = JSON.stringify({ id: s.id, duration: s.duration });
+      return `&services[]=${encodeURIComponent(serviceObj)}`;
+    })
+    .join("");
+
+  const urlString = `sp/${bUrl}/available-time-slots?date=${selectedDate}&clientTz=${timezone}${servicesQuery}&duration=${totalDuration}`;
   // fetch available time slots based on selected date
   const { data, isLoading, error } = useQuery<
     AvailableTimeSlotsResponse,
@@ -46,8 +52,11 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
       if (bUrl === "sample") {
         return Promise.resolve({
           status: true,
-          timeSlots: [540, 600, 660, 720, 780, 840, 900, 960, 1020, 1080],
           message: "Success",
+          data: {
+            allAvailableSlots: [540, 600, 660, 720, 780, 840, 900, 960, 1020, 1080],
+            staffCombinations: [],
+          },
         });
       }
       return await api.get(urlString);
@@ -104,7 +113,7 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
         </div>
       )}
 
-      {selectedDate && data?.timeSlots.length === 0 && (
+      {selectedDate && data?.data.allAvailableSlots.length === 0 && (
         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -125,9 +134,9 @@ const TimeSlots: React.FC<TimeSlotsProps> = ({
         </div>
       )}
 
-      {selectedDate && data && data.timeSlots.length > 0 && (
+      {selectedDate && data && data.data.allAvailableSlots.length > 0 && (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-          {data?.timeSlots.map((time) => (
+          {data?.data.allAvailableSlots.map((time) => (
             <Button
               key={time}
               variant={selectedTime === time ? "secondary" : "outline"}

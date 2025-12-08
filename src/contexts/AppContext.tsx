@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext } from "react";
 import useLocalStorage from "use-local-storage";
-import { ServiceFrontend } from "@/types/response";
 
 export type AppStep = "home" | "services" | "datetime" | "confirmation";
 

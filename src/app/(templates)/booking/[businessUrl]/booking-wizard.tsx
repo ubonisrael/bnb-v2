@@ -22,7 +22,7 @@ interface BookingFormValues {
   event_date: string;
   event_time: number;
   event_duration: number;
-  service_ids: string[];
+  services: { id: string; duration: number }[];
   client_tz: string;
 }
 
@@ -93,7 +93,7 @@ export function BookingWizard(props: BusinessDataResponse) {
         event_date: selectedDate,
         event_time: selectedTime,
         event_duration: getTotalDuration(),
-        service_ids: selectedServices.map((service) => service.id),
+        services: selectedServices.map((service) => ({ id: service.id, duration: service.duration })),
         client_tz: dayjs.tz.guess(),
       };
 

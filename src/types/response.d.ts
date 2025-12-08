@@ -29,7 +29,12 @@ interface PeriodicStatsResponse {
   message: string;
   data: {
     period: string;
-    stats: { name: string; bookings: number; revenue: number; clients: number }[];
+    stats: {
+      name: string;
+      bookings: number;
+      revenue: number;
+      clients: number;
+    }[];
   };
 }
 
@@ -271,7 +276,21 @@ interface ErrorResponse {
 interface AvailableTimeSlotsResponse {
   status: boolean;
   message: string;
-  timeSlots: number[];
+  data: {
+    allAvailableSlots: number[];
+    staffCombinations: Array<{
+      staffIds: number[];
+      staffDetails: [
+        {
+          staffId: number;
+          staffName: string;
+          staffAvatar: string | null;
+          serviceId: number;
+        }
+      ];
+      availableSlots: number[];
+    }>;
+  };
 }
 
 interface BookingResponse {
