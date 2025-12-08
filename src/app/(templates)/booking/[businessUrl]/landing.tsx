@@ -22,8 +22,6 @@ export function BusinessLanding(props: BusinessDataResponse) {
     0
   );
 
-  console.log("Business Data Props:", props);
-
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
 
@@ -132,6 +130,13 @@ export function BusinessLanding(props: BusinessDataResponse) {
                               {staff.email && (
                                 <p className="text-sm text-gray-600 break-all">
                                   {staff.email}
+                                </p>
+                              )}
+
+                              {/* Phone */}
+                              {staff.phone && (
+                                <p className="text-sm text-gray-600 break-all">
+                                  {staff.phone}
                                 </p>
                               )}
                             </div>
