@@ -8,7 +8,7 @@ import {
 import dayjs from "@/utils/dayjsConfig";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { BookingConfirmationResponse } from "@/types/response";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export const BookingConfirmation = ({
   status,
@@ -270,13 +270,13 @@ export const BookingConfirmation = ({
                         Booked Services
                       </h4>
 
-                      <ul className="space-y-3">
+                      <ul className="space-y-4">
                         {selectedServices.map((service) => (
                           <li
                             key={service.id}
-                            className="flex justify-between items-center py-2"
+                            className="flex justify-between items-start py-3 border-b border-gray-100 dark:border-gray-700 last:border-0"
                           >
-                            <div>
+                            <div className="flex-1">
                               <h5 className="text-sm font-medium text-gray-900 dark:text-white">
                                 {service.name}
                               </h5>
@@ -299,8 +299,21 @@ export const BookingConfirmation = ({
                                   {service.duration} min
                                 </span>
                               </div>
+                              {service.staff && (
+                                <div className="flex items-center mt-2 gap-2">
+                                  <Avatar className="h-6 w-6">
+                                    <AvatarImage src={service.staff.avatar || undefined} alt={service.staff.name} />
+                                    <AvatarFallback className="bg-gradient-to-br from-blue-400 to-blue-600 text-white text-xs font-semibold">
+                                      {service.staff.name?.charAt(0).toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <span className="text-xs text-gray-600 dark:text-gray-400">
+                                    with {service.staff.name}
+                                  </span>
+                                </div>
+                              )}
                             </div>
-                            <span className="text-gray-900 dark:text-white font-medium">
+                            <span className="text-gray-900 dark:text-white font-medium ml-4">
                               £{service.price}
                             </span>
                           </li>

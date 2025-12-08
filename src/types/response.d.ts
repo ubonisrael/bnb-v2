@@ -546,6 +546,13 @@ interface BookingConfirmationResponse {
     name: string;
     price: number;
     duration: number;
+    staff: {
+      id: number;
+      name: string;
+      avatar: string | null;
+      email: string;
+      phone: string | null;
+    };
   }[];
   selectedDate?: string;
   selectedTime?: number;

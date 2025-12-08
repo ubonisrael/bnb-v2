@@ -2,7 +2,6 @@ import api from "@/services/api-service";
 import { BookingConfirmation } from "../../tabs/booking-confirmation";
 import { ProgramRegistrationConfirmation } from "../../tabs/program-registration-confirmation";
 import Link from "next/link";
-import { ConfirmationPageData, BookingConfirmationResponse, ProgramRegisterationResponse, ProgramRegistrationResultData } from "@/types/response";
 
 interface ConfirmationBookingPageProps {
   params: {
