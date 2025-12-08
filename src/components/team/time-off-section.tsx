@@ -44,7 +44,16 @@ export function TimeOffSection({ memberId, timeOffs }: TimeOffSectionProps) {
   const [reason, setReason] = useState("");
 
   const createMutation = useMutation({
-    mutationFn: async (data: { start_date: string; end_date: string; reason?: string }) => {
+    mutationFn: async (data: { start_date: string; end_date: string; reason?: string } | { dates: { start_date: string; end_date: string; reason?: string }[] }) => {
+      // Check if it's multiple dates
+      if ('dates' in data) {
+        // Send individual requests for each date
+        const promises = data.dates.map(dateData => 
+          api.post(`members/${memberId}/time-off`, dateData)
+        );
+        return await Promise.all(promises);
+      }
+      // Single date or range
       const response = await api.post(`members/${memberId}/time-off`, data);
       return response;
     },
@@ -52,14 +61,17 @@ export function TimeOffSection({ memberId, timeOffs }: TimeOffSectionProps) {
       toast.loading("Adding time off...", { id: "add-timeoff" });
     },
     onSuccess: (data: any) => {
-      toast.success(data.message || "Time off added successfully", {
+      const message = Array.isArray(data) 
+        ? `${data.length} time off day${data.length > 1 ? 's' : ''} added successfully`
+        : (data.message || "Time off added successfully");
+      toast.success(message, {
         id: "add-timeoff",
       });
       queryClient.invalidateQueries({ queryKey: ["staff-details", memberId] });
       setIsAddDialogOpen(false);
       setOffDay({
         id: crypto.randomUUID(),
-        mode: "multiple",
+        mode: "single",
       });
       setReason("");
     },
@@ -92,40 +104,40 @@ export function TimeOffSection({ memberId, timeOffs }: TimeOffSectionProps) {
   });
 
   const handleAddTimeOff = () => {
-    let startDate: string;
-    let endDate: string;
-
     if (offDay.mode === "single") {
       if (!offDay.start_date) {
         toast.error("Please select a date");
         return;
       }
-      startDate = offDay.start_date;
-      endDate = offDay.start_date;
+      createMutation.mutate({
+        start_date: offDay.start_date,
+        end_date: offDay.start_date,
+        reason: reason.trim() || undefined,
+      });
     } else if (offDay.mode === "range") {
       if (!offDay.start_date || !offDay.end_date) {
         toast.error("Please select start and end dates");
         return;
       }
-      startDate = offDay.start_date;
-      endDate = offDay.end_date;
+      createMutation.mutate({
+        start_date: offDay.start_date,
+        end_date: offDay.end_date,
+        reason: reason.trim() || undefined,
+      });
     } else {
-      // multiple mode
+      // multiple mode - send each date individually
       if (!offDay.dates || offDay.dates.length === 0) {
         toast.error("Please select at least one date");
         return;
       }
-      // Sort dates to get the earliest and latest
-      const sortedDates = [...offDay.dates].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
-      startDate = sortedDates[0];
-      endDate = sortedDates[sortedDates.length - 1];
+      // Create an array of individual date objects
+      const dates = offDay.dates.map(date => ({
+        start_date: date,
+        end_date: date,
+        reason: reason.trim() || undefined,
+      }));
+      createMutation.mutate({ dates });
     }
-
-    createMutation.mutate({
-      start_date: startDate,
-      end_date: endDate,
-      reason: reason.trim() || undefined,
-    });
   };
 
   const handleOffDayUpdate = (updatedOffDay: OffDay) => {
