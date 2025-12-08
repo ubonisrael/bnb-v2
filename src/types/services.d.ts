@@ -38,13 +38,6 @@ interface CategoriesDataResponse {
 /**
  * User information within staff member
  */
-interface StaffUserInfo {
-  id: number;
-  full_name: string;
-  email: string;
-  avatar: string | null;
-}
-
 /**
  * Staff member information
  */
@@ -52,7 +45,7 @@ interface ServiceStaffMember {
   id: number;
   role: "owner" | "admin" | "staff";
   status: "pending" | "accepted" | "declined";
-  user: StaffUserInfo | null;
+  user: MemberUser | null;
 }
 
 interface Service {

@@ -6,12 +6,6 @@ import BookingForm, {
   BookingType,
 } from "@/components/BookingForm";
 import { useMutation } from "@tanstack/react-query";
-import {
-  BookingResponse,
-  BusinessDataResponse,
-  ErrorResponse,
-  ServiceFrontend,
-} from "@/types/response";
 import toast from "react-hot-toast";
 import api from "@/services/api-service";
 import dayjs from "@/utils/dayjsConfig";

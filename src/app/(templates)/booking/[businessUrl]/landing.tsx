@@ -3,7 +3,6 @@
 import ImageCarousel from "./tabs/components/image-carousel";
 import BusinessInfo from "./tabs/components/business-info";
 import BusinessDetails from "./tabs/components/business-details";
-import { BusinessDataResponse } from "@/types/response";
 import Link from "next/link";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useEffect } from "react";

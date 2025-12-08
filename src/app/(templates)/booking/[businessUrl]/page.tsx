@@ -2,7 +2,6 @@ import React from "react";
 import Link from "next/link";
 import api from "@/services/api-service";
 import DynamicComponentWrapper from "./dynamic-component-wrapper";
-import { BusinessDataResponse } from "@/types/response";
 import { BusinessLanding } from "./landing";
 import { businessData } from "@/utils/examples";
 

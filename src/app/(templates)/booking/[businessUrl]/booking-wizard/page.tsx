@@ -1,7 +1,6 @@
 import React from "react";
 import Link from "next/link";
 import api from "@/services/api-service";
-import { BusinessDataResponse } from "@/types/response";
 import { BookingWizard } from "../booking-wizard";
 import DynamicComponentWrapper from "../dynamic-component-wrapper";
 import { businessData } from "@/utils/examples";

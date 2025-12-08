@@ -448,6 +448,7 @@ interface BusinessDataResponse {
   phone: string;
   latitude?: number;
   longitude?: number;
+  staffs: ServiceStaffMember[];
   reviews: Review[];
   bookingPolicy: PolicyData[];
   customPolicies: CustomPolicy[];
@@ -455,6 +456,24 @@ interface BusinessDataResponse {
   depositAmount: number;
   images: CarouselImage[];
   socialMedia: SocialMedia[];
+  utcOffset: number;
+  maxNotice: number;
+  minNotice: number;
+}
+
+interface BookingWizardServiceData {
+  cancellationAllowed: boolean;
+  absorbServiceCharge: boolean;
+  currencySymbol: string;
+  bUrl: string;
+  logo: string;
+  name: string;
+  email: string;
+  serviceCategories: ServiceCategory[];
+  bookingPolicy: PolicyData[];
+  customPolicies: CustomPolicy[];
+  allowDeposits: boolean;
+  depositAmount: number;
   utcOffset: number;
   maxNotice: number;
   minNotice: number;
