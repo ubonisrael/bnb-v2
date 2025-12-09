@@ -72,8 +72,8 @@ const sidebarItems = [
     requireAdmin: true,
   },
   {
-    title: "Payments",
-    href: "/dashboard/payments",
+    title: "Stripe",
+    href: "/dashboard/stripe",
     icon: CreditCard,
     requireAdmin: true,
   },

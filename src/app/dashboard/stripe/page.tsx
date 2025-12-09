@@ -31,7 +31,7 @@ export default function PaymentDashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold mb-1">Payment Settings</h1>
+        <h1 className="text-2xl font-bold mb-1">Stripe Settings</h1>
         <p className="text-muted-foreground text-sm">
           Manage your Stripe integration, subscription and transaction details.
         </p>
