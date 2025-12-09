@@ -286,7 +286,7 @@ export const StaffDashboard = () => {
                       </div>
                       <div className="text-xs text-[#6E6E73] mt-1">
                         £{booking.Booking.amountPaid} / £
-                        {booking.Booking.amountDue}
+                        {booking.Booking.amountDue + booking.Booking.amountPaid}
                       </div>
                     </div>
                   </div>

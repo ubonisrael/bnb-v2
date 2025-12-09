@@ -9,7 +9,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { getPaymentBadgeStyles, getStatusBadgeStyles } from "@/lib/helpers";
+import { getPaymentBadgeStyles } from "@/lib/helpers";
 
 interface AppointmentListProps {
   bookings: BookingListItem[];
@@ -86,7 +86,7 @@ export function AppointmentList({
               </div>
               <div className="text-xs text-[#6E6E73] mt-1">
                 £{booking.Booking.amount_paid} / £
-                {booking.price}
+                {booking.Booking.amount_due + booking.Booking.amount_paid}
               </div>
             </div>
           </div>

@@ -78,12 +78,6 @@ const sidebarItems = [
     requireAdmin: true,
   },
   {
-    title: "Templates",
-    href: "/dashboard/templates",
-    icon: FileText,
-    requireAdmin: true,
-  },
-  {
     title: "Programs",
     href: "/dashboard/programs",
     icon: School,
