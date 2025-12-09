@@ -245,7 +245,7 @@ export const AdminDashboard = () => {
                 ))
               ) : todayOverview?.success &&
                 todayOverview.data.staffBreakdown.length > 0 ? (
-                todayOverview.data.staffBreakdown.map((staff) => (
+                todayOverview.data.staffBreakdown.filter((staff) => Boolean(staff.firstAppointmentTime)).map((staff) => (
                   <div
                     key={staff.staffId}
                     className="flex items-center justify-between rounded-lg border border-[#E0E0E5] p-4 hover:bg-[#F5F5F7]/50"
@@ -367,24 +367,14 @@ export const AdminDashboard = () => {
                             <Badge
                               variant="outline"
                               className={
-                                booking.status === "confirmed"
+                                booking.bookingStatus === "confirmed"
                                   ? "bg-green-50 text-green-700 border-green-200"
-                                  : booking.status === "pending"
+                                  : booking.bookingStatus === "reserved"
                                   ? "bg-yellow-50 text-yellow-700 border-yellow-200"
                                   : "bg-red-50 text-red-700 border-red-200"
                               }
                             >
-                              {booking.status}
-                            </Badge>
-                            <Badge
-                              variant="outline"
-                              className={
-                                booking.paymentStatus === "paid"
-                                  ? "bg-blue-50 text-blue-700 border-blue-200"
-                                  : "bg-orange-50 text-orange-700 border-orange-200"
-                              }
-                            >
-                              {booking.paymentStatus}
+                              {booking.bookingStatus}
                             </Badge>
                           </div>
                         </div>

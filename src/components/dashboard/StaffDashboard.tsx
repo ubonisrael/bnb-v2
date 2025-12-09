@@ -270,17 +270,9 @@ export const StaffDashboard = () => {
                         <div className="flex items-center gap-2 mt-2">
                           <Badge
                             variant="outline"
-                            className={getStatusBadgeStyles(booking.status)}
+                            className={getStatusBadgeStyles(booking.Booking.status)}
                           >
-                            {booking.status}
-                          </Badge>
-                          <Badge
-                            variant="outline"
-                            className={getPaymentBadgeStyles(
-                              booking.Booking.paymentStatus
-                            )}
-                          >
-                            {booking.Booking.paymentStatus}
+                            {booking.Booking.status}
                           </Badge>
                         </div>
                       </div>
@@ -294,7 +286,7 @@ export const StaffDashboard = () => {
                       </div>
                       <div className="text-xs text-[#6E6E73] mt-1">
                         £{booking.Booking.amountPaid} / £
-                        {booking.Booking.amountPaid + booking.Booking.amountDue}
+                        {booking.Booking.amountDue}
                       </div>
                     </div>
                   </div>
