@@ -1,5 +1,5 @@
 interface BusinessInfoData {
-  logoUrl: string;
+  logoUrl?: string | undefined;
   name: string;
   phone: string;
   address: string;
@@ -8,6 +8,8 @@ interface BusinessInfoData {
   state: string;
   postalCode: string;
   country: string;
+  images: string[];
+  aboutUs: string;
 }
 
 interface ServiceCategory {
@@ -16,7 +18,7 @@ interface ServiceCategory {
 }
 
 interface ServicesSetupData {
-  categories: ServiceCategory[];
+  categories: { id: number; name: string }[];
   services: Service[];
 }
 
@@ -82,20 +84,9 @@ interface BookingSettingsData {
   time_zone: string;
 }
 
-interface BookingTemplateData {
-  templateType: string;
-  images: {
-    id: string;
-    src: string;
-    alt: string;
-  }[];
-  aboutUs: string;
-}
-
 interface OnboardingFormData {
   businessInfo: BusinessInfoData;
   servicesSetup: ServicesSetupData;
   notificationSettings: NotificationSettingsData;
   bookingSettings: BookingSettingsData;
-  bookingTemplate: BookingTemplateData;
 }

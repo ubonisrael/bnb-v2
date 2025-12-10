@@ -50,7 +50,6 @@ export const onboardingSteps = [
   { id: "business-info", title: "Business Information" },
   { id: "services-setup", title: "Services" },
   { id: "booking-settings", title: "Booking Settings" },
-  { id: "booking-template", title: "Booking Template" },
   { id: "notification-settings", title: "Notifications" },
 ];
 

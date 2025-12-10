@@ -5,7 +5,6 @@ import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BusinessInfoStep } from "./steps/business-info";
 import { ServicesSetupStep } from "./steps/services-setup";
-import { BookingTemplateStep } from "./steps/booking-template";
 import { NotificationSettingsStep } from "./steps/notification-settings";
 import { BookingSettingsSetupStep } from "./steps/booking-settings";
 import { useOnboardingMutation } from "@/hooks/use-onboarding-mutation";
@@ -32,15 +31,12 @@ export function OnboardingWizard() {
         postalCode: "",
         country: "",
         logoUrl: "",
+        images: [],
+        aboutUs: "",
       },
       servicesSetup: {
         categories: [],
         services: [],
-      },
-      bookingTemplate: {
-        templateType: "",
-        images: [],
-        aboutUs: "",
       },
       bookingSettings: {
         reschedule_penalty_enabled: false,
@@ -143,13 +139,10 @@ export function OnboardingWizard() {
             state: "",
             postalCode: "",
             country: "",
-          },
-          servicesSetup: { categories: [], services: [] },
-          bookingTemplate: {
-            templateType: "",
             images: [],
             aboutUs: "",
           },
+          servicesSetup: { categories: [], services: [] },
           bookingSettings: {
             reschedule_penalty_enabled: false,
             auto_generate_deposit_policy: true,
@@ -288,14 +281,6 @@ export function OnboardingWizard() {
               ref={stepRef}
               data={formData}
               onUpdate={(data) => updateFormData("servicesSetup", data)}
-            />
-          )}
-
-          {currentStep.id === "booking-template" && (
-            <BookingTemplateStep
-              ref={stepRef}
-              data={formData.bookingTemplate}
-              onUpdate={(data) => updateFormData("bookingTemplate", data)}
             />
           )}
 

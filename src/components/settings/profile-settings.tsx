@@ -36,7 +36,7 @@ import { UnsavedChangesBanner } from "../UnSavedChangesBanner";
 import { Skeleton } from "../ui/skeleton";
 import { Textarea } from "../ui/textarea";
 
-const profileSchema = z.object({
+export const businessProfileSchema = z.object({
   name: z.string().min(2, "Business name must be at least 2 characters"),
   phone: z.string().min(10, "Please enter a valid phone number"),
   address: z.string().min(5, "Please enter a valid address"),
@@ -50,7 +50,7 @@ const profileSchema = z.object({
   image_urls: z.array(z.string()).min(1, "At least one banner image is required"),
 });
 
-type ProfileFormValues = z.infer<typeof profileSchema>;
+export type BusinessProfileFormValues = z.infer<typeof businessProfileSchema>;
 
 interface BusinessProfile {
   logo: string;
@@ -92,8 +92,8 @@ export function ProfileSettings() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileSchema),
+  const form = useForm<BusinessProfileFormValues>({
+    resolver: zodResolver(businessProfileSchema),
     values: profileData
       ? {
           address: profileData.address,
@@ -251,7 +251,7 @@ export function ProfileSettings() {
   };
 
   const updateProfileMutation = useMutation({
-    mutationFn: async (values: ProfileFormValues) => {
+    mutationFn: async (values: BusinessProfileFormValues) => {
       const response = await api.patch<ProfileResponse>("sp/profile", values);
       return response.data;
     },
@@ -272,7 +272,7 @@ export function ProfileSettings() {
     },
   });
 
-  async function onSubmit(values: ProfileFormValues) {
+  async function onSubmit(values: BusinessProfileFormValues) {
     try {
       await updateProfileMutation.mutateAsync(values);
     } catch (error) {

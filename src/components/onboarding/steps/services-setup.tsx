@@ -109,7 +109,7 @@ export function ServicesSetupStep({
 
   // Add a new category
   const handleAddCategory = (values: { name: string }) => {
-    const newCategory: ServiceCategory = {
+    const newCategory: Omit<ServiceCategory, "services"> = {
       id: Date.now(),
       name: values.name,
     };
@@ -472,7 +472,10 @@ export function ServicesSetupStep({
                             className="flex items-center space-x-1 space-y-0"
                           >
                             <FormControl>
-                              <Checkbox checked={field.value} />
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
                             </FormControl>
                             <FormLabel className="text-xs font-normal">
                               {day.charAt(0).toUpperCase() + day.slice(1)}
