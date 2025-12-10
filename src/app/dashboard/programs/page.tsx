@@ -370,7 +370,7 @@ export default function ProgramsPageRefactored() {
       {/* Details View */}
       <div
         className={`absolute top-0 left-0 w-full h-full md:px-4 xl:px-8 overflow-y-auto transition-transform duration-300 ease-in-out ${
-          showDetailsView ? "translate-x-0" : "translate-x-full"
+          showDetailsView && !showClassView ? "translate-x-0" : showClassView ? "-translate-x-full" : "translate-x-full"
         }`}
         style={{ zIndex: 15 }}
       >
