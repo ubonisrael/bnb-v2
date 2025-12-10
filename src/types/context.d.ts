@@ -21,6 +21,7 @@ interface UserSettingsData {
   timeslot_duration: number; // timeslot duration in minutes
   logo: string | null; // URL of the business logo image
   name: string; // Business name
+  timezone: string; // Business timezone
 }
 
 interface UserSettingsResponse {

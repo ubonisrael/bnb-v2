@@ -25,6 +25,8 @@ import {
 import { Skeleton } from "../ui/skeleton";
 import { formatDate, getStatusBadgeVariant } from "@/lib/helpers";
 import { Badge } from "../ui/badge";
+import dayjs from "@/utils/dayjsConfig";
+import { useCompanyDetails } from "@/hooks/use-company-details";
 
 interface ServiceAppointmentsListProps {
   appointments: ServiceAppointment[];
@@ -45,6 +47,7 @@ export default function ServiceAppointmentsList({
   isLoadingAppointments,
   pagination,
 }: ServiceAppointmentsListProps) {
+  const { data: settings } = useCompanyDetails();
   return (
     <TabsContent value="appointments" className="space-y-4 mt-4">
       <div className="flex items-center justify-between">
@@ -69,8 +72,7 @@ export default function ServiceAppointmentsList({
             <Skeleton key={i} className="h-16 w-full" />
           ))}
         </div>
-      ) : appointments &&
-        appointments.length > 0 ? (
+      ) : appointments && appointments.length > 0 ? (
         <>
           <div className="rounded-md border">
             <Table>
@@ -84,69 +86,70 @@ export default function ServiceAppointmentsList({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {appointments.map((appointment) => (
-                  <TableRow key={appointment.id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium text-sm">
-                          {appointment.customer?.name || "N/A"}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {appointment.customer?.email}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {appointment.customer?.phone ?? "N/A"}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {formatDate(appointment.start_time)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {appointment.staff?.user?.full_name || "N/A"}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={getStatusBadgeVariant(appointment.booking.payment_status)}
-                      >
-                        {appointment.booking?.payment_status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      £{appointment.price.toFixed(2)}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {appointments.map((appointment) => {
+                  const startTime = dayjs(appointment.start_time).tz(settings?.timezone || "UTC");
+                  return (
+                    <TableRow key={appointment.id}>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium text-sm">
+                            {appointment.customer?.name || "N/A"}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {appointment.customer?.email}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {appointment.customer?.phone ?? "N/A"}
+                          </p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {startTime.format("DD MMM YYYY, h:mm A")}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {appointment.staff?.user?.full_name || "N/A"}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={getStatusBadgeVariant(
+                            appointment.booking.payment_status
+                          )}
+                        >
+                          {appointment.booking?.payment_status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        £{appointment.price.toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
 
-          {pagination &&
-            pagination.totalPages > 1 && (
-              <div className="flex justify-center">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious
-                        onClick={() =>
-                          setAppointmentsPage((p) => Math.max(1, p - 1))
-                        }
-                        className={
-                          appointmentsPage === 1
-                            ? "pointer-events-none opacity-50"
-                            : "cursor-pointer"
-                        }
-                      />
-                    </PaginationItem>
-                    {[
-                      ...Array(
-                        Math.min(5, pagination.totalPages)
-                      ),
-                    ].map((_, i) => {
+          {pagination && pagination.totalPages > 1 && (
+            <div className="flex justify-center">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() =>
+                        setAppointmentsPage((p) => Math.max(1, p - 1))
+                      }
+                      className={
+                        appointmentsPage === 1
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+                  {[...Array(Math.min(5, pagination.totalPages))].map(
+                    (_, i) => {
                       const page = i + 1;
                       return (
                         <PaginationItem key={page}>
@@ -159,29 +162,26 @@ export default function ServiceAppointmentsList({
                           </PaginationLink>
                         </PaginationItem>
                       );
-                    })}
-                    <PaginationItem>
-                      <PaginationNext
-                        onClick={() =>
-                          setAppointmentsPage((p) =>
-                            Math.min(
-                              pagination.totalPages,
-                              p + 1
-                            )
-                          )
-                        }
-                        className={
-                          appointmentsPage ===
-                          pagination.totalPages
-                            ? "pointer-events-none opacity-50"
-                            : "cursor-pointer"
-                        }
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              </div>
-            )}
+                    }
+                  )}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() =>
+                        setAppointmentsPage((p) =>
+                          Math.min(pagination.totalPages, p + 1)
+                        )
+                      }
+                      className={
+                        appointmentsPage === pagination.totalPages
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </>
       ) : (
         <div className="text-center py-8">

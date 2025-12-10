@@ -191,6 +191,7 @@ export default function AppointmentsPage() {
               ) : bookingsData?.success && bookingsData.data.bookings.length > 0 ? (
                 <AppointmentList
                   bookings={bookingsData.data.bookings}
+                  timezone={settings?.timezone}
                   currentPage={currentPage}
                   pageSize={pageSize}
                   totalPages={bookingsData.data.pagination.totalPages}

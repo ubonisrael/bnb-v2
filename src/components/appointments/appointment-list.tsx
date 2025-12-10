@@ -13,6 +13,7 @@ import { getPaymentBadgeStyles } from "@/lib/helpers";
 
 interface AppointmentListProps {
   bookings: BookingListItem[];
+  timezone?: string;
   currentPage: number;
   pageSize: number;
   totalPages: number;
@@ -23,6 +24,7 @@ interface AppointmentListProps {
 
 export function AppointmentList({
   bookings,
+  timezone,
   currentPage,
   pageSize,
   totalPages,
@@ -33,7 +35,7 @@ export function AppointmentList({
   return (
     <div className="space-y-4">
       {bookings.map((booking) => {
-        const startTime = dayjs(booking.start_time);
+        const startTime = dayjs(booking.start_time).tz(timezone || "UTC");
         return (
           <div
             key={booking.id}
