@@ -1,11 +1,12 @@
 import { useCompanyDetails } from "@/hooks/use-company-details";
 
-
 export function InfoBar() {
   const { data: settings } = useCompanyDetails();
   // check if user has an active subscription
   const hasActiveSubscription =
-    settings?.subscription && settings.subscription.status === "active";
+    settings?.subscription &&
+    (settings.subscription.status === "active" ||
+      settings?.subscription.status === "trialing");
   const hasStripeAccountSet = settings?.stripeAccount?.id;
 
   if (!hasActiveSubscription && !hasStripeAccountSet) {
@@ -16,7 +17,8 @@ export function InfoBar() {
         </p>
         <p className="text-sm">
           Your booking URL is currently inactive. Please activate your
-          subscription and set up your Stripe account to enable bookings by going to the Payments section.
+          subscription and set up your Stripe account to enable bookings by
+          going to the Payments section.
         </p>
       </div>
     );
@@ -39,7 +41,8 @@ export function InfoBar() {
       <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-3">
         <p className="font-medium">Warning: Stripe Account Not Set</p>
         <p className="text-sm">
-          Please set up your Stripe account to enable payments and bookings by going to the Payments section.
+          Please set up your Stripe account to enable payments and bookings by
+          going to the Payments section.
         </p>
       </div>
     );
