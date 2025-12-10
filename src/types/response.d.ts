@@ -978,14 +978,6 @@ interface StaffBookingsByDateResponse {
 }
 
 // Members Types
-interface MemberUser {
-  id: number;
-  full_name: string;
-  email: string;
-  is_email_verified: boolean;
-  avatar: string | null;
-}
-
 interface Member {
   id: number;
   UserId: number;

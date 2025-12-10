@@ -38,9 +38,9 @@ interface OverrideHours {
 
 interface MemberUser {
   id: number;
-  full_name: string | null;
+  full_name: string;
   phone: string | null;
-  email: string | null;
+  email: string;
   is_email_verified: boolean;
   avatar: string | null;
 }

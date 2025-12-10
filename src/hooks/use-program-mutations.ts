@@ -3,12 +3,6 @@ import api from "@/services/api-service";
 import toast from "react-hot-toast";
 import { removeNullish } from "@/utils/flatten";
 import { convertToUTC } from "@/utils/time";
-import {
-  CreateProgramResponse,
-  UpdateProgramResponse,
-  CreateProgramClassResponse,
-  UpdateProgramClassResponse,
-} from "@/types/response";
 import { z } from "zod";
 import { newProgramSchema, programClassSchema } from "@/schemas/schema";
 
@@ -144,6 +138,9 @@ export function useProgramMutations() {
     mutationFn: async ({ programId, values }) => {
       const controller = new AbortController();
       const signal = controller.signal;
+      console.log("Program ID:", programId);
+
+      console.log("Creating class with values:", values);
 
       const utcData = {
         ...values,

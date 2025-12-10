@@ -208,29 +208,21 @@ export default function ProgramsPageRefactored() {
   const handleCreateClassSubmit = (values: any) => {
     if (!selectedProgram) return;
 
-    const payload = {
-      ...values,
-      program_id: selectedProgram.id,
-      owner_id: settings?.memberId,
-      // Convert date fields to UTC
-      start_date: convertToUTC(values.start_date),
-      end_date: convertToUTC(values.end_date),
-      start_booking_date: values.start_booking_date
-        ? convertToUTC(values.start_booking_date)
-        : null,
-      end_booking_date: values.end_booking_date
-        ? convertToUTC(values.end_booking_date)
-        : null,
-      early_bird_deadline: values.early_bird_deadline
-        ? convertToUTC(values.early_bird_deadline)
-        : null,
-    };
-
-    createClassMutation.mutate(payload, {
-      onSuccess: () => {
-        setShowCreateClassModal(false);
+    createClassMutation.mutate(
+      {
+        programId: selectedProgram.id,
+        values: {
+          ...values,
+          program_id: selectedProgram.id,
+          owner_id: settings?.memberId,
+        },
       },
-    });
+      {
+        onSuccess: () => {
+          setShowCreateClassModal(false);
+        },
+      }
+    );
   };
 
   const handleEditClass = (cls: IProgramClass) => {
@@ -241,24 +233,8 @@ export default function ProgramsPageRefactored() {
   const handleUpdateClass = (values: any) => {
     if (!editingClass) return;
 
-    const payload = {
-      ...values,
-      // Convert date fields to UTC
-      start_date: convertToUTC(values.start_date),
-      end_date: convertToUTC(values.end_date),
-      start_booking_date: values.start_booking_date
-        ? convertToUTC(values.start_booking_date)
-        : null,
-      end_booking_date: values.end_booking_date
-        ? convertToUTC(values.end_booking_date)
-        : null,
-      early_bird_deadline: values.early_bird_deadline
-        ? convertToUTC(values.early_bird_deadline)
-        : null,
-    };
-
     updateClassMutation.mutate(
-      { id: editingClass.id, values: payload },
+      { id: editingClass.id, values },
       {
         onSuccess: () => {
           setShowEditClassModal(false);
