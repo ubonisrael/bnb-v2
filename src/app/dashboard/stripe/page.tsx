@@ -15,31 +15,6 @@ import toast from "react-hot-toast";
 import SubscriptionDetails from "@/components/payments/subscription-card";
 import { useQuery } from "@tanstack/react-query";
 
-interface StripeSettingsResponse {
-  success: boolean;
-  data: {
-    role: "owner" | "admin" | "staff";
-    subscription: {
-      free_trial_activated: boolean; // Whether free trial was activated
-      planName: string; // e.g., "Pro Plan"
-      stripeSubscriptionId: string | null; // Stripe subscription ID
-      status: string | null; // e.g., "active", "canceled", "past_due"
-      nextBillingDate: Date | null; // Next billing/expiration date
-      cancelAtPeriodEnd: boolean; // Whether subscription cancels at period end
-      subscription_cancel_at: Date | null; // When subscription was set to cancel
-      subscription_cancel_at_period_end: boolean; // Duplicate field for cancel at period end
-      subscription_ended_at: Date | null; // When subscription ended
-      subscription_expiration: Date | null; // Subscription expiration date
-    };
-    stripeAccount: {
-      id: string | null; // Stripe Connect account ID
-      status: string | null; // e.g., "complete", "restricted", "pending"
-      requirements: object | null; // Stripe account requirements object
-    };
-  };
-  message: string;
-}
-
 // ------------------- Component -------------------
 export default function PaymentDashboardPage() {
   const router = useRouter();
@@ -59,6 +34,24 @@ export default function PaymentDashboardPage() {
       router.push("/dashboard");
     }
   }, [data, router]);
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="animate-pulse bg-muted h-6 w-48 rounded" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="animate-pulse bg-muted h-4 w-3/4 rounded" />
+          <div className="animate-pulse bg-muted h-4 w-2/3 rounded" />
+          <div className="animate-pulse bg-muted h-4 w-1/2 rounded" />
+          <div className="animate-pulse bg-muted h-8 w-40 mt-6 rounded" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (data)
   return (
     <div className="space-y-6">
       <div>
@@ -70,7 +63,10 @@ export default function PaymentDashboardPage() {
 
       {/* Stripe Account Settings Form */}
       {/* Subscription Section */}
-      <SubscriptionDetails />
+      <SubscriptionDetails
+        subscription={data.data.subscription}
+        timezone={data.data.timezone}
+      />
       <Card>
         <CardHeader>
           <CardTitle>Stripe Account Settings</CardTitle>
@@ -165,4 +161,6 @@ export default function PaymentDashboardPage() {
       </Card>
     </div>
   );
+
+  return null
 }

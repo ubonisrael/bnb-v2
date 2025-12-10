@@ -1058,3 +1058,31 @@ interface BookingsListResponse {
   message: string;
   data: BookingsListData;
 }
+
+interface SubscriptionDetails {
+  free_trial_activated: boolean; // Whether free trial was activated
+  planName: string; // e.g., "Pro Plan"
+  stripeSubscriptionId: string | null; // Stripe subscription ID
+  status: string | null; // e.g., "active", "canceled", "past_due"
+  nextBillingDate: Date | null; // Next billing/expiration date
+  cancelAtPeriodEnd: boolean; // Whether subscription cancels at period end
+  subscription_cancel_at: Date | null; // When subscription was set to cancel
+  subscription_cancel_at_period_end: boolean; // Duplicate field for cancel at period end
+  subscription_ended_at: Date | null; // When subscription ended
+  subscription_expiration: Date | null; // Subscription expiration date
+}
+
+interface StripeSettingsResponse {
+  success: boolean;
+  data: {
+    role: "owner" | "admin" | "staff";
+    timezone: string;
+    subscription: SubscriptionDetails;
+    stripeAccount: {
+      id: string | null; // Stripe Connect account ID
+      status: string | null; // e.g., "complete", "restricted", "pending"
+      requirements: object | null; // Stripe account requirements object
+    };
+  };
+  message: string;
+}

@@ -5,26 +5,21 @@ import { Button } from "@/components/ui/button";
 import { loadStripe } from "@stripe/stripe-js";
 import api from "@/services/api-service";
 import toast from "react-hot-toast";
-import { useCompanyDetails } from "@/hooks/use-company-details";
+import dayjs from "@/utils/dayjsConfig";
 
-export default function SubscriptionDetails() {
-  const { data: settings } = useCompanyDetails();
-
-  if (!settings) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="animate-pulse bg-muted h-6 w-48 rounded" />
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="animate-pulse bg-muted h-4 w-3/4 rounded" />
-          <div className="animate-pulse bg-muted h-4 w-2/3 rounded" />
-          <div className="animate-pulse bg-muted h-4 w-1/2 rounded" />
-          <div className="animate-pulse bg-muted h-8 w-40 mt-6 rounded" />
-        </CardContent>
-      </Card>
-    );
-  }
+export default function SubscriptionDetails({
+  subscription,
+  timezone,
+}: {
+  subscription: SubscriptionDetails;
+  timezone: string;
+}) {
+  const subExpirationDate = dayjs(subscription.subscription_expiration)
+    .tz(timezone || "UTC")
+    .format("DD MMM YYYY, h:mm A");
+    const nextBillingDate = dayjs(subscription.nextBillingDate)
+      .tz(timezone || "UTC")
+      .format("DD MMM YYYY, h:mm A");
 
   return (
     <Card>
@@ -32,36 +27,29 @@ export default function SubscriptionDetails() {
         <CardTitle>Subscription Details</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2 text-sm text-muted-foreground">
-        {settings.subscription.stripeSubscriptionId ? (
+        {subscription.stripeSubscriptionId ? (
           <>
             <p>
-              <strong>Plan:</strong> {settings.subscription.planName}
+              <strong>Plan:</strong> {subscription.planName}
             </p>
             <p>
-              <strong>Status:</strong> {settings.subscription.status}
+              <strong>Status:</strong> {subscription.status}
             </p>
+            {subscription.status === "trialing" &&
+              subscription.subscription_expiration && (
+                <p>
+                  <strong>Trial Ends:</strong> {subExpirationDate}
+                </p>
+              )}
             <p>
               <strong>Next Billing:</strong>{" "}
-              {settings.subscription.cancelAtPeriodEnd ||
-              !settings.subscription.nextBillingDate
+              {subscription.cancelAtPeriodEnd || !subscription.nextBillingDate
                 ? "N/A"
-                : new Date(
-                    settings.subscription.nextBillingDate
-                  ).toLocaleDateString()}
+                : nextBillingDate}
             </p>
-            {/* {settings.subscription.tr && (
-              <p>
-                <strong>Trial Ends:</strong>{" "}
-                {new Date(
-                  settings.subscription.trialEndDate
-                ).toLocaleDateString()}
-              </p>
-            )} */}
             <p>
               <strong>Auto-renew:</strong>{" "}
-              {settings.subscription.cancelAtPeriodEnd
-                ? "No (canceling)"
-                : "Yes"}
+              {subscription.cancelAtPeriodEnd ? "No (canceling)" : "Yes"}
             </p>
 
             <Button
@@ -89,9 +77,22 @@ export default function SubscriptionDetails() {
         ) : (
           <>
             <p className="text-muted-foreground text-sm">
-              You don’t have an active subscription. Choose a plan to get
+              You don't have an active subscription. Choose a plan to get
               started:
             </p>
+
+            {!subscription.free_trial_activated && (
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-4 my-4">
+                <p className="text-blue-800 text-sm font-medium mb-1">
+                  🎉 Start Your Free 60-Day Trial
+                </p>
+                <p className="text-blue-700 text-xs">
+                  Subscribe now and enjoy a free 60-day trial period. You won't
+                  be charged during the trial, and you can cancel anytime before
+                  it ends.
+                </p>
+              </div>
+            )}
 
             <div className="grid gap-4">
               {[
