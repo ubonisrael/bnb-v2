@@ -114,6 +114,15 @@ export function ServicesTable({
   const [showFilters, setShowFilters] = useState(false);
   const [selectedServices, setSelectedServices] = useState<number[]>([]);
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  
+  // Local filter state (temporary until Apply is clicked)
+  const [localMinPrice, setLocalMinPrice] = useState(filters.minPrice);
+  const [localMaxPrice, setLocalMaxPrice] = useState(filters.maxPrice);
+  const [localMinDuration, setLocalMinDuration] = useState(filters.minDuration);
+  const [localMaxDuration, setLocalMaxDuration] = useState(filters.maxDuration);
+  const [localAvailableOn, setLocalAvailableOn] = useState(filters.availableOn);
+  const [localSortBy, setLocalSortBy] = useState(sorting.sortBy);
+  const [localSortOrder, setLocalSortOrder] = useState(sorting.sortOrder);
 
   // Filter by category tab (search is handled server-side now)
   const filteredServices = useMemo(() => {
@@ -257,7 +266,34 @@ export function ServicesTable({
     );
   };
 
+  const hasUnappliedChanges = () => {
+    return (
+      localMinPrice !== filters.minPrice ||
+      localMaxPrice !== filters.maxPrice ||
+      localMinDuration !== filters.minDuration ||
+      localMaxDuration !== filters.maxDuration ||
+      localAvailableOn !== filters.availableOn ||
+      localSortBy !== sorting.sortBy ||
+      localSortOrder !== sorting.sortOrder
+    );
+  };
+
+  const applyFilters = () => {
+    onFiltersChange.setMinPrice(localMinPrice);
+    onFiltersChange.setMaxPrice(localMaxPrice);
+    onFiltersChange.setMinDuration(localMinDuration);
+    onFiltersChange.setMaxDuration(localMaxDuration);
+    onFiltersChange.setAvailableOn(localAvailableOn);
+    onSortingChange.setSortBy(localSortBy);
+    onSortingChange.setSortOrder(localSortOrder);
+  };
+
   const clearAllFilters = () => {
+    setLocalMinPrice("");
+    setLocalMaxPrice("");
+    setLocalMinDuration("");
+    setLocalMaxDuration("");
+    setLocalAvailableOn("");
     onFiltersChange.setMinPrice("");
     onFiltersChange.setMaxPrice("");
     onFiltersChange.setMinDuration("");
@@ -332,15 +368,15 @@ export function ServicesTable({
                     <Input
                       type="number"
                       placeholder="Min"
-                      value={filters.minPrice}
-                      onChange={(e) => onFiltersChange.setMinPrice(e.target.value)}
+                      value={localMinPrice}
+                      onChange={(e) => setLocalMinPrice(e.target.value)}
                       className="h-9"
                     />
                     <Input
                       type="number"
                       placeholder="Max"
-                      value={filters.maxPrice}
-                      onChange={(e) => onFiltersChange.setMaxPrice(e.target.value)}
+                      value={localMaxPrice}
+                      onChange={(e) => setLocalMaxPrice(e.target.value)}
                       className="h-9"
                     />
                   </div>
@@ -353,15 +389,15 @@ export function ServicesTable({
                     <Input
                       type="number"
                       placeholder="Min"
-                      value={filters.minDuration}
-                      onChange={(e) => onFiltersChange.setMinDuration(e.target.value)}
+                      value={localMinDuration}
+                      onChange={(e) => setLocalMinDuration(e.target.value)}
                       className="h-9"
                     />
                     <Input
                       type="number"
                       placeholder="Max"
-                      value={filters.maxDuration}
-                      onChange={(e) => onFiltersChange.setMaxDuration(e.target.value)}
+                      value={localMaxDuration}
+                      onChange={(e) => setLocalMaxDuration(e.target.value)}
                       className="h-9"
                     />
                   </div>
@@ -371,8 +407,8 @@ export function ServicesTable({
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Available On</label>
                   <Select
-                    value={filters.availableOn}
-                    onValueChange={onFiltersChange.setAvailableOn}
+                    value={localAvailableOn}
+                    onValueChange={setLocalAvailableOn}
                   >
                     <SelectTrigger className="h-9">
                       <SelectValue placeholder="Select day" />
@@ -394,8 +430,8 @@ export function ServicesTable({
                 <label className="text-sm font-medium mb-2 block">Sort By</label>
                 <div className="flex gap-2">
                   <Select
-                    value={sorting.sortBy}
-                    onValueChange={onSortingChange.setSortBy}
+                    value={localSortBy}
+                    onValueChange={setLocalSortBy}
                   >
                     <SelectTrigger className="h-9 flex-1">
                       <SelectValue />
@@ -410,19 +446,30 @@ export function ServicesTable({
                     variant="outline"
                     size="sm"
                     onClick={() =>
-                      onSortingChange.setSortOrder(
-                        sorting.sortOrder === "ASC" ? "DESC" : "ASC"
+                      setLocalSortOrder(
+                        localSortOrder === "ASC" ? "DESC" : "ASC"
                       )
                     }
                     className="h-9 px-3"
                   >
-                    {sorting.sortOrder === "ASC" ? (
+                    {localSortOrder === "ASC" ? (
                       <ArrowUp className="h-4 w-4" />
                     ) : (
                       <ArrowDown className="h-4 w-4" />
                     )}
                   </Button>
                 </div>
+              </div>
+
+              {/* Apply Filters Button */}
+              <div className="flex justify-end pt-2">
+                <Button
+                  onClick={applyFilters}
+                  disabled={!hasUnappliedChanges()}
+                  size="sm"
+                >
+                  Apply Filters
+                </Button>
               </div>
             </div>
           )}
