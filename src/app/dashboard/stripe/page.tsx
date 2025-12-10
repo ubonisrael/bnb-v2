@@ -13,21 +13,52 @@ import { Button } from "@/components/ui/button";
 import api from "@/services/api-service";
 import toast from "react-hot-toast";
 import SubscriptionDetails from "@/components/payments/subscription-card";
-import { useCompanyDetails } from "@/hooks/use-company-details";
+import { useQuery } from "@tanstack/react-query";
+
+interface StripeSettingsResponse {
+  success: boolean;
+  data: {
+    role: "owner" | "admin" | "staff";
+    subscription: {
+      free_trial_activated: boolean; // Whether free trial was activated
+      planName: string; // e.g., "Pro Plan"
+      stripeSubscriptionId: string | null; // Stripe subscription ID
+      status: string | null; // e.g., "active", "canceled", "past_due"
+      nextBillingDate: Date | null; // Next billing/expiration date
+      cancelAtPeriodEnd: boolean; // Whether subscription cancels at period end
+      subscription_cancel_at: Date | null; // When subscription was set to cancel
+      subscription_cancel_at_period_end: boolean; // Duplicate field for cancel at period end
+      subscription_ended_at: Date | null; // When subscription ended
+      subscription_expiration: Date | null; // Subscription expiration date
+    };
+    stripeAccount: {
+      id: string | null; // Stripe Connect account ID
+      status: string | null; // e.g., "complete", "restricted", "pending"
+      requirements: object | null; // Stripe account requirements object
+    };
+  };
+  message: string;
+}
 
 // ------------------- Component -------------------
 export default function PaymentDashboardPage() {
-  const { data: settings } = useCompanyDetails();
   const router = useRouter();
+  const { data, isLoading } = useQuery({
+    queryKey: ["stripe-settings"],
+    queryFn: async () => {
+      const response = await api.get<StripeSettingsResponse>("sp/stripe-info");
+      return response;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   // Restrict access to admin and owner only
   useEffect(() => {
-    if (settings && settings.role !== "owner" && settings.role !== "admin") {
+    if (data && data.data.role !== "owner" && data.data.role !== "admin") {
       toast.error("You don't have permission to access this page");
       router.push("/dashboard");
     }
-  }, [settings, router]);
-
+  }, [data, router]);
   return (
     <div className="space-y-6">
       <div>
@@ -48,18 +79,18 @@ export default function PaymentDashboardPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {settings === null ? (
+          {isLoading ? (
             <div className="flex items-center justify-center py-6">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
-          ) : settings?.stripeAccount?.id ? (
+          ) : data?.data.stripeAccount.id ? (
             <>
               <div className="space-y-2">
                 <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                   Stripe Account ID
                 </label>
                 <div className="h-10 px-3 py-2 border border-input bg-muted rounded-md text-sm flex items-center">
-                  {settings.stripeAccount.id}
+                  {data?.data.stripeAccount.id}
                 </div>
               </div>
               <div className="space-y-2">
@@ -67,7 +98,7 @@ export default function PaymentDashboardPage() {
                   Stripe Account Status
                 </label>
                 <div className="h-10 px-3 py-2 border border-input bg-muted rounded-md text-sm flex items-center">
-                  {settings.stripeAccount.status}
+                  {data?.data.stripeAccount.status}
                 </div>
               </div>
               <Button
@@ -75,13 +106,13 @@ export default function PaymentDashboardPage() {
                 className="mt-4"
                 onClick={async () => {
                   console.log("Redirecting to Stripe dashboard...");
-                  if (!settings.stripeAccount.id) {
+                  if (!data?.data.stripeAccount.id) {
                     toast.error("Stripe account not found");
                     return;
                   }
                   const res = await api.get<{
                     loginLinkUrl: string;
-                  }>(`stripe/accounts/${settings.stripeAccount.id}`);
+                  }>(`stripe/accounts/${data?.data.stripeAccount.id}`);
                   if (!res.loginLinkUrl) {
                     toast.error("Failed to get Stripe account link");
                     return;
