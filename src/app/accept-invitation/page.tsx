@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -42,8 +42,11 @@ interface AcceptInvitationResponse {
   };
 }
 
-export default function AcceptInvitationPage() {
-  const searchParams = useSearchParams();
+interface PageProps {
+  searchParams: { [key: string]: string | string[] | undefined };
+}
+
+export default function AcceptInvitationPage({ searchParams }: PageProps) {
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -59,7 +62,7 @@ export default function AcceptInvitationPage() {
   });
 
   useEffect(() => {
-    const tokenParam = searchParams.get("token");
+    const tokenParam = typeof searchParams.token === 'string' ? searchParams.token : null;
     
     if (!tokenParam) {
       toast.error("Invalid invitation link. No token provided.");

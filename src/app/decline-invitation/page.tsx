@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import apiService from "@/services/api-service";
 import toast from "react-hot-toast";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
@@ -11,14 +11,17 @@ interface DeclineResponse {
   message: string;
 }
 
-export default function DeclineInvitationPage() {
-  const searchParams = useSearchParams();
+interface PageProps {
+  searchParams: { [key: string]: string | string[] | undefined };
+}
+
+export default function DeclineInvitationPage({ searchParams }: PageProps) {
   const router = useRouter();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState<string>("");
 
   useEffect(() => {
-    const token = searchParams.get("token");
+    const token = typeof searchParams.token === 'string' ? searchParams.token : null;
 
     if (!token) {
       setStatus("error");
