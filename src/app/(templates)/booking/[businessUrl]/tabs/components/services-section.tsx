@@ -4,7 +4,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import ServiceCard from "./service-card";
-import { ServiceCategory } from "@/types/response";
 
 interface ServicesSectionProps {
   serviceCategories: ServiceCategory[];
@@ -14,7 +13,9 @@ interface ServicesSectionProps {
 
 export default function ServicesSection({ serviceCategories, index, gotoTab }: ServicesSectionProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [openAccordions, setOpenAccordions] = useState<Set<number>>(new Set());
+  const [openAccordions, setOpenAccordions] = useState<Set<number>>(
+    new Set(serviceCategories.map((_, i) => i))
+  );
 
   const toggleAccordion = (index: number) => {
     const newOpenAccordions = new Set(openAccordions);

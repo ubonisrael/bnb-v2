@@ -5,7 +5,6 @@ import { Home } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useEffect } from "react";
 import ServicesSection from "./components/services-section";
-import { ServicesTabPropsInterface } from "@/types/response";
 import Link from "next/link";
 
 export function ServicesTab({
