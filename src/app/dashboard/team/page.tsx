@@ -75,7 +75,7 @@ export default function TeamPage() {
   });
 
   // Sort members by role and filter by search
-  const sortedMembers = (membersData ?? [])
+  const sortedMembers = (Array.isArray(membersData) ? membersData : [])
     .sort((a, b) => roleOrder[a.role] - roleOrder[b.role])
     .filter((member) => {
       if (!searchQuery) return true;
