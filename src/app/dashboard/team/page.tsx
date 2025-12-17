@@ -18,37 +18,7 @@ import { getInitials } from "@/lib/helpers";
 import { PendingInvitationsSection } from "@/components/team/pending-invitations-section";
 import { InviteStaffDialog } from "@/components/team/invite-staff-dialog";
 import { StaffDetailsSheet } from "@/components/team/staff-details-sheet";
-
-interface MemberUser {
-  id: number;
-  full_name: string;
-  email: string;
-  phone: string | null;
-  is_email_verified: boolean;
-  avatar: string | null;
-}
-
-interface Member {
-  id: number;
-  UserId: number;
-  ServiceProviderId: number;
-  role: "owner" | "admin" | "staff";
-  status: string;
-  invitedBy: number | null;
-  invitedAt: string;
-  acceptedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-  User: MemberUser;
-}
-
-interface MembersResponse {
-  success: boolean;
-  message: string;
-  data: {
-    members: Member[];
-  };
-}
+import { fetchMembers, mediumRefreshInterval } from "@/utils/api";
 
 const roleOrder = { owner: 0, admin: 1, staff: 2 };
 const roleBadgeColors = {
@@ -67,14 +37,9 @@ export default function TeamPage() {
   // Fetch members
   const { data: membersData, isLoading: isLoadingMembers } = useQuery({
     queryKey: ["members"],
-    queryFn: async () => {
-      const response = await api.get<MembersResponse>("members");
-      return response.data.members;
-    },
-    staleTime: 5 * 60 * 1000,
+    queryFn: fetchMembers,
+    staleTime: mediumRefreshInterval,
   });
-
-  console.log("Members Data:", membersData);
 
   // Sort members by role and filter by search
   const sortedMembers = (Array.isArray(membersData) ? membersData : [])

@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useCompanyDetails } from "@/hooks/use-company-details";
 import { useFetchServices } from "@/hooks/use-fetch-services";
 import useFetchCategories from "@/hooks/use-fetch-categories";
+import { fetchMembers, mediumRefreshInterval } from "@/utils/api";
 
 export default function ServicesPage() {
   const { data: settings } = useCompanyDetails();
@@ -76,19 +77,16 @@ export default function ServicesPage() {
     }
   );
 
-  const { data: membersData } = useQuery({
+  const { data: staffMembers } = useQuery({
     queryKey: ["members"],
-    queryFn: async () => {
-      const response = await api.get<MembersResponse>("members");
-      return response;
-    },
+    queryFn: fetchMembers,
+    staleTime: mediumRefreshInterval,
   });
 
   const categories = categoriesData?.data.categories || [];
   const categoriesPagination = categoriesData?.data.pagination;
   const services = servicesData?.data.services || [];
   const servicesPagination = servicesData?.data.pagination;
-  const staffMembers = membersData?.data.members || [];
 
   // Get mutations from custom hook
   const {
@@ -239,7 +237,7 @@ export default function ServicesPage() {
             onOpenChange={handleServiceModalChange}
             service={editingService}
             categories={categories}
-            staffMembers={staffMembers}
+            staffMembers={staffMembers ?? []}
             onSubmit={handleServiceSubmit}
             isSubmitting={createServiceMutation.isPending}
             disabled={categories.length === 0}
