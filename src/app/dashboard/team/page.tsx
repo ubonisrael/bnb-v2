@@ -74,6 +74,8 @@ export default function TeamPage() {
     staleTime: 5 * 60 * 1000,
   });
 
+  console.log("Members Data:", membersData);
+
   // Sort members by role and filter by search
   const sortedMembers = (Array.isArray(membersData) ? membersData : [])
     .sort((a, b) => roleOrder[a.role] - roleOrder[b.role])
