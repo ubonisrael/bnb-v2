@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { Trash2, Plus, Edit2 } from "lucide-react";
+import { Trash2, Plus, Edit2, X } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import api from "@/services/api-service";
 
 interface OverrideHours {
@@ -54,8 +56,16 @@ export function OverrideHoursSection({
     date: "",
     opening_time: "",
     closing_time: "",
-    is_closed: false,
   });
+  const [multiMode, setMultiMode] = useState({
+    startDate: "",
+    endDate: "",
+    selectedDays: [] as number[], // 0 = Sunday, 6 = Saturday
+    opening_time: "",
+    closing_time: "",
+  });
+
+  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   const deleteMutation = useMutation({
     mutationFn: async (overrideId: number) => {
@@ -84,20 +94,21 @@ export function OverrideHoursSection({
     mutationFn: async (data: any) => {
       const response = await api.post(
         `members/${memberId}/override-hours`,
-        { overrides: [data]}
+        data
       );
       return response;
     },
     onMutate: () => {
-      toast.loading("Creating override...", { id: "create-override" });
+      toast.loading("Creating override(s)...", { id: "create-override" });
     },
     onSuccess: (data: any) => {
-      toast.success(data.message || "Override created successfully", {
+      toast.success(data.message || "Override(s) created successfully", {
         id: "create-override",
       });
       queryClient.invalidateQueries({ queryKey: ["staff-details", memberId] });
       setIsDialogOpen(false);
       resetForm();
+      resetMultiForm();
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || "Failed to create override", {
@@ -108,9 +119,9 @@ export function OverrideHoursSection({
 
   const updateMutation = useMutation({
     mutationFn: async ({ overrideId, data }: { overrideId: number; data: any }) => {
-      const response = await api.put(
+      const response = await api.patch(
         `members/${memberId}/override-hours/${overrideId}`,
-        { overrides: [data]}
+        data
       );
       return response;
     },
@@ -138,8 +149,44 @@ export function OverrideHoursSection({
       date: "",
       opening_time: "",
       closing_time: "",
-      is_closed: false,
     });
+  };
+
+  const resetMultiForm = () => {
+    setMultiMode({
+      startDate: "",
+      endDate: "",
+      selectedDays: [],
+      opening_time: "",
+      closing_time: "",
+    });
+  };
+
+  const toggleDay = (day: number) => {
+    setMultiMode(prev => ({
+      ...prev,
+      selectedDays: prev.selectedDays.includes(day)
+        ? prev.selectedDays.filter(d => d !== day)
+        : [...prev.selectedDays, day]
+    }));
+  };
+
+  const generateMultipleOverrides = () => {
+    const overrides = [];
+    const start = new Date(multiMode.startDate);
+    const end = new Date(multiMode.endDate);
+
+    for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+      const dayOfWeek = date.getDay();
+      if (multiMode.selectedDays.includes(dayOfWeek)) {
+        overrides.push({
+          date: date.toISOString().split('T')[0],
+          opening_time: timeToMinutes(multiMode.opening_time),
+          closing_time: timeToMinutes(multiMode.closing_time),
+        });
+      }
+    }
+    return overrides;
   };
 
   const handleOpenDialog = (override?: OverrideHours) => {
@@ -149,29 +196,47 @@ export function OverrideHoursSection({
         date: override.date,
         opening_time: override.opening_time !== null ? minutesToTime(override.opening_time) : "",
         closing_time: override.closing_time !== null ? minutesToTime(override.closing_time) : "",
-        is_closed: override.opening_time === null && override.closing_time === null,
       });
     } else {
       setEditingOverride(null);
       resetForm();
+      resetMultiForm();
     }
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSingleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     const payload = {
       date: formData.date,
-      opening_time: formData.is_closed ? null : timeToMinutes(formData.opening_time),
-      closing_time: formData.is_closed ? null : timeToMinutes(formData.closing_time),
+      opening_time: timeToMinutes(formData.opening_time),
+      closing_time: timeToMinutes(formData.closing_time),
     };
 
     if (editingOverride) {
       updateMutation.mutate({ overrideId: editingOverride.id, data: payload });
     } else {
-      createMutation.mutate(payload);
+      createMutation.mutate({ overrides: [payload] });
     }
+  };
+
+  const handleMultipleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (multiMode.selectedDays.length === 0) {
+      toast.error("Please select at least one day");
+      return;
+    }
+
+    const overrides = generateMultipleOverrides();
+    
+    if (overrides.length === 0) {
+      toast.error("No dates match the selected criteria");
+      return;
+    }
+
+    createMutation.mutate({ overrides });
   };
 
   return (
@@ -240,91 +305,242 @@ export function OverrideHoursSection({
         )}
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent>
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>
                 {editingOverride ? "Edit Override Hours" : "Add Override Hours"}
               </DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="date">Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) =>
-                    setFormData({ ...formData, date: e.target.value })
-                  }
-                  required
-                />
-              </div>
+            
+            {editingOverride ? (
+              <form onSubmit={handleSingleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="date">Date</Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) =>
+                      setFormData({ ...formData, date: e.target.value })
+                    }
+                    required
+                  />
+                </div>
 
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="is_closed"
-                  checked={formData.is_closed}
-                  onChange={(e) =>
-                    setFormData({ ...formData, is_closed: e.target.checked })
-                  }
-                  className="h-4 w-4"
-                />
-                <Label htmlFor="is_closed" className="text-sm font-normal">
-                  Mark as closed
-                </Label>
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="opening_time">Opening Time</Label>
+                  <Input
+                    id="opening_time"
+                    type="time"
+                    value={formData.opening_time}
+                    onChange={(e) =>
+                      setFormData({ ...formData, opening_time: e.target.value })
+                    }
+                    required
+                  />
+                </div>
 
-              {!formData.is_closed && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="opening_time">Opening Time</Label>
-                    <Input
-                      id="opening_time"
-                      type="time"
-                      value={formData.opening_time}
-                      onChange={(e) =>
-                        setFormData({ ...formData, opening_time: e.target.value })
-                      }
-                      required={!formData.is_closed}
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="closing_time">Closing Time</Label>
+                  <Input
+                    id="closing_time"
+                    type="time"
+                    value={formData.closing_time}
+                    onChange={(e) =>
+                      setFormData({ ...formData, closing_time: e.target.value })
+                    }
+                    required
+                  />
+                </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="closing_time">Closing Time</Label>
-                    <Input
-                      id="closing_time"
-                      type="time"
-                      value={formData.closing_time}
-                      onChange={(e) =>
-                        setFormData({ ...formData, closing_time: e.target.value })
-                      }
-                      required={!formData.is_closed}
-                    />
-                  </div>
-                </>
-              )}
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setIsDialogOpen(false);
+                      resetForm();
+                      setEditingOverride(null);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={updateMutation.isPending}
+                  >
+                    Update
+                  </Button>
+                </DialogFooter>
+              </form>
+            ) : (
+              <Tabs defaultValue="single" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="single">Single Date</TabsTrigger>
+                  <TabsTrigger value="multiple">Multiple Dates</TabsTrigger>
+                </TabsList>
 
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setIsDialogOpen(false);
-                    resetForm();
-                    setEditingOverride(null);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={createMutation.isPending || updateMutation.isPending}
-                >
-                  {editingOverride ? "Update" : "Create"}
-                </Button>
-              </DialogFooter>
-            </form>
+                <TabsContent value="single" className="space-y-4">
+                  <form onSubmit={handleSingleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="single-date">Date</Label>
+                      <Input
+                        id="single-date"
+                        type="date"
+                        value={formData.date}
+                        onChange={(e) =>
+                          setFormData({ ...formData, date: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="single-opening_time">Opening Time</Label>
+                      <Input
+                        id="single-opening_time"
+                        type="time"
+                        value={formData.opening_time}
+                        onChange={(e) =>
+                          setFormData({ ...formData, opening_time: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="single-closing_time">Closing Time</Label>
+                      <Input
+                        id="single-closing_time"
+                        type="time"
+                        value={formData.closing_time}
+                        onChange={(e) =>
+                          setFormData({ ...formData, closing_time: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+
+                    <DialogFooter>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setIsDialogOpen(false);
+                          resetForm();
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={createMutation.isPending}
+                      >
+                        Create
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </TabsContent>
+
+                <TabsContent value="multiple" className="space-y-4">
+                  <form onSubmit={handleMultipleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="start-date">Start Date</Label>
+                        <Input
+                          id="start-date"
+                          type="date"
+                          value={multiMode.startDate}
+                          onChange={(e) =>
+                            setMultiMode({ ...multiMode, startDate: e.target.value })
+                          }
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="end-date">End Date</Label>
+                        <Input
+                          id="end-date"
+                          type="date"
+                          value={multiMode.endDate}
+                          onChange={(e) =>
+                            setMultiMode({ ...multiMode, endDate: e.target.value })
+                          }
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Select Days</Label>
+                      <div className="grid grid-cols-4 gap-2">
+                        {dayNames.map((day, index) => (
+                          <div key={index} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`day-${index}`}
+                              checked={multiMode.selectedDays.includes(index)}
+                              onCheckedChange={() => toggleDay(index)}
+                            />
+                            <Label
+                              htmlFor={`day-${index}`}
+                              className="text-sm font-normal cursor-pointer"
+                            >
+                              {day.slice(0, 3)}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="multi-opening_time">Opening Time</Label>
+                      <Input
+                        id="multi-opening_time"
+                        type="time"
+                        value={multiMode.opening_time}
+                        onChange={(e) =>
+                          setMultiMode({ ...multiMode, opening_time: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="multi-closing_time">Closing Time</Label>
+                      <Input
+                        id="multi-closing_time"
+                        type="time"
+                        value={multiMode.closing_time}
+                        onChange={(e) =>
+                          setMultiMode({ ...multiMode, closing_time: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+
+                    <DialogFooter>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setIsDialogOpen(false);
+                          resetMultiForm();
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={createMutation.isPending}
+                      >
+                        Create Overrides
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </TabsContent>
+              </Tabs>
+            )}
           </DialogContent>
         </Dialog>
       </CardContent>
