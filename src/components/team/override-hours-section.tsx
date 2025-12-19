@@ -102,9 +102,42 @@ export function OverrideHoursSection({
       toast.loading("Creating override(s)...", { id: "create-override" });
     },
     onSuccess: (data: any) => {
-      toast.success(data.message || "Override(s) created successfully", {
-        id: "create-override",
-      });
+      toast.dismiss("create-override");
+      
+      // Handle partial success with errors/warnings
+      if (data.errors && data.errors.length > 0) {
+        const errorCount = data.errors.length;
+        
+        // Show warning message
+        if (data.warning) {
+          toast.error(data.warning, {
+            duration: 6000,
+          });
+        }
+        
+        // Show detailed error messages for each failed date
+        data.errors.forEach((error: { date: string; message: string }, index: number) => {
+          setTimeout(() => {
+            toast.error(`${error.date}: ${error.message}`, {
+              duration: 5000,
+              id: `error-${error.date}`,
+            });
+          }, index * 100); // Stagger the error toasts slightly
+        });
+        
+        // Still show success if some overrides were created
+        if (data.message) {
+          toast.success(data.message, {
+            duration: 4000,
+          });
+        }
+      } else {
+        // Full success - no errors
+        toast.success(data.message || "Override(s) created successfully", {
+          id: "create-success",
+        });
+      }
+      
       queryClient.invalidateQueries({ queryKey: ["staff-details", memberId] });
       setIsDialogOpen(false);
       resetForm();
