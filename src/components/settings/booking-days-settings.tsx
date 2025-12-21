@@ -1,7 +1,6 @@
 "use client";
 
-import api from "@/services/api-service";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,28 +13,15 @@ import { Form } from "../ui/form";
 import { Button } from "../ui/button";
 import { Loader2 } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
-
-interface BookingSettingsResponse {
-  success: boolean;
-  message: string;
-  data: z.infer<typeof bookingSettingsSchema>;
-}
+import { updateBookingSettings } from "@/utils/api";
+import { useFetchBookingSettings } from "@/hooks/use-fetch-booking-settings";
 
 export function BookingDaysSettings() {
   const queryClient = useQueryClient();
 
   // Fetch booking settings
   const { data: bookingSettings, isLoading: isLoadingBookingSettings } =
-    useQuery({
-      queryKey: ["booking-settings"],
-      queryFn: async () => {
-        const response = await api.get<BookingSettingsResponse>(
-          "sp/booking_settings"
-        );
-        return response.data;
-      },
-      staleTime: 5 * 60 * 1000,
-    });
+    useFetchBookingSettings();
 
   const form = useForm<z.infer<typeof bookingSettingsSchema>>({
     mode: "all",
@@ -109,11 +95,7 @@ export function BookingDaysSettings() {
 
   const updateBookingSettingsMutation = useMutation({
     mutationFn: async (values: z.infer<typeof bookingSettingsSchema>) => {
-      const response = await api.patch<BookingSettingsResponse>(
-        "sp/booking_settings",
-        values
-      );
-      return response.data;
+      return await updateBookingSettings(values);
     },
     onMutate: () => {
       toast.loading("Saving booking settings...", {

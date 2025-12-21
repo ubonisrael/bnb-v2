@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import api from "@/services/api-service";
 import { removeNullish } from "@/utils/flatten";
+import { useFetchBookingSettings } from "@/hooks/use-fetch-booking-settings";
 
 interface WorkSchedule {
   id: number;
@@ -56,6 +57,9 @@ export function WorkScheduleSection({
 }: WorkScheduleSectionProps) {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
+
+  const { data: bookingSettings, isLoading: isLoadingBookingSettings } =
+    useFetchBookingSettings();
 
   const createCompleteSchedule = () => {
     return daysOfWeek.map((_, idx) => {
