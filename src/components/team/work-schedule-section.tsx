@@ -275,7 +275,7 @@ export function WorkScheduleSection({
                   </div>
                   <Switch
                     checked={schedule.enabled}
-                    disabled={!isEditing || (isEditing && isDayDisabled)}
+                    disabled={!isEditing}
                     onCheckedChange={(checked) => {
                       // Prevent enabling days that are disabled in business
                       if (checked && isDayDisabled) {
