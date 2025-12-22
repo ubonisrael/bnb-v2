@@ -157,11 +157,7 @@ export function BusinessLanding(props: BusinessDataResponse) {
                   </CardHeader>
                   <CardContent className="p-4 md:p-8 !pt-0">
                     <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-                      {props.programs
-                        .filter(
-                          (program) => program.is_published && program.is_active
-                        )
-                        .map((program) => {
+                      {props.programs.map((program) => {
                           return (
                             <div
                               key={program.id}
