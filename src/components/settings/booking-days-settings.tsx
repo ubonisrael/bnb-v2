@@ -23,8 +23,6 @@ export function BookingDaysSettings() {
   const { data: bookingSettings, isLoading: isLoadingBookingSettings } =
     useFetchBookingSettings();
 
-    console.log("Fetched Booking Settings:", bookingSettings);
-
   const form = useForm<z.infer<typeof bookingSettingsSchema>>({
     mode: "all",
     resolver: zodResolver(bookingSettingsSchema),
@@ -140,9 +138,6 @@ export function BookingDaysSettings() {
       </div>
     );
   }
-
-  console.log("Default Values:", defaultValues);
-  console.log("Booking Settings Form Values:", form.getValues());
 
   return (
     <>

@@ -1,11 +1,5 @@
 import RescheduleBookingClient from "@/components/appointments/reschedule-booking";
 import api from "@/services/api-service";
-import {
-  FetchBookingByIdResponse,
-  FetchBookingPolicyResponse,
-  FetchReschedulingPolicyResponse,
-  PolicyData,
-} from "@/types/response";
 import Link from "next/link";
 
 interface RescheduleBookingPageProps {
