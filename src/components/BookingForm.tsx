@@ -48,6 +48,7 @@ export const bookingSchema = z.object({
 export type BookingType = z.infer<typeof bookingSchema>;
 
 interface BookingFormProps {
+  servicesLength: number;
   cancellationAllowed: boolean;
   absorbServiceCharge: boolean;
   policies: PolicyData[];
@@ -62,6 +63,7 @@ interface BookingFormProps {
 }
 
 const BookingForm = ({
+  servicesLength,
   policies,
   customPolicies,
   currencySymbol = "£",
@@ -88,7 +90,7 @@ const BookingForm = ({
     },
   });
 
-  const initialAmount = allowDeposits && depositAmount ? depositAmount : amount;
+  const initialAmount = allowDeposits && depositAmount ? servicesLength * depositAmount : amount;
   const applicationFeeInCents = Math.max(100, initialAmount * 2.9 + 80);
   const { amount: finalAmount, serviceCharge } = amountToBePaid(
     absorbServiceCharge,
@@ -217,7 +219,7 @@ const BookingForm = ({
                   {allowDeposits && depositAmount
                     ? `This is a deposit payment of ${currencySymbol}${depositAmount.toFixed(
                         2
-                      )}. Full payment is ${currencySymbol}${amount.toFixed(
+                      )} per service. Full payment is ${currencySymbol}${amount.toFixed(
                         2
                       )}.`
                     : `This is a full payment of ${currencySymbol}${amount.toFixed(
@@ -228,9 +230,7 @@ const BookingForm = ({
                   <span>Service Total:</span>
                   <span>
                     {currencySymbol}
-                    {allowDeposits && depositAmount
-                      ? depositAmount.toFixed(2)
-                      : amount.toFixed(2)}
+                    {initialAmount.toFixed(2)}
                   </span>
                 </div>
 

@@ -20,7 +20,6 @@ import api from "@/services/api-service";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { useState } from "react";
-import { BookingData, CancellationSettings } from "@/types/response";
 import dayjs from "@/utils/dayjsConfig";
 import { minutesToTimeString } from "@/utils/time";
 import { CountdownTimer } from "@/components/ui/countdown-timer";
@@ -42,16 +41,34 @@ export type EmailFormValues = z.infer<typeof emailFormSchema>;
 export type OtpFormValues = z.infer<typeof otpFormSchema>;
 
 interface CancelBookingClientProps {
-  id: string;
+  appointmentId: string;
   booking: BookingData;
-  setting: CancellationSettings;
 }
 
 export default function CancelBookingClient({
-  id,
+  appointmentId,
   booking,
-  setting,
 }: CancelBookingClientProps) {
+  let selectedServiceIds: { id: number; name: string; duration: number }[] = [];
+  let totalDuration = 0;
+  let firstAppointment;
+  if (appointmentId === "all") {
+    firstAppointment = booking.appointments.sort(
+      (a, b) =>
+        new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+    )[0];
+    selectedServiceIds = booking.appointments.map((a) => a.service);
+    totalDuration = booking.appointments.reduce(
+      (acc, a) => acc + a.service.duration,
+      0
+    );
+  } else {
+    firstAppointment = booking.appointments.find(
+      (a) => a.id === parseInt(appointmentId)
+    );
+    selectedServiceIds = firstAppointment ? [firstAppointment.service] : [];
+    totalDuration = firstAppointment ? firstAppointment.service.duration : 0;
+  }
   const [cancelled, setCancelled] = useState(false);
   const [showOtpForm, setShowOtpForm] = useState(false);
   const [verifiedEmail, setVerifiedEmail] = useState("");
@@ -66,9 +83,9 @@ export default function CancelBookingClient({
     defaultValues: { otp: "", cancellation_reason: "" },
   });
 
-  const eventDate = dayjs(booking.event_date).tz(dayjs.tz.guess());
+  const eventDate = dayjs(firstAppointment?.start_time).tz(dayjs.tz.guess());
   // setting.noticeHours is actually in minutes
-  const deadlineDate = eventDate.subtract(setting.noticeHours, "minute");
+  const deadlineDate = eventDate.subtract(booking.cancellation_notice_minutes, "minute");
   const [isPenaltyApplicable, setIsPenaltyApplicable] = useState(
     dayjs().isAfter(deadlineDate)
   );
@@ -76,7 +93,7 @@ export default function CancelBookingClient({
   // Mutation for request OTP
   const requestOtpMutation = useMutation({
     mutationFn: async (values: EmailFormValues) => {
-      const response = await api.post(`sp/bookings/${id}/request-otp`, {
+      const response = await api.post(`sp/bookings/${booking.id}/request-otp`, {
         email: values.email,
         type: "cancellation",
       });
@@ -95,7 +112,7 @@ export default function CancelBookingClient({
   // Mutation for verifying OTP and cancelling booking
   const cancelBookingMutation = useMutation({
     mutationFn: async (values: OtpFormValues) => {
-      const response = await api.post(`sp/bookings/${id}/verify-otp`, {
+      const response = await api.post(`sp/bookings/${booking.id}/verify-otp`, {
         otp: values.otp,
         type: "cancellation",
       });
@@ -153,13 +170,13 @@ export default function CancelBookingClient({
                 <div className="py-4">
                   <div>
                     <div className="mb-4">
-                      {!setting.allowed ? (
+                      {!booking.cancellation_allowed ? (
                         <div className="bg-red-100 text-red-800 p-4 rounded-lg mb-4">
                           Deposits and amount paid will not be refunded for this
                           appointment if cancelled.
                         </div>
-                      ) : setting.feePercent === 0 ||
-                        setting.noticeHours === 0 ? (
+                      ) : booking.cancellation_fee_percent === 0 ||
+                        booking.cancellation_notice_minutes === 0 ? (
                         <div className="bg-green-100 text-green-800 p-4 rounded-lg mb-4">
                           You can cancel this appointment before{" "}
                           {deadlineDate.format("LLLL")} for a full refund.
@@ -182,12 +199,12 @@ export default function CancelBookingClient({
                             />
                             {isPenaltyApplicable ? (
                               <p className="text-red-600 mt-2">
-                                Cancelling now will incur a {setting.feePercent}
+                                Cancelling now will incur a {booking.cancellation_fee_percent}
                                 % cancellation fee.
                               </p>
                             ) : (
                               <p className="text-green-600 mt-2">
-                                Cancel now to avoid the {setting.feePercent}%
+                                Cancel now to avoid the {booking.cancellation_fee_percent}%
                                 cancellation fee.
                               </p>
                             )}

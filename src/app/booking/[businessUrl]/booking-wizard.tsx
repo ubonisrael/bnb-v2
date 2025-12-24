@@ -173,6 +173,7 @@ export function BookingWizard(props: BusinessDataResponse) {
         {/* Booking Form Modal */}
         {showBookingModal && selectedDate && selectedTime && (
           <BookingForm
+          servicesLength={selectedServices.length}
           cancellationAllowed={props.cancellationAllowed}
             absorbServiceCharge={props.absorbServiceCharge}
             policies={props.bookingPolicy}
