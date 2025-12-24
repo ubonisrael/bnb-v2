@@ -330,18 +330,43 @@ interface TemplateDataResponse {
 
 interface BookingData {
   id: number;
-  event_date: string;
-  event_duration: number;
   amount_paid: number;
   amount_due: number;
+  start_time: string;
+  total_duration: number;
   status: string;
   payment_status: string;
-  services: { id: number | string; name: string }[];
+  serviceProviderTimezone: string;
+  minNotice: number;
+  maxNotice: number;
+  utcOffset: number;
+  deposit_allowed: boolean;
+  deposit_amount_per_service: number;
+  cancellation_allowed: boolean;
+  cancellation_notice_minutes: number;
+  cancellation_fee_percent: number;
+  rescheduling_allowed: boolean;
+  rescheduling_notice_minutes: number;
+  reschedule_fee_percent: number;
+  reschedule_penalty_enabled: boolean;
+  appointments: Array<{
+    id: number;
+    start_time: string;
+    end_time: string;
+    status: string;
+    service: {
+      id: number;
+      name: string;
+      duration: number;
+      price: string;
+    };
+    staff: Array<MemberUser>;
+  }>;
 }
 
 interface FetchBookingByIdResponse {
   status: boolean;
-  serviceProviderTimezone: string;
+  message: string;
   data: BookingData;
 }
 

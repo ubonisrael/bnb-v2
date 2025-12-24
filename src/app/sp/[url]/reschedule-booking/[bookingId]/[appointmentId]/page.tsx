@@ -4,38 +4,33 @@ import Link from "next/link";
 
 interface RescheduleBookingPageProps {
   params: {
-    id: string;
     url: string;
+    bookingId: string;
+    appointmentId: string;
   };
 }
 
 export default async function RescheduleBookingPage({
   params,
 }: RescheduleBookingPageProps) {
-  const { id, url } = await params;
+  const { url, bookingId, appointmentId } = await params;
 
   try {
-    const [bookingRes, policyRes] = await Promise.all([
-      api.get<FetchBookingByIdResponse>(`sp/bookings/${id}`),
-      api.get<FetchReschedulingPolicyResponse>(
-        `sp/${url}/rescheduling-settings`
-      ),
-    ]);
-    const { data: booking } = bookingRes;
-    const { rescheduleOptions } = policyRes;
-
+    const bookingRes = await api.get<FetchBookingByIdResponse>(
+      `sp/bookings/${bookingId}`
+    );
     return (
       <RescheduleBookingClient
-        booking={booking}
-        id={id}
+        booking={bookingRes.data}
+        appointmentId={appointmentId}
         url={url}
-        rescheduleOptions={rescheduleOptions}
       />
     );
   } catch (error: any) {
+    console.error("Error fetching booking data:", error);
     return (
       <div className="p-4 text-red-500 space-y-2">
-        <div>Error loading booking or policy data.</div>
+        <div>Error loading booking data.</div>
         {error?.message && (
           <div className="text-sm text-muted-foreground">{error.message}</div>
         )}
