@@ -34,12 +34,14 @@ import dayjs from "@/utils/dayjsConfig";
 
 export function RescheduleForm({
   id,
+  appointmentId,
   reschedulingAllowed,
   selectedDate,
   selectedTime,
   setRequested,
 }: {
   id: number;
+  appointmentId: string;
   reschedulingAllowed: boolean;
   selectedDate: string;
   selectedTime: number | null;
@@ -59,10 +61,19 @@ export function RescheduleForm({
     defaultValues: { otp: "" },
   });
 
+  const sendOtpURL =
+    appointmentId === "all"
+      ? `sp/bookings/${id}/request-otp`
+      : `sp/bookings/${id}/items/${appointmentId}/request-otp`;
+  const verifyOtpURL =
+    appointmentId === "all"
+      ? `sp/bookings/${id}/verify-otp`
+      : `sp/bookings/${id}/items/${appointmentId}/verify-otp`;
+
   // Mutation for sending OTP
   const sendOtpMutation = useMutation({
     mutationFn: async (values: EmailFormValues) => {
-      const response = await api.post(`sp/bookings/${id}/request-otp`, {
+      const response = await api.post(sendOtpURL, {
         email: values.email,
         type: "rescheduling",
       });
@@ -87,7 +98,7 @@ export function RescheduleForm({
 
       try {
         const response = await api.post(
-          `sp/bookings/${id}/verify-otp`,
+          verifyOtpURL,
           {
             otp: values.otp,
             type: "rescheduling",
