@@ -31,6 +31,7 @@ import {
 } from "./cancel-booking";
 import { useState } from "react";
 import dayjs from "@/utils/dayjsConfig";
+import { sendOtpURL, verifyOtpURL } from "@/utils/otp";
 
 export function RescheduleForm({
   id,
@@ -61,19 +62,10 @@ export function RescheduleForm({
     defaultValues: { otp: "" },
   });
 
-  const sendOtpURL =
-    appointmentId === "all"
-      ? `sp/bookings/${id}/request-otp`
-      : `sp/bookings/${id}/items/${appointmentId}/request-otp`;
-  const verifyOtpURL =
-    appointmentId === "all"
-      ? `sp/bookings/${id}/verify-otp`
-      : `sp/bookings/${id}/items/${appointmentId}/verify-otp`;
-
   // Mutation for sending OTP
   const sendOtpMutation = useMutation({
     mutationFn: async (values: EmailFormValues) => {
-      const response = await api.post(sendOtpURL, {
+      const response = await api.post(sendOtpURL({ id, appointmentId }), {
         email: values.email,
         type: "rescheduling",
       });
@@ -98,7 +90,7 @@ export function RescheduleForm({
 
       try {
         const response = await api.post(
-          verifyOtpURL,
+          verifyOtpURL({ id, appointmentId }),
           {
             otp: values.otp,
             type: "rescheduling",
