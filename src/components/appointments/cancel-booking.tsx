@@ -24,6 +24,7 @@ import dayjs from "@/utils/dayjsConfig";
 import { minutesToTimeString } from "@/utils/time";
 import { CountdownTimer } from "@/components/ui/countdown-timer";
 import { Textarea } from "../ui/textarea";
+import { sendOtpURL, verifyOtpURL } from "@/utils/otp";
 
 export const emailFormSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -52,6 +53,9 @@ export default function CancelBookingClient({
   let selectedServiceIds: { id: number; name: string; duration: number }[] = [];
   let totalDuration = 0;
   let firstAppointment;
+  let amountPaid = booking.amount_paid;
+  let amountDue = booking.amount_due;
+  let appointments = booking.appointments;
   if (appointmentId === "all") {
     firstAppointment = booking.appointments.sort(
       (a, b) =>
@@ -68,6 +72,13 @@ export default function CancelBookingClient({
     );
     selectedServiceIds = firstAppointment ? [firstAppointment.service] : [];
     totalDuration = firstAppointment ? firstAppointment.service.duration : 0;
+    if (firstAppointment) {
+      appointments = [firstAppointment];
+      amountPaid = booking.deposit_allowed
+        ? booking.deposit_amount_per_service
+        : parseFloat(firstAppointment.service.price);
+      amountDue = parseFloat(firstAppointment.service.price) - amountPaid;
+    }
   }
   const [cancelled, setCancelled] = useState(false);
   const [showOtpForm, setShowOtpForm] = useState(false);
@@ -85,7 +96,10 @@ export default function CancelBookingClient({
 
   const eventDate = dayjs(firstAppointment?.start_time).tz(dayjs.tz.guess());
   // setting.noticeHours is actually in minutes
-  const deadlineDate = eventDate.subtract(booking.cancellation_notice_minutes, "minute");
+  const deadlineDate = eventDate.subtract(
+    booking.cancellation_notice_minutes,
+    "minute"
+  );
   const [isPenaltyApplicable, setIsPenaltyApplicable] = useState(
     dayjs().isAfter(deadlineDate)
   );
@@ -93,10 +107,13 @@ export default function CancelBookingClient({
   // Mutation for request OTP
   const requestOtpMutation = useMutation({
     mutationFn: async (values: EmailFormValues) => {
-      const response = await api.post(`sp/bookings/${booking.id}/request-otp`, {
-        email: values.email,
-        type: "cancellation",
-      });
+      const response = await api.post(
+        sendOtpURL({ id: booking.id, appointmentId }),
+        {
+          email: values.email,
+          type: "cancellation",
+        }
+      );
       return response;
     },
     onSuccess: (_, variables) => {
@@ -112,10 +129,13 @@ export default function CancelBookingClient({
   // Mutation for verifying OTP and cancelling booking
   const cancelBookingMutation = useMutation({
     mutationFn: async (values: OtpFormValues) => {
-      const response = await api.post(`sp/bookings/${booking.id}/verify-otp`, {
-        otp: values.otp,
-        type: "cancellation",
-      });
+      const response = await api.post(
+        verifyOtpURL({ id: booking.id, appointmentId }),
+        {
+          otp: values.otp,
+          type: "cancellation",
+        }
+      );
       return response;
     },
     onSuccess: () => {
@@ -199,13 +219,15 @@ export default function CancelBookingClient({
                             />
                             {isPenaltyApplicable ? (
                               <p className="text-red-600 mt-2">
-                                Cancelling now will incur a {booking.cancellation_fee_percent}
-                                % cancellation fee.
+                                Cancelling now will incur a{" "}
+                                {booking.cancellation_fee_percent}% cancellation
+                                fee.
                               </p>
                             ) : (
                               <p className="text-green-600 mt-2">
-                                Cancel now to avoid the {booking.cancellation_fee_percent}%
-                                cancellation fee.
+                                Cancel now to avoid the{" "}
+                                {booking.cancellation_fee_percent}% cancellation
+                                fee.
                               </p>
                             )}
                           </div>
@@ -213,27 +235,49 @@ export default function CancelBookingClient({
                       )}
                     </div>
                     <div className="">
-                      <h3 className="capitalize font-medium text-lg">
-                        Booking Details
-                      </h3>
-                      <div className="grid md:grid-cols-2 gap-1 md:gap-2 mb-2">
-                        <p className="flex md:flex-col p-2 bg-slate-100">
-                          <strong className="font-medium">Event Date:</strong>{" "}
-                          {`${eventDate.format("YYYY-MM-DD")}`}
-                        </p>
-                        <p className="flex md:flex-col p-2 bg-slate-100">
-                          <strong className="font-medium">Event Time:</strong>{" "}
-                          {minutesToTimeString(
-                            eventDate.get("hour") * 60 + eventDate.get("minute")
-                          )}
-                        </p>
+                      <h3 className="capitalize">Booking Details</h3>
+                      <div className="grid md:grid-cols-2 gap-1 md:gap-2">
+                        {appointments.map((app, idx) => {
+                          const date = dayjs(app.start_time).tz(
+                            dayjs.tz.guess()
+                          );
+                          return (
+                            <div
+                              key={`${app.start_time}-${idx}`}
+                              className="grid md:grid-cols-3 gap-1 md:col-span-2 md:gap-2 mb-2 p-2 bg-white"
+                            >
+                              <p className="flex md:col-span-3 md:flex-col p-2">
+                                <strong className="font-medium">
+                                  Service:{" "}
+                                </strong>
+                                <span>{app.service.name}</span>
+                              </p>
+                              <p className="flex md:flex-col p-2">
+                                <strong className="font-medium">
+                                  Duration:{" "}
+                                </strong>
+                                <span>{app.service.duration} min</span>
+                              </p>
+                              <p className="flex md:flex-col p-2">
+                                <strong className="font-medium">Date:</strong>{" "}
+                                {`${date.format("YYYY-MM-DD")}`}
+                              </p>
+                              <p className="flex md:flex-col p-2">
+                                <strong className="font-medium">Time:</strong>{" "}
+                                {minutesToTimeString(
+                                  date.get("hour") * 60 + date.get("minute")
+                                )}
+                              </p>
+                            </div>
+                          );
+                        })}
                         <p className="flex md:flex-col p-2 bg-slate-100">
                           <strong className="font-medium">Amount Paid:</strong>{" "}
-                          £{booking.amount_paid}
+                          £{amountPaid}
                         </p>
                         <p className="flex md:flex-col p-2 bg-slate-100">
                           <strong className="font-medium">Amount Due:</strong> £
-                          {booking.amount_due}
+                          {amountDue}
                         </p>
                       </div>
                     </div>
