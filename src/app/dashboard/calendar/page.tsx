@@ -201,7 +201,6 @@ export default function CalendarPage() {
           setAppointment={setAppointment}
           date={date.toISOString()}
           tz={bookingsData.data.timezone}
-          settings={settings}
         />
       )}
       {appointment && appointment.type === "cancel" && bookingsData && (
@@ -210,7 +209,6 @@ export default function CalendarPage() {
           setAppointment={setAppointment}
           date={date.toISOString()}
           tz={bookingsData.data.timezone}
-          settings={settings}
         />
       )}
       {appointment && appointment.type === "reschedule" && bookingsData && (
@@ -219,7 +217,6 @@ export default function CalendarPage() {
           setAppointment={setAppointment}
           date={date.toISOString()}
           tz={bookingsData.data.timezone}
-          settings={settings}
         />
       )}
       <div>

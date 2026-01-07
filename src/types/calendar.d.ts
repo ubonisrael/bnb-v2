@@ -25,24 +25,14 @@ interface DayViewProps {
   settings: UserSettings | null;
 }
 
-interface WeekViewProps {
-  timeSlots: string[];
-  weekDays: Date[];
-  data: BookingDataResponse[];
-  filteredBookings: BookingsResponse[][];
-  settings: UserSettings | null;
-  setAppointment: Dispatch<SetStateAction<AppointmentProps | null>>;
-}
-
 interface AppointmentProps {
   data: BookingsResponse;
   type: "cancel" | "reschedule" | "dns";
 }
 
 type AppointmentDialogProps = {
-  appointment: BookingsResponse;
+  appointment: BookingListItem;
   date: string;
   setAppointment: Dispatch<SetStateAction<AppointmentProps | null>>;
-  settings: UserSettings | null;
   tz: string;
 };

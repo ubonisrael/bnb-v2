@@ -2,7 +2,6 @@
 
 import dayjs from "@/utils/dayjsConfig";
 import { useState } from "react";
-import { BookingDataResponse } from "@/types/response";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertDialog,
@@ -21,7 +20,6 @@ export function CancelAppointmentDialog({
   appointment,
   date,
   setAppointment,
-  settings,
   tz,
 }: AppointmentDialogProps) {
   const [cancelMessage, setCancelMessage] = useState<string>("");
@@ -40,25 +38,17 @@ export function CancelAppointmentDialog({
               {appointment?.id})
             </span>
             <span className="inline-block">
-              Customer: {appointment?.Customer?.name} (
-              {appointment?.Customer?.email})
+              Customer: {appointment.Booking.Customer?.name} (
+              {appointment.Booking.Customer?.email})
             </span>
             <br />
             <span className="inline-block">
-              Services:{" "}
-              {appointment?.service_ids
-                .map((s: string) => {
-                  const service = settings?.services.find(
-                    (service: Service) => Number(service.id) === Number(s)
-                  );
-                  return service?.name;
-                })
-                .join(", ")}
+              Service: {appointment.Service.name}
             </span>
             <br />
             <span className="inline-block">
               Date:{" "}
-              {dayjs(appointment.event_date)
+              {dayjs(appointment.start_time)
                 .tz(tz)
                 .format("HH:mm, MMMM D, YYYY")}
             </span>
@@ -79,7 +69,8 @@ export function CancelAppointmentDialog({
             htmlFor="dns-message"
             className="text-sm font-medium text-[#121212]"
           >
-            Provide reason for cancellation{" "}. This will be relayed to the customer in an email
+            Provide reason for cancellation . This will be relayed to the
+            customer in an email
           </label>
           <textarea
             id="dns-message"
@@ -114,32 +105,23 @@ export function CancelAppointmentDialog({
               cancelMessage.trim().length > 100
             }
             onClick={async (e) => {
-              e.preventDefault()
+              e.preventDefault();
               try {
                 toast.loading(
-                  `Cancelling appointment with ${appointment.Customer.name}@${appointment.event_date}`,
+                  `Cancelling appointment with ${appointment.Booking.Customer.name}@${appointment.start_time}`,
                   {
                     id: "cancel-appointment",
                   }
                 );
-                const res = (await api.post(`sp/booking/cancel`, {
-                  id: appointment.id,
+                const res = (await api.post(`sp/booking/item/cancel`, {
+                  bookingId: appointment.Booking.id,
+                  itemId: appointment.id,
                   message: cancelMessage.trim() || "",
-                  email: appointment.Customer.email,
+                  email: appointment.Booking.Customer.email,
                 })) as any;
 
                 // remove booking from cache
-                queryClient.setQueryData(
-                  [`day-${date}`],
-                  (oldData: BookingDataResponse | undefined) => {
-                    if (!oldData) return oldData;
-
-                    return {
-                      ...oldData,
-                      bookings: oldData.bookings.filter((booking) => booking.id !== appointment.id),
-                    };
-                  }
-                );
+                queryClient.invalidateQueries({ queryKey: ["bookings", date] });
 
                 toast.success(res.message, {
                   id: "cancel-appointment",

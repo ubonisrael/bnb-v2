@@ -2,7 +2,6 @@
 
 import dayjs from "@/utils/dayjsConfig";
 import { useState } from "react";
-import { BookingDataResponse } from "@/types/response";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertDialog,
@@ -18,20 +17,22 @@ import toast from "react-hot-toast";
 import api from "@/services/api-service";
 import Calendar from "../Calendar";
 import TimeSlots from "../TimeSlots";
+import { useFetchBookingSettings } from "@/hooks/use-fetch-booking-settings";
 
 export function RescheduleAppointmentDialog({
   appointment,
   date,
   setAppointment,
-  settings,
   tz,
 }: AppointmentDialogProps) {
-  const event_date = dayjs(appointment.event_date).tz(tz);
+  const event_date = dayjs(appointment.start_time).tz(tz);
   const current_date = event_date.format("YYYY-MM-DD");
   const [reason, setReason] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState(current_date);
   const [selectedTime, setSelectedTime] = useState<number | null>(null);
   const queryClient = useQueryClient();
+
+  const { data: settings } = useFetchBookingSettings();
 
   const handleSelectDate = (date: string | null) => {
     if (date) {
@@ -54,27 +55,17 @@ export function RescheduleAppointmentDialog({
                   ID: {appointment?.id})
                 </span>
                 <span className="inline-block">
-                  Customer: {appointment?.Customer?.name} (
-                  {appointment?.Customer?.email})
+                  Customer: {appointment.Booking.Customer.name} (
+                  {appointment.Booking.Customer.email})
                 </span>
                 <br />
                 <span className="inline-block">
-                  Services:{" "}
-                  {appointment?.service_ids
-                    .map((s: string) => {
-                      const service = settings?.services.find(
-                        (service: Service) => Number(service.id) === Number(s)
-                      );
-                      return service?.name;
-                    })
-                    .join(", ")}
+                  Service:{" "}
+                  {appointment.Service.name}
                 </span>
                 <br />
                 <span className="inline-block">
-                  Date:{" "}
-                  {dayjs(appointment.event_date)
-                    .tz(tz)
-                    .format("HH:mm, MMMM D, YYYY")}
+                  Date: {event_date.format("HH:mm, MMMM D, YYYY")}
                 </span>
                 <br />
                 <span className="inline-block mt-2">
@@ -116,21 +107,21 @@ export function RescheduleAppointmentDialog({
           {settings && (
             <div className="w-full">
               <Calendar
-                minNotice={settings.bookingSettings.minimum_notice}
-                maxNotice={settings.bookingSettings.maximum_notice}
+                minNotice={settings.minimum_notice}
+                maxNotice={settings.maximum_notice}
                 selectedDate={selectedDate}
                 onSelectDate={handleSelectDate}
               />
               <TimeSlots
-                bUrl={settings.bookingSettings.url}
+                bUrl={settings.url}
                 utcOffset={dayjs().tz(dayjs.tz.guess()).utcOffset()}
                 selectedDate={selectedDate}
                 selectedTime={selectedTime}
                 onSelectTime={setSelectedTime}
-                selectedServices={appointment.service_ids.map((s: string) => ({
-                  id: s,
-                }))}
-                totalDuration={appointment.event_duration}
+                selectedServices={[
+                  { ...appointment.Service, duration: appointment.duration },
+                ]}
+                totalDuration={appointment.duration}
               />
               {selectedDate === current_date && selectedTime === null && (
                 <span className="inline-block text-red-600 text-sm mt-2">
@@ -161,55 +152,23 @@ export function RescheduleAppointmentDialog({
               e.preventDefault();
               try {
                 toast.loading(
-                  `Rescheduling appointment with ${appointment.Customer.name}@${appointment.event_date}`,
+                  `Rescheduling appointment with ${appointment.Booking.Customer.name}@${appointment.start_time}`,
                   {
                     id: "reschedule-appointment",
                   }
                 );
 
-                const res = (await api.post(`sp/booking/reschedule`, {
-                  id: appointment.id,
+                const res = (await api.post(`sp/booking/item/reschedule`, {
+                  bookingId: appointment.Booking.id,
+                  itemId: appointment.id,
                   message: reason.trim() || "",
-                  email: appointment.Customer.email,
+                  email: appointment.Booking.Customer.email,
                   new_event_date: selectedDate,
                   new_event_time: selectedTime,
                 })) as any;
 
                 // Update the cache
-                queryClient.setQueryData(
-                  [`day-${date}`],
-                  (oldData: BookingDataResponse | undefined) => {
-                    if (!oldData || !selectedTime) return oldData;
-
-                    // if the selected date is the same as the current date, update the time
-                    if (selectedDate === current_date) {
-                      return {
-                        ...oldData,
-                        bookings: oldData.bookings.map((booking) => {
-                          const oldEventTime = dayjs(booking.event_date).tz(tz)
-                          const hrs = Math.floor(selectedTime! / 60);
-                          const mins = selectedTime! % 60;
-                          const newEventDate = oldEventTime.set("hour", hrs).set("minute", mins);
-                          if (booking.id === appointment.id) {
-                            return {
-                              ...booking,
-                              event_date: newEventDate.toISOString(),
-                            };
-                          }
-                          return booking;
-                        }),
-                      };
-                    }
-                    // else filter the booking out
-                    return {
-                      ...oldData,
-                      bookings: oldData.bookings.map(
-                        (booking) => booking.id !== appointment.id
-                      ),
-                    };
-                  }
-                );
-
+                queryClient.invalidateQueries({ queryKey: ['bookings', date]});
                 toast.success(res.message, {
                   id: "reschedule-appointment",
                 });

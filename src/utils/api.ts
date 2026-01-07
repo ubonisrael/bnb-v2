@@ -2,10 +2,14 @@ import { bookingSettingsSchema } from "@/schemas/schema";
 import api from "@/services/api-service";
 import { z } from "zod";
 
+interface BookingSettingsProps extends z.infer<typeof bookingSettingsSchema> {
+  url: string;
+}
+
 interface BookingSettingsResponse {
   success: boolean;
   message: string;
-  data: z.infer<typeof bookingSettingsSchema>;
+  data: BookingSettingsProps;
 }
 
 export const mediumRefreshInterval = 15 * 60 * 1000; // 15 minutes
