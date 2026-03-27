@@ -1,4 +1,5 @@
 "use client";
+import { Mail, MapPin, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Footer = () => {
@@ -13,6 +14,20 @@ const Footer = () => {
             <p className="text-sm text-muted-foreground mb-4">
               Simple, beautiful booking experiences for businesses of all sizes.
             </p>
+            <div className="space-y-3 text-sm text-muted-foreground">
+              <div className="flex items-center space-x-2">
+                <Mail className="h-4 w-4" />
+                <span>hello@banknbook.com</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Phone className="h-4 w-4" />
+                <span>+44 78 3523 3126</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <MapPin className="h-4 w-4" />
+                <span>Manchester, United Kingdom</span>
+              </div>
+            </div>
           </div>
 
           <div>
