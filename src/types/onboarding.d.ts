@@ -53,12 +53,12 @@ interface BookingSettingsData {
   deposit_amount?: number | undefined;
   // cancellation policy
   cancellation_allowed: boolean;
-  cancellation_notice_hours?: number | undefined;
+  cancellation_notice_minutes?: number | undefined;
   cancellation_fee_percent?: number | undefined;
   no_show_fee_percent: number;
   // rescheduling policy
   reschedule_allowed: boolean;
-  reschedule_notice_hours?: number | undefined;
+  reschedule_notice_minutes?: number | undefined;
   reschedule_fee_percent?: number | undefined;
   sunday_enabled: boolean;
   sunday_opening: number;

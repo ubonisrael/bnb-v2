@@ -71,7 +71,7 @@ export const baseBookingSettingsSchema = (allowedTimeZones: string[]) =>
         .min(5)
         .optional(),
       cancellation_allowed: z.boolean(),
-      cancellation_notice_hours: z
+      cancellation_notice_minutes: z
         .number()
         .int()
         .min(0, "Notice hours must be 0 or greater")
@@ -79,7 +79,7 @@ export const baseBookingSettingsSchema = (allowedTimeZones: string[]) =>
       cancellation_fee_percent: z.number().int().min(0).max(100).optional(),
       no_show_fee_percent: z.number().int().min(0).max(100),
       reschedule_allowed: z.boolean(),
-      reschedule_notice_hours: z
+      reschedule_notice_minutes: z
         .number()
         .int()
         .min(0, "Notice hours must be 0 or greater")
@@ -137,12 +137,12 @@ export const baseBookingSettingsSchema = (allowedTimeZones: string[]) =>
       }
 
       if (data.cancellation_allowed) {
-        if (data.cancellation_notice_hours === undefined) {
+        if (data.cancellation_notice_minutes === undefined) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message:
               "Please specify how many hours in advance a cancellation must be made",
-            path: ["cancellation_notice_hours"],
+            path: ["cancellation_notice_minutes"],
           });
         }
         if (data.cancellation_fee_percent === undefined) {
@@ -154,12 +154,12 @@ export const baseBookingSettingsSchema = (allowedTimeZones: string[]) =>
         }
       }
       if (data.reschedule_allowed) {
-        if (data.reschedule_notice_hours === undefined) {
+        if (data.reschedule_notice_minutes === undefined) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message:
               "Please specify how many hours in advance a reschedule must be requested",
-            path: ["reschedule_notice_hours"],
+            path: ["reschedule_notice_minutes"],
           });
         }
         // Validate fee percentage when late rescheduling is enabled

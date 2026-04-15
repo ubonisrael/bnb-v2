@@ -392,7 +392,7 @@ interface FetchBookingPolicyResponse {
 
 interface CancellationSettings {
   allowed: boolean;
-  noticeHours: number;
+  noticeMinutes: number;
   feePercent: number;
 }
 

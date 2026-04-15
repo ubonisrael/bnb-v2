@@ -38,12 +38,12 @@ export function useOnboardingMutation() {
         allow_deposits: data.bookingSettings.allow_deposits,
         deposit_amount: data.bookingSettings.deposit_amount,
         cancellation_allowed: data.bookingSettings.cancellation_allowed,
-        cancellation_notice_hours:
-          data.bookingSettings.cancellation_notice_hours,
+        cancellation_notice_minutes:
+          data.bookingSettings.cancellation_notice_minutes,
         cancellation_fee_percent: data.bookingSettings.cancellation_fee_percent,
         no_show_fee_percent: data.bookingSettings.no_show_fee_percent,
         reschedule_allowed: data.bookingSettings.reschedule_allowed,
-        reschedule_notice_hours: data.bookingSettings.reschedule_notice_hours,
+        reschedule_notice_minutes: data.bookingSettings.reschedule_notice_minutes,
         reschedule_fee_percent: data.bookingSettings.reschedule_fee_percent,
         auto_generate_deposit_policy:
           data.bookingSettings.auto_generate_deposit_policy,

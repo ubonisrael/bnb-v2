@@ -95,7 +95,7 @@ export default function CancelBookingClient({
   });
 
   const eventDate = dayjs(firstAppointment?.start_time).tz(dayjs.tz.guess());
-  // setting.noticeHours is actually in minutes
+  // setting.noticeMinutes is actually in minutes
   const deadlineDate = eventDate.subtract(
     booking.cancellation_notice_minutes,
     "minute"

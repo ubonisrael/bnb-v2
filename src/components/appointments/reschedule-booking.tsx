@@ -67,7 +67,7 @@ export default function RescheduleBookingClient({
     .utcOffset();
 
   const eventDate = dayjs(firstAppointment?.start_time).tz(dayjs.tz.guess());
-  // note rescheduleOptions.noticeHours is actually in minutes
+  // note rescheduleOptions.noticeMinutes is actually in minutes
   const deadlineDate = eventDate.subtract(
     booking.rescheduling_notice_minutes,
     "minute"

@@ -40,8 +40,8 @@ export function generateBookingPolicy(
           "Deposits or amount paid to secure the booking are non-refundable.",
       });
     } else if (
-      !bs.cancellation_notice_hours ||
-      bs.cancellation_notice_hours === 0 ||
+      !bs.cancellation_notice_minutes ||
+      bs.cancellation_notice_minutes === 0 ||
       bs.cancellation_fee_percent === 0
     ) {
       // If no cancellation notice hours or fee percent, allow cancellations without fees
@@ -53,7 +53,7 @@ export function generateBookingPolicy(
     } else {
       policies.push({
         type: "cancellation",
-        policy: `Cancellations must be made at least ${bs.cancellation_notice_hours} hour(s) in advance to avoid fees.`,
+        policy: `Cancellations must be made at least ${bs.cancellation_notice_minutes} hour(s) in advance to avoid fees.`,
       });
       policies.push({
         type: "cancellation",
@@ -82,7 +82,7 @@ export function generateBookingPolicy(
       policies.push({
         type: "rescheduling",
         policy: `A rescheduling attempt must be made at least ${
-          bs.reschedule_notice_hours
+          bs.reschedule_notice_minutes
         } hour(s) in advance ${
           bs.reschedule_penalty_enabled
             ? "to avoid a fee"

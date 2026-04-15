@@ -417,7 +417,7 @@ export function BookingSettingsForm({
           <>
             <FormField
               control={form.control}
-              name="cancellation_notice_hours"
+              name="cancellation_notice_minutes"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Cancellation Notice (Minutes)</FormLabel>
@@ -427,7 +427,7 @@ export function BookingSettingsForm({
                         Common durations
                       </FormLabel>
                       <Select
-                        name="cancellation_notice_hours_preset"
+                        name="cancellation_notice_minutes_preset"
                         onValueChange={(value) => {
                           if (value === "custom") {
                             return;
@@ -596,7 +596,7 @@ export function BookingSettingsForm({
           <>
             <FormField
               control={form.control}
-              name="reschedule_notice_hours"
+              name="reschedule_notice_minutes"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Rescheduling Notice (Minutes)</FormLabel>
@@ -606,7 +606,7 @@ export function BookingSettingsForm({
                         Common durations
                       </FormLabel>
                       <Select
-                        name="reschedule_notice_hours_preset"
+                        name="reschedule_notice_minutes_preset"
                         onValueChange={(value) => {
                           if (value === "custom") {
                             return; // Don't update the field value for custom option
