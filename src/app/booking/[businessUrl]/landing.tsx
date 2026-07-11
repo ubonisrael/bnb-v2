@@ -27,15 +27,16 @@ export function BusinessLanding(props: BusinessDataResponse) {
 
     // Check for cancellation status in URL
     const status = searchParams.get("status");
-    const productId = searchParams.get("productId");
-    const productType = searchParams.get("productType");
+    const sessionId = searchParams.get("sessionId");
 
-    if (status === "canceled" && productId && productType) {
+    if (status === "canceled" && sessionId) {
       const handleCancellation = async () => {
         try {
+          // The backend expires the Stripe checkout session, which releases the
+          // slot/seat via the checkout.session.expired webhook. Keyed on the
+          // (unguessable) session id rather than a product id.
           await api.post("/cancel-reservation", {
-            productId,
-            productType,
+            sessionId,
           });
         } catch (error) {
           console.error("Failed to process cancellation:", error);
