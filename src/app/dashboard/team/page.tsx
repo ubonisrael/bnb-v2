@@ -48,8 +48,8 @@ export default function TeamPage() {
       if (!searchQuery) return true;
       const searchLower = searchQuery.toLowerCase();
       return (
-        member.User.full_name.toLowerCase().includes(searchLower) ||
-        member.User.email.toLowerCase().includes(searchLower) ||
+        member.user.full_name.toLowerCase().includes(searchLower) ||
+        member.user.email.toLowerCase().includes(searchLower) ||
         member.role.toLowerCase().includes(searchLower)
       );
     });
@@ -268,27 +268,27 @@ export default function TeamPage() {
                       />
 
                       <Avatar className="h-12 w-12">
-                        <AvatarImage src={member.User.avatar || undefined} />
+                        <AvatarImage src={member.user.avatar || undefined} />
                         <AvatarFallback className="bg-[#7B68EE] text-white">
-                          {getInitials(member.User.full_name)}
+                          {getInitials(member.user.full_name)}
                         </AvatarFallback>
                       </Avatar>
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold text-[#121212] truncate">
-                            {member.User.full_name}
+                            {member.user.full_name}
                           </h3>
                           <Badge className={roleBadgeColors[member.role]}>
                             {member.role}
                           </Badge>
                         </div>
                         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm text-[#6E6E73]">
-                          <span className="truncate">{member.User.email}</span>
-                          {member.User.phone && (
+                          <span className="truncate">{member.user.email}</span>
+                          {member.user.phone && (
                             <>
                               <span className="hidden sm:inline">•</span>
-                              <span>{member.User.phone}</span>
+                              <span>{member.user.phone}</span>
                             </>
                           )}
                         </div>

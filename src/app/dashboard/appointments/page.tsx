@@ -129,7 +129,7 @@ export default function AppointmentsPage() {
                   .filter((member) => member.status === "accepted")
                   .map((member) => (
                     <SelectItem key={member.id} value={member.id.toString()}>
-                      {member.User.full_name} ({member.User.email})
+                      {member.user.full_name} ({member.user.email})
                     </SelectItem>
                   ))
               ) : (

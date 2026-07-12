@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Card,
   CardHeader,
@@ -13,11 +13,13 @@ import { Button } from "@/components/ui/button";
 import api from "@/services/api-service";
 import toast from "react-hot-toast";
 import SubscriptionDetails from "@/components/payments/subscription-card";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 // ------------------- Component -------------------
 export default function PaymentDashboardPage() {
   const router = useRouter();
+  const queryParams = useSearchParams()
+  const queryClient = useQueryClient()
   const { data, isLoading } = useQuery({
     queryKey: ["stripe-settings"],
     queryFn: async () => {
@@ -26,6 +28,14 @@ export default function PaymentDashboardPage() {
     },
     staleTime: 5 * 60 * 1000,
   });
+
+  useEffect(() => {
+    // Update stripe info after onboarding/portal visit
+    const accountIdPresent = !!queryParams.get('accountId')
+    if (accountIdPresent) {
+      queryClient.invalidateQueries({ queryKey: ["stripe-settings"] })
+    }
+  }, [])
 
   // Restrict access to admin and owner only
   useEffect(() => {

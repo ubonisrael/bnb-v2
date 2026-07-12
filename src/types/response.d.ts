@@ -1014,7 +1014,7 @@ interface Member {
   acceptedAt: string | null;
   createdAt: string;
   updatedAt: string;
-  User: MemberUser;
+  user: MemberUser;
   Inviter: {
     id: number;
     full_name: string;
