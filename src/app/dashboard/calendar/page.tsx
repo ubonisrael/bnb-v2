@@ -99,7 +99,7 @@ export default function CalendarPage() {
     }
 
     return bookingsData.data.bookings.filter((booking) => {
-      const serviceId = booking.Service.id;
+      const serviceId = booking.service.id;
 
       // Check if the booking's service matches the selected service filters
       const matchesService =
@@ -175,13 +175,13 @@ export default function CalendarPage() {
     ? {
         bookings: bookingsData.data.bookings.map((booking) => ({
           id: booking.id,
-          Customer: booking.Booking.Customer,
-          service_ids: [booking.Service.id.toString()],
+          Customer: booking.booking.customer,
+          service_ids: [booking.service.id.toString()],
           event_date: booking.startTime,
           event_time: dayjs(booking.startTime).format("HH:mm"),
           event_duration: booking.duration,
           dns: false,
-          amount_paid: booking.Booking.amountPaid,
+          amount_paid: booking.booking.amountPaid,
         })),
         timeSlotDuration: settings?.timeslot_duration || 15,
         dayEnabled: true,
