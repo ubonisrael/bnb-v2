@@ -19,6 +19,7 @@ import { PendingInvitationsSection } from "@/components/team/pending-invitations
 import { InviteStaffDialog } from "@/components/team/invite-staff-dialog";
 import { StaffDetailsSheet } from "@/components/team/staff-details-sheet";
 import { fetchMembers, mediumRefreshInterval } from "@/utils/api";
+import { useGetStaffs } from "@/hooks/use-get-staffs";
 
 const roleOrder = { owner: 0, admin: 1, staff: 2 };
 const roleBadgeColors = {
@@ -35,11 +36,7 @@ export default function TeamPage() {
   const [selectedStaffId, setSelectedStaffId] = useState<number | null>(null);
 
   // Fetch members
-  const { data: membersData, isLoading: isLoadingMembers } = useQuery({
-    queryKey: ["members"],
-    queryFn: fetchMembers,
-    staleTime: mediumRefreshInterval,
-  });
+  const { data: membersData, isLoading: isLoadingMembers } = useGetStaffs();
 
   // Sort members by role and filter by search
   const sortedMembers = (Array.isArray(membersData) ? membersData : [])

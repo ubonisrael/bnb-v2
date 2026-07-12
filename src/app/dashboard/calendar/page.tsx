@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import { useCompanyDetails } from "@/hooks/use-company-details";
 import { useFetchServices } from "@/hooks/use-fetch-services";
+import { useGetStaffs } from "@/hooks/use-get-staffs";
 
 export default function CalendarPage() {
   const { data: settings } = useCompanyDetails();
@@ -39,14 +40,7 @@ export default function CalendarPage() {
   const isStaff = settings?.role === "staff";
 
   // Fetch members list for admin/owner
-  const { data: membersData, isLoading: isMembersLoading } = useQuery({
-    queryKey: ["members"],
-    queryFn: async () => {
-      const response = await api.get<MembersResponse>("members");
-      return response;
-    },
-    enabled: isAdminOrOwner,
-  });
+  const { data: members, isLoading: isMembersLoading } = useGetStaffs(isAdminOrOwner);
 
   // Fetch bookings based on role
   const { data: bookingsData, isLoading: isBookingsLoading } = useQuery({
@@ -76,15 +70,15 @@ export default function CalendarPage() {
 
   // Set default selected member to the first staff member for admin/owner
   useEffect(() => {
-    if (isAdminOrOwner && membersData?.success && !selectedMemberId) {
-      const staffMembers = membersData.data.members.filter(
+    if (isAdminOrOwner && !!members && !selectedMemberId) {
+      const staffMembers = members.filter(
         (member) => member.status === "accepted" && member.role === "staff"
       );
       if (staffMembers.length > 0) {
         setSelectedMemberId(staffMembers[0].id.toString());
       }
     }
-  }, [membersData, isAdminOrOwner, selectedMemberId]);
+  }, [members, isAdminOrOwner, selectedMemberId]);
 
   const [filters, setFilters] = useState<FilterProps>({
     category: [],
@@ -245,8 +239,8 @@ export default function CalendarPage() {
                   <SelectItem value="loading" disabled>
                     Loading members...
                   </SelectItem>
-                ) : membersData?.success ? (
-                  membersData.data.members
+                ) : members?.length ? (
+                  members
                     .filter((member) => member.status === "accepted")
                     .map((member) => (
                       <SelectItem key={member.id} value={member.id.toString()}>
