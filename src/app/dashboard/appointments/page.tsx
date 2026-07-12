@@ -16,6 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api-service";
 import { AppointmentList } from "@/components/appointments/appointment-list";
 import { useCompanyDetails } from "@/hooks/use-company-details";
+import { useGetStaffs } from "@/hooks/use-get-staffs";
 
 export default function AppointmentsPage() {
   const { data: settings } = useCompanyDetails();
@@ -29,26 +30,19 @@ export default function AppointmentsPage() {
   const isStaff = settings?.role === "staff";
 
   // Fetch members list for admin/owner
-  const { data: membersData, isLoading: isMembersLoading } = useQuery({
-    queryKey: ["members"],
-    queryFn: async () => {
-      const response = await api.get<MembersResponse>("members");
-      return response;
-    },
-    enabled: isAdminOrOwner,
-  });
+  const { data: members, isLoading: isMembersLoading } = useGetStaffs(isAdminOrOwner);
 
   // Set default selected member to the first staff member for admin/owner
   useEffect(() => {
-    if (isAdminOrOwner && membersData?.success && !selectedMemberId) {
-      const staffMembers = membersData.data.members.filter(
+    if (isAdminOrOwner && !!members && !selectedMemberId) {
+      const staffMembers = members.filter(
         (member) => member.status === "accepted" && member.role === "staff"
       );
       if (staffMembers.length > 0) {
         setSelectedMemberId(staffMembers[0].id.toString());
       }
     }
-  }, [membersData, isAdminOrOwner, selectedMemberId]);
+  }, [members, isAdminOrOwner, selectedMemberId]);
 
   // Fetch bookings based on role and tab
   const { data: bookingsData, isLoading: isBookingsLoading } = useQuery({
@@ -124,12 +118,12 @@ export default function AppointmentsPage() {
                 <SelectItem value="loading" disabled>
                   Loading members...
                 </SelectItem>
-              ) : membersData?.success ? (
-                membersData.data.members
+              ) : members?.length ? (
+                members
                   .filter((member) => member.status === "accepted")
                   .map((member) => (
                     <SelectItem key={member.id} value={member.id.toString()}>
-                      {member.User.full_name} ({member.User.email})
+                      {member.user.full_name} ({member.user.email})
                     </SelectItem>
                   ))
               ) : (

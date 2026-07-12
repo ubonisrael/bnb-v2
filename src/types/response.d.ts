@@ -938,21 +938,21 @@ interface StaffBookingItem {
   notes: string | null;
   createdAt: string;
   updatedAt: string;
-  Booking: {
+  booking: {
     id: number;
     uuid: string;
     status: string;
     paymentStatus: string;
     amountPaid: number;
     amountDue: number;
-    Customer: {
+    customer: {
       id: number;
       name: string;
       email: string;
       phone: string;
     };
   };
-  Service: {
+  service: {
     id: number;
     title: string;
     description: string | null;
@@ -1014,7 +1014,7 @@ interface Member {
   acceptedAt: string | null;
   createdAt: string;
   updatedAt: string;
-  User: MemberUser;
+  user: MemberUser;
   Inviter: {
     id: number;
     full_name: string;
@@ -1038,7 +1038,7 @@ interface BookingListItem {
   duration: number;
   status: string;
   price: number;
-  Booking: {
+  booking: {
     id: number;
     uuid: string;
     status: string;
@@ -1046,14 +1046,14 @@ interface BookingListItem {
     amount_paid: number;
     amount_due: number;
     dns: boolean;
-    Customer: {
+    customer: {
       id: number;
       name: string;
       email: string;
       phone: string;
     };
   };
-  Service: {
+  service: {
     id: number;
     name: string;
     description: string | null;

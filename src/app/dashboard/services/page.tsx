@@ -21,6 +21,7 @@ import { useCompanyDetails } from "@/hooks/use-company-details";
 import { useFetchServices } from "@/hooks/use-fetch-services";
 import useFetchCategories from "@/hooks/use-fetch-categories";
 import { fetchMembers, mediumRefreshInterval } from "@/utils/api";
+import { useGetStaffs } from "@/hooks/use-get-staffs";
 
 export default function ServicesPage() {
   const { data: settings } = useCompanyDetails();
@@ -77,11 +78,7 @@ export default function ServicesPage() {
     }
   );
 
-  const { data: staffMembers } = useQuery({
-    queryKey: ["members"],
-    queryFn: fetchMembers,
-    staleTime: mediumRefreshInterval,
-  });
+  const { data: staffMembers } = useGetStaffs()
 
   const categories = categoriesData?.data.categories || [];
   const categoriesPagination = categoriesData?.data.pagination;

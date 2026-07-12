@@ -40,8 +40,6 @@ export default function CalendarCard({
   const startTimeIndex = getTimeSlotIndex(startTime, timeSlots);
   const duration = appointment.duration / 15;
 
-  const { data } = useFetchServices({ all: true });
-
   if (startTimeIndex === -1) return null;
   return (
     <div
@@ -58,13 +56,13 @@ export default function CalendarCard({
       <div className="relative flex flex-col">
         <div className="flex flex-col gap-2">
           <div className="font-medium text-[#121212]">
-            {appointment.Booking.Customer.name}
+            {appointment.booking.customer.name}
           </div>
           <div className="text-sm text-[#121212]">
             <p className="flex items-center gap-2">
               <Mail size={16} />{" "}
               <span className="inline-block text-ellipsis overflow-hidden">
-                {appointment.Booking.Customer.email}
+                {appointment.booking.customer.email}
               </span>
             </p>
           </div>
@@ -72,11 +70,11 @@ export default function CalendarCard({
             <p className="flex items-center gap-2">
               <Phone size={16} />{" "}
               <span className="inline-block">
-                {appointment.Booking.Customer.phone || "N/A"}
+                {appointment.booking.customer.phone || "N/A"}
               </span>
             </p>
           </div>
-          {appointment.Booking.dns && (
+          {appointment.booking.dns && (
             <Badge className="w-12 bg-red-400 text-white">DNS</Badge>
           )}
         </div>
@@ -95,7 +93,7 @@ export default function CalendarCard({
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                disabled={appointment.Booking.dns}
+                disabled={appointment.booking.dns}
                 onClick={() =>
                   setAppointment({ data: appointment, type: "cancel" })
                 }
@@ -104,7 +102,7 @@ export default function CalendarCard({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                disabled={appointment.Booking.dns}
+                disabled={appointment.booking.dns}
                 onClick={() =>
                   setAppointment({ data: appointment, type: "reschedule" })
                 }
@@ -113,7 +111,7 @@ export default function CalendarCard({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                disabled={appointment.Booking.dns}
+                disabled={appointment.booking.dns}
                 onClick={() =>
                   setAppointment({ data: appointment, type: "dns" })
                 }
@@ -128,7 +126,7 @@ export default function CalendarCard({
         <p className="flex items-center gap-2">
           <ClipboardList size={16} />{" "}
           <span className="inline-block">
-            {appointment.Service.name}
+            {appointment.service.name}
           </span>
         </p>
       </div>

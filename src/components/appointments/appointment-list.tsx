@@ -49,21 +49,21 @@ export function AppointmentList({
               </div>
               <div className="flex-1">
                 <div className="font-medium text-[#121212]">
-                  {booking.Booking.Customer.name}
+                  {booking.booking.customer.name}
                 </div>
                 <div className="text-sm text-[#6E6E73]">
-                  {booking.Service.name} • £
+                  {booking.service.name} • £
                   {booking.price}
                 </div>
                 <div className="flex items-center gap-2 mt-1">
                   <div className="text-xs text-[#6E6E73] flex items-center gap-1">
                     <Mail className="w-3 h-3" />
-                    {booking.Booking.Customer.email}
+                    {booking.booking.customer.email}
                   </div>
-                  {booking.Booking.Customer.phone && (
+                  {booking.booking.customer.phone && (
                     <div className="text-xs text-[#6E6E73] flex items-center gap-1">
                       <Phone className="w-3 h-3" />
-                      {booking.Booking.Customer.phone}
+                      {booking.booking.customer.phone}
                     </div>
                   )}
                 </div>
@@ -71,10 +71,10 @@ export function AppointmentList({
                   <Badge
                     variant="outline"
                     className={getPaymentBadgeStyles(
-                      booking.Booking.payment_status
+                      booking.booking.payment_status
                     )}
                   >
-                    {booking.Booking.payment_status}
+                    {booking.booking.payment_status}
                   </Badge>
                 </div>
               </div>
@@ -87,8 +87,8 @@ export function AppointmentList({
                 {startTime.format("HH:mm")} • {booking.duration} min
               </div>
               <div className="text-xs text-[#6E6E73] mt-1">
-                £{booking.Booking.amount_paid} / £
-                {booking.Booking.amount_due + booking.Booking.amount_paid}
+                £{booking.booking.amount_paid} / £
+                {booking.booking.amount_due + booking.booking.amount_paid}
               </div>
             </div>
           </div>

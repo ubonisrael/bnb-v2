@@ -42,21 +42,12 @@ import {
   serviceDurationOptions,
 } from "@/lib/helpers";
 
-interface StaffMember {
-  id: number;
-  UserId: number;
-  ServiceProviderId: number;
-  role: "owner" | "admin" | "staff";
-  status: "pending" | "accepted" | "rejected";
-  User: MemberUser;
-}
-
 interface ServiceFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   service?: ServiceWithStaff | null;
   categories: { id: number; name: string }[];
-  staffMembers: StaffMember[];
+  staffMembers: Member[];
   onSubmit: (values: ServiceFormValues, serviceId?: number) => void;
   isSubmitting: boolean;
   disabled?: boolean;
@@ -325,15 +316,15 @@ export function ServiceFormDialog({
                           >
                             <Avatar className="h-5 w-5">
                               <AvatarImage
-                                src={staff.User.avatar || undefined}
-                                alt={staff.User.full_name}
+                                src={staff.user.avatar || undefined}
+                                alt={staff.user.full_name}
                               />
                               <AvatarFallback className="text-xs">
-                                {getInitials(staff.User.full_name)}
+                                {getInitials(staff.user.full_name)}
                               </AvatarFallback>
                             </Avatar>
                             <span className="text-sm">
-                              {staff.User.full_name}
+                              {staff.user.full_name}
                             </span>
                             <button
                               type="button"
@@ -378,15 +369,15 @@ export function ServiceFormDialog({
                             <div className="flex items-center gap-2">
                               <Avatar className="h-6 w-6">
                                 <AvatarFallback className="text-xs">
-                                  {getInitials(member.User.full_name)}
+                                  {getInitials(member.user.full_name)}
                                 </AvatarFallback>
                               </Avatar>
                               <div className="flex flex-col">
                                 <span className="text-sm">
-                                  {member.User.full_name}
+                                  {member.user.full_name}
                                 </span>
                                 <span className="text-xs text-muted-foreground">
-                                  {member.User.email}
+                                  {member.user.email}
                                 </span>
                               </div>
                             </div>
