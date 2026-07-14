@@ -1,6 +1,5 @@
 import { Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Review } from "@/types/response";
 
 interface ReviewsSectionProps {
   reviews: Review[];

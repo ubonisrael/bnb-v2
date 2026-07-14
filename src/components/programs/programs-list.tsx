@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Calendar, Plus } from "lucide-react";
-import { INewProgram } from "@/types/response";
 import { ProgramCard } from "./program-card";
 
 interface ProgramsListProps {

@@ -22,7 +22,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { ErrorResponse, AuthResponse } from "@/types/response";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),

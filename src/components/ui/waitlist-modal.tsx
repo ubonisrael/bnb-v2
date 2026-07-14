@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { minutesToTimeString } from "@/utils/time";
-import { AvailableTimeSlotsResponse } from "@/types/response";
 import { AxiosError } from "axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/services/api-service";
@@ -69,13 +68,6 @@ export const WaitlistModal = ({
   >({
     queryKey: [`unavailable-slots-${selectedDate}`],
     queryFn: async () => {
-      if (url === "sample") {
-        return Promise.resolve({
-          status: true,
-          timeSlots: [540, 600, 660, 720, 780, 840, 900, 960, 1020, 1080],
-          message: "Success",
-        });
-      }
       return await api.get(urlString);
     },
     retry: (failureCount, error) => {
@@ -127,7 +119,7 @@ export const WaitlistModal = ({
           ? selectedTimes
           : mode === "range"
           ? timeRange
-          : data?.timeSlots || [];
+          : data?.data.allAvailableSlots || [];
       await joinWaitlistMutation.mutateAsync(
         flattenToDateTimePairs({
           email: values.email,
@@ -137,7 +129,7 @@ export const WaitlistModal = ({
           duration: totalDuration,
           date: selectedDate,
           entries,
-          unavailableSlots: data?.timeSlots || [],
+          unavailableSlots: data?.data.allAvailableSlots || [],
           service_ids: selectedServices.map(s => Number(s.id))
         })
       );
@@ -169,10 +161,10 @@ export const WaitlistModal = ({
         setTimeRange([0, 0]);
       }
     } else if (mode === "all") {
-      setSelectedTimes(data?.timeSlots || []);
+      setSelectedTimes(data?.data.allAvailableSlots || []);
       setTimeRange([0, 0]);
     }
-  }, [mode, data?.timeSlots]);
+  }, [mode, data?.data.allAvailableSlots]);
 
   const displayForm = Boolean(
     mode === "all" ||
@@ -238,12 +230,12 @@ export const WaitlistModal = ({
           </div>
         ) : (
           <div className="mt-8 grid grid-cols-3 gap-2">
-            {data?.timeSlots.length === 0 ? (
+            {data?.data.allAvailableSlots.length === 0 ? (
               <div className="col-span-3 text-center text-gray-500">
                 All time slots for this date are currently available.
               </div>
             ) : (
-              data?.timeSlots.map((slot) => (
+              data?.data.allAvailableSlots.map((slot) => (
                 <Button
                   key={slot}
                   variant="outline"

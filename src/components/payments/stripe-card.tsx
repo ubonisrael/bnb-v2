@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2 } from "lucide-react";
-import { useUserSettings } from "@/contexts/UserSettingsContext";
 import api from "@/services/api-service";
 import toast from "react-hot-toast";
+import { useCompanyDetails } from "@/hooks/use-company-details";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function StripeConnectCard() {
-  const { settings, updateSettings } = useUserSettings();
+  const queryClient = useQueryClient()
+  const { data: settings, isLoading } = useCompanyDetails();
   const [loading, setLoading] = useState(false);
 
   const handleConnect = async () => {
@@ -29,10 +31,7 @@ export default function StripeConnectCard() {
       }
       if (account) {
         toast.success("Stripe account created successfully!");
-        updateSettings("stripeAccount", {
-          id: account,
-          status: "pending",
-        });
+        queryClient.invalidateQueries({ queryKey: ["company-details"]})
       }
       if (accountLink) {
         setTimeout(() => {
@@ -50,7 +49,7 @@ export default function StripeConnectCard() {
     }
   };
 
-  if (!settings) {
+  if (isLoading) {
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardHeader>

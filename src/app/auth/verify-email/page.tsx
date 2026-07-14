@@ -4,7 +4,6 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-hot-toast";
 import api from "@/services/api-service";
-import { AuthResponse, ErrorResponse } from "@/types/response";
 import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 

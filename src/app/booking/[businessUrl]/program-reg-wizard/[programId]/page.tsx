@@ -1,7 +1,6 @@
 import React from "react";
 import Link from "next/link";
 import api from "@/services/api-service";
-import { ProgramsWizardResponse } from "@/types/response";
 import { ProgramRegistrationWizard } from "../../program-reg-wizard";
 
 export type Params = {

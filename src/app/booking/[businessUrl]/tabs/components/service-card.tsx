@@ -1,7 +1,6 @@
 import { Clock, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/contexts/AppContext";
-import { ServiceFrontend } from "@/types/response";
 
 interface ServiceCardProps {
   service: ServiceFrontend;

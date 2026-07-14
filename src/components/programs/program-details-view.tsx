@@ -15,7 +15,6 @@ import {
 import dayjs from "@/utils/dayjsConfig";
 import { getRandomColor } from "@/utils/color";
 import { formatDateRange } from "@/utils/time";
-import { INewProgram, IProgramClass, IProgramStat, IProgramStudent } from "@/types/response";
 
 interface ProgramDetailsViewProps {
   program: INewProgram;

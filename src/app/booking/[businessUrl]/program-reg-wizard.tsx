@@ -8,7 +8,6 @@ import { z } from "zod";
 import toast from "react-hot-toast";
 import api from "@/services/api-service";
 import dayjs from "@/utils/dayjsConfig";
-import { IProgramClass, IProgramDataResponse } from "@/types/response";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

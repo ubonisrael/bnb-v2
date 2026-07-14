@@ -1,6 +1,4 @@
-import { BusinessDataResponse } from "@/types/response";
-
-export const businessData: BusinessDataResponse = {
+export const businessData: any = {
   programs: [],
   currencySymbol: "£",
   allowDeposits: true,

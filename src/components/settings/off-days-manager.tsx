@@ -14,8 +14,8 @@ import { DatePicker } from "../ui/date-picker";
 import { MultiDatePicker } from "../ui/multi-date-picker";
 import { DateRangePicker } from "../ui/date-range-picker";
 import { UseFormReturn } from "react-hook-form";
-import { bookingSettingsSchema } from "../onboarding/steps/booking-settings";
 import { z } from "zod";
+import { bookingSettingsSchema } from "@/schemas/schema";
 
 export function OffDaysManager({
   offDays,
