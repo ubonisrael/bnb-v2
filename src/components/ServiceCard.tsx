@@ -6,7 +6,7 @@ import { useApp } from "@/contexts/AppContext";
 import { Calendar } from "lucide-react";
 
 interface ServiceCardProps {
-  service: Service;
+  service: ServiceFrontend;
 }
 
 const ServiceCard: React.FC<ServiceCardProps> = ({ service }) => {

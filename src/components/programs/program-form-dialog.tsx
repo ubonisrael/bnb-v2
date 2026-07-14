@@ -22,7 +22,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { newProgramSchema } from "@/schemas/schema";
-import { INewProgram } from "@/types/response";
 import { useEffect } from "react";
 
 type NewProgramFormValues = z.infer<typeof newProgramSchema>;

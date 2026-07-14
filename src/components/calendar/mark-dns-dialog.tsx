@@ -2,7 +2,6 @@
 
 import dayjs from "@/utils/dayjsConfig";
 import { useState } from "react";
-import { BookingDataResponse } from "@/types/response";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertDialog,
@@ -21,7 +20,6 @@ export function MarkDNSDialog({
   appointment,
   date,
   setAppointment,
-  settings,
   tz,
 }: AppointmentDialogProps) {
   const [dnsMessage, setDnsMessage] = useState<string>("");
@@ -40,43 +38,24 @@ export function MarkDNSDialog({
             </span>
             <span className="inline-block">Booking ID: {appointment?.id}</span>
             <span className="inline-block">
-              Customer: {appointment?.Customer?.name} (
-              {appointment?.Customer?.email})
+              Customer: {appointment?.booking.customer?.name} (
+              {appointment?.booking.customer?.email})
             </span>
             <br />
             <span className="inline-block">
               Services:{" "}
-              {appointment?.service_ids
-                .map((s: string) => {
-                  const service = settings?.services.find(
-                    (service: Service) => Number(service.id) === Number(s)
-                  );
-                  return service?.name;
-                })
-                .join(", ")}
+              {appointment?.service.name}
             </span>
             <br />
             <span className="inline-block">
               Date:{" "}
-              {dayjs(appointment.event_date)
+              {dayjs(appointment.start_time)
                 .tz(tz)
                 .format("HH:mm, MMMM D, YYYY")}
             </span>
             <br />
             <span className="inline-block">
-              According to your booking policy,{" "}
-              {settings?.bookingSettings.no_show_fee_percent === 100
-                ? `a 100% no-show fee will be applied to this booking and the customer will not be refunded.`
-                : `a ${
-                    settings?.bookingSettings.no_show_fee_percent
-                  }% no-show fee will be applied to this booking. ${
-                    appointment?.Customer?.name
-                  } will be refunded £${(
-                    appointment?.amount_paid *
-                    (settings
-                      ? settings?.bookingSettings.no_show_fee_percent / 100
-                      : 0)
-                  ).toFixed(2)}.`}
+              If allowed under your booking policy, customer may be refunded.
             </span>
             <br />
             <span className="inline-block mt-2 text-red-600">
@@ -91,7 +70,7 @@ export function MarkDNSDialog({
             className="text-sm font-medium text-[#121212]"
           >
             Message to{" "}
-            {`${appointment.Customer.name} (${appointment.Customer.email})`}{" "}
+            {`${appointment.booking.customer.name} (${appointment.booking.customer.email})`}{" "}
             (optional)
           </label>
           <textarea
@@ -123,7 +102,7 @@ export function MarkDNSDialog({
                 const res = (await api.post(`sp/booking/mark-dns`, {
                   id: appointment.id,
                   message: dnsMessage.trim() || "", // Only send if message exists
-                  email: appointment.Customer.email,
+                  email: appointment.booking.customer.email,
                 })) as any;
 
                 // Update the cache with the new DNS status

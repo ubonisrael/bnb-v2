@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { BookingWizard } from "./booking-wizard";
-import { LandingTemplate } from "@/types/response";
 
 export default function PreviewClientComponent() {
-  const [data, setData] = useState<LandingTemplate | null>(null);
+  const [data, setData] = useState<any | null>(null);
 
   useEffect(() => {
     const searchParams = new URL(window.location.href).searchParams;
@@ -13,7 +12,7 @@ export default function PreviewClientComponent() {
     const services = JSON.parse(searchParams.get("services") || "[]");
     const categories = JSON.parse(searchParams.get("categories") || "[]");
 
-    const previewData: LandingTemplate = {
+    const previewData: any = {
       type: searchParams.get("type") || "",
       name: searchParams.get("name") || "",
       bannerHeader: searchParams.get("bannerHeader") || "",

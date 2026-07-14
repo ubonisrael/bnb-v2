@@ -3,9 +3,9 @@ import { Button } from "../ui/button";
 import { minutesToTimeString } from "@/utils/time";
 import { Input } from "../ui/input";
 import { ControllerRenderProps, UseFormReturn } from "react-hook-form";
-import { bookingSettingsSchema } from "../onboarding/steps/booking-settings";
 import { z } from "zod";
 import { FormControl, FormField, FormItem, FormLabel } from "../ui/form";
+import { bookingSettingsSchema } from "@/schemas/schema";
 
 export function BreakTimesManager({
   breakTimes,

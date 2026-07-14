@@ -38,12 +38,12 @@ export function CancelAppointmentDialog({
               {appointment?.id})
             </span>
             <span className="inline-block">
-              Customer: {appointment.Booking.Customer?.name} (
-              {appointment.Booking.Customer?.email})
+              Customer: {appointment.booking.customer?.name} (
+              {appointment.booking.customer?.email})
             </span>
             <br />
             <span className="inline-block">
-              Service: {appointment.Service.name}
+              Service: {appointment.service.name}
             </span>
             <br />
             <span className="inline-block">
@@ -108,16 +108,16 @@ export function CancelAppointmentDialog({
               e.preventDefault();
               try {
                 toast.loading(
-                  `Cancelling appointment with ${appointment.Booking.Customer.name}@${appointment.start_time}`,
+                  `Cancelling appointment with ${appointment.booking.customer.name}@${appointment.start_time}`,
                   {
                     id: "cancel-appointment",
                   }
                 );
                 const res = (await api.post(`sp/booking/item/cancel`, {
-                  bookingId: appointment.Booking.id,
+                  bookingId: appointment.booking.id,
                   itemId: appointment.id,
                   message: cancelMessage.trim() || "",
-                  email: appointment.Booking.Customer.email,
+                  email: appointment.booking.customer.email,
                 })) as any;
 
                 // remove booking from cache

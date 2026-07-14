@@ -55,13 +55,13 @@ export function RescheduleAppointmentDialog({
                   ID: {appointment?.id})
                 </span>
                 <span className="inline-block">
-                  Customer: {appointment.Booking.Customer.name} (
-                  {appointment.Booking.Customer.email})
+                  Customer: {appointment.booking.customer.name} (
+                  {appointment.booking.customer.email})
                 </span>
                 <br />
                 <span className="inline-block">
                   Service:{" "}
-                  {appointment.Service.name}
+                  {appointment.service.name}
                 </span>
                 <br />
                 <span className="inline-block">
@@ -119,7 +119,7 @@ export function RescheduleAppointmentDialog({
                 selectedTime={selectedTime}
                 onSelectTime={setSelectedTime}
                 selectedServices={[
-                  { ...appointment.Service, duration: appointment.duration },
+                  { ...appointment.service, duration: appointment.duration },
                 ]}
                 totalDuration={appointment.duration}
               />
@@ -152,17 +152,17 @@ export function RescheduleAppointmentDialog({
               e.preventDefault();
               try {
                 toast.loading(
-                  `Rescheduling appointment with ${appointment.Booking.Customer.name}@${appointment.start_time}`,
+                  `Rescheduling appointment with ${appointment.booking.customer.name}@${appointment.start_time}`,
                   {
                     id: "reschedule-appointment",
                   }
                 );
 
                 const res = (await api.post(`sp/booking/item/reschedule`, {
-                  bookingId: appointment.Booking.id,
+                  bookingId: appointment.booking.id,
                   itemId: appointment.id,
                   message: reason.trim() || "",
-                  email: appointment.Booking.Customer.email,
+                  email: appointment.booking.customer.email,
                   new_event_date: selectedDate,
                   new_event_time: selectedTime,
                 })) as any;

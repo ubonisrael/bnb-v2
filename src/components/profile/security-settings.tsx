@@ -30,8 +30,6 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useUserSettings } from "@/contexts/UserSettingsContext";
-import { Label } from "@/components/ui/label";
 import api from "@/services/api-service";
 
 const passwordSchema = z

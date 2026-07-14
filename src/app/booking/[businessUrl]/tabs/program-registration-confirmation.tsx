@@ -4,7 +4,6 @@ import React from "react";
 import dayjs from "@/utils/dayjsConfig";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ProgramRegistrationResultData } from "@/types/response";
 
 interface ProgramRegistrationConfirmationProps
   extends ProgramRegistrationResultData {
