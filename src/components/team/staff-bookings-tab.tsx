@@ -11,54 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import api from "@/services/api-service";
 
-interface BookingCustomer {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-}
-
-interface BookingInfo {
-  id: number;
-  uuid: string;
-  status: string;
-  payment_status: string;
-  amount_paid: number;
-  amount_due: number;
-  Customer: BookingCustomer;
-}
-
-interface Service {
-  id: number;
-  title: string;
-  description: string | null;
-}
-
-interface BookingListItem {
-  id: number;
-  start_time: string;
-  end_time: string;
-  duration: number;
-  status: string;
-  Booking: BookingInfo;
-  Service: Service;
-}
-
-interface BookingsListData {
-  bookings: BookingListItem[];
-  pagination: {
-    total: number;
-    page: number;
-    size: number;
-    totalPages: number;
-  };
-}
-
-interface BookingsListResponse {
-  success: boolean;
-  message: string;
-  data: BookingsListData;
-}
 
 interface StaffBookingsTabProps {
   memberId: number;
@@ -126,7 +78,7 @@ export function StaffBookingsTab({ memberId }: StaffBookingsTabProps) {
             ) : (
               <>
                 <div className="space-y-3">
-                  {bookingsData.bookings.map((booking) => (
+                  {bookingsData.bookings.map(({ booking, service, start_time, end_time, duration }) => (
                     <div
                       key={booking.id}
                       className="p-4 border rounded-lg hover:bg-gray-50 transition-colors space-y-2"
@@ -134,10 +86,10 @@ export function StaffBookingsTab({ memberId }: StaffBookingsTabProps) {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <h4 className="font-semibold text-[#121212]">
-                            {booking.Service.title}
+                            {service.name}
                           </h4>
                           <p className="text-sm text-[#6E6E73]">
-                            {booking.Booking.Customer.name} • {booking.Booking.Customer.email}
+                            {booking.customer.name} • {booking.customer.email}
                           </p>
                         </div>
                         <Badge
@@ -153,7 +105,7 @@ export function StaffBookingsTab({ memberId }: StaffBookingsTabProps) {
 
                       <div className="flex items-center gap-4 text-sm text-[#6E6E73]">
                         <span>
-                          {new Date(booking.start_time).toLocaleDateString("en-US", {
+                          {new Date(start_time).toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",
                             year: "numeric",
@@ -161,30 +113,30 @@ export function StaffBookingsTab({ memberId }: StaffBookingsTabProps) {
                         </span>
                         <span>•</span>
                         <span>
-                          {new Date(booking.start_time).toLocaleTimeString("en-US", {
+                          {new Date(start_time).toLocaleTimeString("en-US", {
                             hour: "numeric",
                             minute: "2-digit",
                             hour12: true,
                           })}{" "}
                           -{" "}
-                          {new Date(booking.end_time).toLocaleTimeString("en-US", {
+                          {new Date(end_time).toLocaleTimeString("en-US", {
                             hour: "numeric",
                             minute: "2-digit",
                             hour12: true,
                           })}
                         </span>
                         <span>•</span>
-                        <span>{booking.duration} min</span>
+                        <span>{duration} min</span>
                       </div>
 
                       <div className="text-sm">
                         <span className="text-[#6E6E73]">Payment: </span>
                         <span className="font-medium">
-                          ${booking.Booking.amount_paid.toFixed(2)}
+                          ${booking.amount_paid.toFixed(2)}
                         </span>
-                        {booking.Booking.amount_due > 0 && (
+                        {booking.amount_due > 0 && (
                           <span className="text-red-600 ml-2">
-                            (${booking.Booking.amount_due.toFixed(2)} due)
+                            (${booking.amount_due.toFixed(2)} due)
                           </span>
                         )}
                       </div>

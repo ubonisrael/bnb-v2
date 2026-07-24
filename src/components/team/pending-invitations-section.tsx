@@ -37,8 +37,8 @@ interface PendingInvitation {
   acceptedAt: string | null;
   createdAt: string;
   updatedAt: string;
-  User: InvitedUser;
-  Inviter: Inviter;
+  user: InvitedUser;
+  inviter: Inviter;
 }
 
 interface PendingInvitationsResponse {
@@ -131,7 +131,7 @@ export function PendingInvitationsSection() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-[#121212] truncate">
-                      {invitation.User.full_name}
+                      {invitation.user.full_name}
                     </h3>
                     <Badge className={roleBadgeColors[invitation.role]}>
                       {invitation.role}
@@ -141,7 +141,7 @@ export function PendingInvitationsSection() {
                     </Badge>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm text-[#6E6E73] mt-1">
-                    <span className="truncate">{invitation.User.email}</span>
+                    <span className="truncate">{invitation.user.email}</span>
                     <span className="hidden sm:inline">•</span>
                     <span>
                       Invited{" "}
@@ -153,10 +153,10 @@ export function PendingInvitationsSection() {
                           })
                         : "recently"}
                     </span>
-                    {invitation.Inviter && (
+                    {invitation.inviter && (
                       <>
                         <span className="hidden sm:inline">•</span>
-                        <span>by {invitation.Inviter.full_name}</span>
+                        <span>by {invitation.inviter.full_name}</span>
                       </>
                     )}
                   </div>
