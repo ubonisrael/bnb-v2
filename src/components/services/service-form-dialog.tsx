@@ -245,7 +245,7 @@ export function ServiceFormDialog({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>Description (Optional)</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Brief description of the service"
