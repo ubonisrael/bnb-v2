@@ -13,6 +13,7 @@ interface FetchServicesParams {
   sortBy?: string;
   sortOrder?: "ASC" | "DESC";
   all?: boolean; 
+  categoryId?: number;
 }
 
 export function useFetchServices({
@@ -27,6 +28,7 @@ export function useFetchServices({
   sortBy,
   sortOrder,
   all = false,
+  categoryId,
 }: FetchServicesParams) {
   return useQuery({
     queryKey: [
@@ -41,7 +43,8 @@ export function useFetchServices({
       availableOn,
       sortBy,
       sortOrder,
-      all
+      all,
+      categoryId,
     ],
     queryFn: async () => {
       const params = new URLSearchParams({
@@ -56,6 +59,7 @@ export function useFetchServices({
         ...(sortBy && { sortBy }),
         ...(sortOrder && { sortOrder }),
         ...(all && { all: "true" }),
+        ...(categoryId && { categoryId: categoryId.toString() }),
       });
       return await api.get<FetchServicesSuccessResponse>(
         `/sp/services?${params}`

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Edit, MoreVertical, Search, Trash2, Filter, X, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -69,6 +69,8 @@ interface ServicesTableProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onPageChange: (page: number) => void;
+  activeCategoryId?: number;
+  onCategoryChange: (categoryId?: number) => void;
   filters: ServiceFilters;
   onFiltersChange: {
     setMinPrice: (value: string) => void;
@@ -97,6 +99,8 @@ export function ServicesTable({
   searchQuery,
   onSearchChange,
   onPageChange,
+  activeCategoryId,
+  onCategoryChange,
   filters,
   onFiltersChange,
   sorting,
@@ -108,7 +112,6 @@ export function ServicesTable({
   isDeleting,
   isBulkDeleting,
 }: ServicesTableProps) {
-  const [activeTab, setActiveTab] = useState("all");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -124,14 +127,8 @@ export function ServicesTable({
   const [localSortBy, setLocalSortBy] = useState(sorting.sortBy);
   const [localSortOrder, setLocalSortOrder] = useState(sorting.sortOrder);
 
-  // Filter by category tab (search is handled server-side now)
-  const filteredServices = useMemo(() => {
-    return services.filter((service) => {
-      const matchesCategory =
-        activeTab === "all" || service.CategoryId === Number(activeTab);
-      return matchesCategory;
-    });
-  }, [services, activeTab]);
+  const activeTab = activeCategoryId?.toString() ?? "all";
+  const filteredServices = services;
 
   const getDurationLabel = (duration: number) => {
     const option = serviceDurationOptions.find((opt) => opt.value === duration.toString());
@@ -475,10 +472,15 @@ export function ServicesTable({
           )}
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) =>
+            onCategoryChange(value === "all" ? undefined : Number(value))
+          }
+        >
           <TabsList>
             <TabsTrigger value="all">
-              All Services ({services.length})
+              All Services ({pagination?.total ?? services.length})
             </TabsTrigger>
             {categories.map((category) => {
               return (

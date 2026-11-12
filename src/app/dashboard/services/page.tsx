@@ -43,6 +43,7 @@ export default function ServicesPage() {
 
   // Pagination and search state for services
   const [servicePage, setServicePage] = useState(1);
+  const [serviceCategoryId, setServiceCategoryId] = useState<number | undefined>();
   const [serviceSearch, setServiceSearch] = useState("");
   const servicePageSize = 10;
 
@@ -75,6 +76,7 @@ export default function ServicesPage() {
       sortBy,
       sortOrder,
       servicePageSize,
+      categoryId: serviceCategoryId,
     }
   );
 
@@ -349,6 +351,11 @@ export default function ServicesPage() {
             searchQuery={serviceSearch}
             onSearchChange={setServiceSearch}
             onPageChange={setServicePage}
+            activeCategoryId={serviceCategoryId}
+            onCategoryChange={(categoryId) => {
+              setServiceCategoryId(categoryId);
+              setServicePage(1);
+            }}
             filters={{
               minPrice,
               maxPrice,
