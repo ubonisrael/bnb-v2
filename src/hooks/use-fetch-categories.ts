@@ -15,7 +15,7 @@ export default function useFetchCategories({
   all = false,
 }: FetchCategoriesParams) {
   return useQuery({
-    queryKey: ["categories", categoryPage, categorySearch],
+    queryKey: ["categories", categoryPage, categoryPageSize, categorySearch, all],
     queryFn: async () => {
       const params = new URLSearchParams({
         ...(categoryPage && { page: categoryPage.toString() }),

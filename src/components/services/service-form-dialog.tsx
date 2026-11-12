@@ -39,7 +39,7 @@ import { ServiceFormValues, serviceSchema } from "@/schemas/schema";
 import {
   days,
   defaultServiceValues,
-  serviceDurationOptions,
+  getDurationLabel,
 } from "@/lib/helpers";
 
 interface ServiceFormDialogProps {
@@ -181,7 +181,7 @@ export function ServiceFormDialog({
               )}
             />
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4">
               <FormField
                 control={form.control}
                 name="fullPrice"
@@ -196,7 +196,7 @@ export function ServiceFormDialog({
                           min="1"
                           step="0.01"
                           placeholder="0.00"
-                          className="pl-8"
+                          className="w-full pl-8"
                           {...field}
                         />
                       </FormControl>
@@ -212,26 +212,28 @@ export function ServiceFormDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Duration</FormLabel>
-                    <Select
-                      onValueChange={(value) =>
-                        field.onChange(Number.parseInt(value))
-                      }
-                      defaultValue={field.value.toString()}
-                      value={field.value.toString()}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select duration" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {serviceDurationOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="5"
+                        step="1"
+                        placeholder="Duration in minutes"
+                        className="w-full"
+                        value={field.value ?? ""}
+                        onChange={(event) =>
+                          field.onChange(
+                            event.target.value === ""
+                              ? undefined
+                              : Number(event.target.value)
+                          )
+                        }
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {field.value
+                        ? getDurationLabel(Number(field.value))
+                        : "Enter duration in minutes"}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -260,35 +262,37 @@ export function ServiceFormDialog({
               <FormDescription>
                 Select the days when this service is available
               </FormDescription>
-              {days.map((day) => (
-                <FormField
-                  key={day}
-                  control={form.control}
-                  name={
-                    `${day}_enabled` as
-                      | "monday_enabled"
-                      | "tuesday_enabled"
-                      | "wednesday_enabled"
-                      | "thursday_enabled"
-                      | "friday_enabled"
-                      | "saturday_enabled"
-                      | "sunday_enabled"
-                  }
-                  render={({ field }) => (
-                    <FormItem className="flex items-center space-x-1 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="text-xs font-normal">
-                        {day.charAt(0).toUpperCase() + day.slice(1)}
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-              ))}
+              <div className="flex flex-wrap gap-x-4 gap-y-2">
+                {days.map((day) => (
+                  <FormField
+                    key={day}
+                    control={form.control}
+                    name={
+                      `${day}_enabled` as
+                        | "monday_enabled"
+                        | "tuesday_enabled"
+                        | "wednesday_enabled"
+                        | "thursday_enabled"
+                        | "friday_enabled"
+                        | "saturday_enabled"
+                        | "sunday_enabled"
+                    }
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-1 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-xs font-normal">
+                          {day.charAt(0).toUpperCase() + day.slice(1)}
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                ))}
+              </div>
             </div>
 
             <FormField

@@ -25,9 +25,7 @@ export const serviceSchema = z.object({
   duration: z.coerce
     .number()
     .min(5, { message: "Duration must be at least 5 minutes" }),
-  description: z
-    .string()
-    .min(16, { message: "Description must be at least 16 characters" }),
+  description: z.string().optional(),
   monday_enabled: z.boolean(),
   tuesday_enabled: z.boolean(),
   wednesday_enabled: z.boolean(),

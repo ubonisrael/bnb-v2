@@ -71,6 +71,7 @@ interface ServicesTableProps {
   onPageChange: (page: number) => void;
   activeCategoryId?: number;
   onCategoryChange: (categoryId?: number) => void;
+  totalServicesCount: number;
   filters: ServiceFilters;
   onFiltersChange: {
     setMinPrice: (value: string) => void;
@@ -101,6 +102,7 @@ export function ServicesTable({
   onPageChange,
   activeCategoryId,
   onCategoryChange,
+  totalServicesCount,
   filters,
   onFiltersChange,
   sorting,
@@ -480,7 +482,7 @@ export function ServicesTable({
         >
           <TabsList>
             <TabsTrigger value="all">
-              All Services ({pagination?.total ?? services.length})
+              All Services ({totalServicesCount})
             </TabsTrigger>
             {categories.map((category) => {
               return (
@@ -673,7 +675,7 @@ export function ServicesTable({
         </Tabs>
 
         {/* Pagination */}
-        {pagination && pagination.totalPages > 1 && (
+        {pagination && (
           <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
               Showing {filteredServices.length} of {pagination.total} services

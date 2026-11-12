@@ -63,6 +63,7 @@ export default function ServicesPage() {
     categoryPageSize,
     categorySearch,
   });
+  const { data: allCategoriesData } = useFetchCategories({ all: true });
 
   const { data: servicesData, isLoading: isLoadingServices } = useFetchServices(
     {
@@ -83,6 +84,11 @@ export default function ServicesPage() {
   const { data: staffMembers } = useGetStaffs()
 
   const categories = categoriesData?.data.categories || [];
+  const totalServicesCount =
+    allCategoriesData?.data.categories.reduce(
+      (total, category) => total + (category.serviceCount ?? 0),
+      0
+    ) ?? 0;
   const categoriesPagination = categoriesData?.data.pagination;
   const services = servicesData?.data.services || [];
   const servicesPagination = servicesData?.data.pagination;
@@ -297,7 +303,7 @@ export default function ServicesPage() {
       </div>
 
       {/* Services Section */}
-      <div className="space-y-4">
+      <div className="space-y-4 pb-24">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">All Services</h2>
         </div>
@@ -356,6 +362,7 @@ export default function ServicesPage() {
               setServiceCategoryId(categoryId);
               setServicePage(1);
             }}
+            totalServicesCount={totalServicesCount}
             filters={{
               minPrice,
               maxPrice,
