@@ -671,8 +671,8 @@ export function ServicesTable({
 
         {/* Pagination */}
         {pagination && (
-          <div className="flex flex-col items-center justify-between">
-            <p className="text-sm text-muted-foreground">
+          <div className="relative flex items-center justify-between">
+            <p className="absolute top-0 left-0 text-sm text-muted-foreground">
               Showing {filteredServices.length} of {pagination.total} services
             </p>
             <Pagination>
