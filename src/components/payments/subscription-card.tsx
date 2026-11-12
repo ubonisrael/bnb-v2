@@ -84,10 +84,10 @@ export default function SubscriptionDetails({
             {!subscription.free_trial_activated && (
               <div className="bg-blue-50 border border-blue-200 rounded-md p-4 my-4">
                 <p className="text-blue-800 text-sm font-medium mb-1">
-                  🎉 Start Your Free 60-Day Trial
+                  🎉 Start Your Free 30-Day Trial
                 </p>
                 <p className="text-blue-700 text-xs">
-                  Subscribe now and enjoy a free 60-day trial period. You won't
+                  Subscribe now and enjoy a free 30-day trial period. You won't
                   be charged during the trial, and you can cancel anytime before
                   it ends.
                 </p>
