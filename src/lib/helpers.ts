@@ -53,58 +53,6 @@ export const onboardingSteps = [
   { id: "notification-settings", title: "Notifications" },
 ];
 
-// Duration options in minutes
-export const serviceDurationOptions = [
-  { value: "15", label: "15 minutes" },
-  { value: "30", label: "30 minutes" },
-  { value: "45", label: "45 minutes" },
-  { value: "60", label: "1 hour" },
-  { value: "75", label: "1 hour 15 minutes" },
-  { value: "90", label: "1 hour 30 minutes" },
-  { value: "105", label: "1 hour 45 minutes" },
-  { value: "120", label: "2 hours" },
-  { value: "135", label: "2 hours 15 minutes" },
-  { value: "150", label: "2 hours 30 minutes" },
-  { value: "165", label: "2 hours 45 minutes" },
-  { value: "180", label: "3 hours" },
-  { value: "195", label: "3 hours 15 minutes" },
-  { value: "210", label: "3 hours 30 minutes" },
-  { value: "225", label: "3 hours 45 minutes" },
-  { value: "240", label: "4 hours" },
-  { value: "255", label: "4 hours 15 minutes" },
-  { value: "270", label: "4 hours 30 minutes" },
-  { value: "285", label: "4 hours 45 minutes" },
-  { value: "300", label: "5 hours" },
-  { value: "315", label: "5 hours 15 minutes" },
-  { value: "330", label: "5 hours 30 minutes" },
-  { value: "345", label: "5 hours 45 minutes" },
-  { value: "360", label: "6 hours" },
-  { value: "375", label: "6 hours 15 minutes" },
-  { value: "390", label: "6 hours 30 minutes" },
-  { value: "405", label: "6 hours 45 minutes" },
-  { value: "420", label: "7 hours" },
-  { value: "435", label: "7 hours 15 minutes" },
-  { value: "450", label: "7 hours 30 minutes" },
-  { value: "465", label: "7 hours 45 minutes" },
-  { value: "480", label: "8 hours" },
-  { value: "495", label: "8 hours 15 minutes" },
-  { value: "510", label: "8 hours 30 minutes" },
-  { value: "525", label: "8 hours 45 minutes" },
-  { value: "540", label: "9 hours" },
-  { value: "555", label: "9 hours 15 minutes" },
-  { value: "570", label: "9 hours 30 minutes" },
-  { value: "585", label: "9 hours 45 minutes" },
-  { value: "600", label: "10 hours" },
-  { value: "615", label: "10 hours 15 minutes" },
-  { value: "630", label: "10 hours 30 minutes" },
-  { value: "645", label: "10 hours 45 minutes" },
-  { value: "660", label: "11 hours" },
-  { value: "675", label: "11 hours 15 minutes" },
-  { value: "690", label: "11 hours 30 minutes" },
-  { value: "705", label: "11 hours 45 minutes" },
-  { value: "720", label: "12 hours" },
-];
-
 export const serviceDaysEnabled = (service: Service) => {
   return days.filter((day) => service[`${day}_enabled`]);
 };
@@ -139,9 +87,9 @@ export const getDurationLabel = (duration: number) => {
   const hours = Math.floor(duration / 60);
   const minutes = duration % 60;
 
-  if (hours === 0) return `${minutes} minutes`;
+  if (hours === 0) return `${minutes} minute${minutes === 1 ? "" : "s"}`;
   if (minutes === 0) return hours === 1 ? "1 hour" : `${hours} hours`;
-  return `${hours} hour${hours > 1 ? "s" : ""} ${minutes} minutes`;
+  return `${hours} hour${hours > 1 ? "s" : ""} ${minutes} minute${minutes === 1 ? "" : "s"}`;
 };
 
 export const getInitials = (name: string) => {

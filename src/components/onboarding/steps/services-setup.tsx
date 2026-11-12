@@ -49,7 +49,7 @@ import {
 import {
   days,
   serviceDaysEnabled,
-  serviceDurationOptions,
+  getDurationLabel,
 } from "@/lib/helpers";
 
 interface ServicesSetupStepProps {
@@ -399,29 +399,27 @@ export function ServicesSetupStep({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Duration</FormLabel>
-                          <Select
-                            onValueChange={(value) =>
-                              field.onChange(Number.parseInt(value))
-                            }
-                            defaultValue={field.value.toString()}
-                            value={field.value.toString()}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select duration" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {serviceDurationOptions.map((option) => (
-                                <SelectItem
-                                  key={option.value}
-                                  value={option.value}
-                                >
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="5"
+                              step="1"
+                              placeholder="Duration in minutes"
+                              value={field.value ?? ""}
+                              onChange={(event) =>
+                                field.onChange(
+                                  event.target.value === ""
+                                    ? undefined
+                                    : Number(event.target.value)
+                                )
+                              }
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            {field.value
+                              ? getDurationLabel(Number(field.value))
+                              : "Enter duration in minutes"}
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}

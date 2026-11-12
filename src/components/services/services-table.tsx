@@ -47,7 +47,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { serviceDurationOptions } from "@/lib/helpers";
+import { getDurationLabel } from "@/lib/helpers";
 
 interface ServiceFilters {
   minPrice: string;
@@ -131,11 +131,6 @@ export function ServicesTable({
 
   const activeTab = activeCategoryId?.toString() ?? "all";
   const filteredServices = services;
-
-  const getDurationLabel = (duration: number) => {
-    const option = serviceDurationOptions.find((opt) => opt.value === duration.toString());
-    return option?.label || `${duration} min`;
-  };
 
   const getCategoryName = (categoryId: number) => {
     const category = categories.find((cat) => cat.id === categoryId);
@@ -676,7 +671,7 @@ export function ServicesTable({
 
         {/* Pagination */}
         {pagination && (
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col items-center justify-between">
             <p className="text-sm text-muted-foreground">
               Showing {filteredServices.length} of {pagination.total} services
             </p>
