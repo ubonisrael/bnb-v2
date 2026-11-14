@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Edit, MoreVertical, Search, Trash2, Filter, X, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -121,6 +121,7 @@ export function ServicesTable({
   isDeleting,
   isBulkDeleting,
 }: ServicesTableProps) {
+  const [searchInput, setSearchInput] = useState(searchQuery);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -135,6 +136,20 @@ export function ServicesTable({
   const [localAvailableOn, setLocalAvailableOn] = useState(filters.availableOn);
   const [localSortBy, setLocalSortBy] = useState(sorting.sortBy);
   const [localSortOrder, setLocalSortOrder] = useState(sorting.sortOrder);
+
+  useEffect(() => {
+    setSearchInput(searchQuery);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (searchInput === searchQuery) return;
+
+    const timeoutId = window.setTimeout(() => {
+      onSearchChange(searchInput);
+    }, 500);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [searchInput, searchQuery, onSearchChange]);
 
   const activeTab = activeCategoryId?.toString() ?? "all";
   const filteredServices = services;
@@ -323,8 +338,8 @@ export function ServicesTable({
               <Input
                 placeholder="Search services..."
                 className="pl-8"
-                value={searchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
               />
             </div>
             <Button
@@ -526,6 +541,7 @@ export function ServicesTable({
                     variant="link"
                     size="sm"
                     onClick={() => {
+                      setSearchInput("");
                       onSearchChange("");
                       clearAllFilters();
                     }}
