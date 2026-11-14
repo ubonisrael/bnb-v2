@@ -3,6 +3,7 @@ type ServiceAnalyticsPeriod = "last7Days" | "last2Weeks" | "lastMonth" | "lastQu
 interface CategoryData {
   id: number;
   name: string;
+  description: string | null;
   serviceCount: number;
 }
 

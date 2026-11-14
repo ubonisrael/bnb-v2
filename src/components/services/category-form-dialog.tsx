@@ -24,12 +24,17 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { categorySchema } from "@/schemas/schema";
 
 interface CategoryFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  category?: { id: number; name: string } | null;
+  category?: {
+    id: number;
+    name: string;
+    description?: string | null;
+  } | null;
   onSubmit: (values: z.infer<typeof categorySchema>, categoryId?: number) => void;
   isSubmitting: boolean;
 }
@@ -45,6 +50,7 @@ export function CategoryFormDialog({
     resolver: zodResolver(categorySchema),
     defaultValues: {
       name: category?.name || "",
+      description: category?.description ?? "",
     },
   });
 
@@ -53,12 +59,16 @@ export function CategoryFormDialog({
     if (open) {
       form.reset({
         name: category?.name || "",
+        description: category?.description ?? "",
       });
     }
   }, [open, category, form]);
 
   const handleSubmit = (values: z.infer<typeof categorySchema>) => {
-    onSubmit(values, category?.id);
+    onSubmit(
+      { ...values, description: values.description?.trim() || null },
+      category?.id
+    );
   };
 
   return (
@@ -76,7 +86,7 @@ export function CategoryFormDialog({
           </DialogTitle>
           <DialogDescription>
             {category
-              ? "Update the category name"
+              ? "Update the category details"
               : "Create a new category for your services"}
           </DialogDescription>
         </DialogHeader>
@@ -90,6 +100,23 @@ export function CategoryFormDialog({
                   <FormLabel>Category Name</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter category name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description (Optional)</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Describe this category"
+                      {...field}
+                      value={field.value ?? ""}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
