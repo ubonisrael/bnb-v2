@@ -497,7 +497,7 @@ export function ServicesTable({
             onCategoryChange(value === "all" ? undefined : Number(value))
           }
         >
-          <TabsList>
+          <TabsList className="h-auto w-full flex-wrap justify-start gap-2">
             <TabsTrigger value="all">
               All Services ({totalServicesCount})
             </TabsTrigger>
