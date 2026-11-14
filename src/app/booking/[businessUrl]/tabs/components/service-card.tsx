@@ -60,7 +60,7 @@ const ServiceCard = ({ service, index, gotoBooking }: ServiceCardProps) => {
             <span>{service.duration} min</span>
           </div>
           <div className="text-lg font-semibold text-slate-900 dark:text-white">
-            £{service.price}
+            {service.price === 0 ? "Free" : `£${service.price}`}
           </div>
         </div>
         <Button
