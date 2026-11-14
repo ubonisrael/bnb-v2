@@ -220,13 +220,7 @@ export function ServiceFormDialog({
                         placeholder="Duration in minutes"
                         className="w-full"
                         value={field.value ?? ""}
-                        onChange={(event) =>
-                          field.onChange(
-                            event.target.value === ""
-                              ? undefined
-                              : Number(event.target.value)
-                          )
-                        }
+                        onChange={(event) => field.onChange(event.target.value)}
                       />
                     </FormControl>
                     <FormDescription>
