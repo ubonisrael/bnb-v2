@@ -79,7 +79,7 @@ export function CategoryFormDialog({
           Add Category
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] overflow-y-auto max-h-screen">
+      <DialogContent className="sm:max-w-[500px] overflow-y-auto max-h-screen">
         <DialogHeader>
           <DialogTitle>
             {category ? "Edit Category" : "Add New Category"}
@@ -114,6 +114,7 @@ export function CategoryFormDialog({
                   <FormControl>
                     <Textarea
                       placeholder="Describe this category"
+                      className="min-h-40"
                       {...field}
                       value={field.value ?? ""}
                     />

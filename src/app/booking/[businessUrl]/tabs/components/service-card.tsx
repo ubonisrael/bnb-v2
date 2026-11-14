@@ -1,5 +1,6 @@
 import { Clock, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { useApp } from "@/contexts/AppContext";
 
 interface ServiceCardProps {
@@ -35,9 +36,15 @@ const ServiceCard = ({ service, index, gotoBooking }: ServiceCardProps) => {
             <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
               {service.name}
             </h3>
-            <p className="text-sm text-slate-600 dark:text-gray-300 leading-relaxed">
-              {service.description}
-            </p>
+            {service.description && (
+              <Textarea
+                aria-label={`${service.name} description`}
+                readOnly
+                rows={3}
+                className="resize-none border-0 bg-transparent p-0 text-sm leading-relaxed text-slate-600 shadow-none focus-visible:ring-0 dark:text-gray-300"
+                value={service.description}
+              />
+            )}
           </div>
         </div>
 

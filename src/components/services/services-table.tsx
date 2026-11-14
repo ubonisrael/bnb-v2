@@ -62,6 +62,13 @@ interface ServiceSorting {
   sortOrder: "ASC" | "DESC";
 }
 
+const getDescriptionPreview = (description?: string | null) => {
+  if (!description) return null;
+  return description.length > 200
+    ? `${description.slice(0, 200)}…`
+    : description;
+};
+
 interface ServicesTableProps {
   services: ServiceWithStaff[];
   categories: CategoryData[];
@@ -614,7 +621,7 @@ export function ServicesTable({
                           <div>
                             <div>{service.name}</div>
                             <div className="text-xs text-muted-foreground md:hidden">
-                              {service.description}
+                              {getDescriptionPreview(service.description)}
                             </div>
                             <div className="sm:hidden mt-1">
                               <Badge variant="secondary" className="text-xs">
@@ -624,7 +631,7 @@ export function ServicesTable({
                           </div>
                         </TableCell>
                         <TableCell className="hidden md:table-cell">
-                          {service.description}
+                          {getDescriptionPreview(service.description)}
                         </TableCell>
                         <TableCell className="hidden sm:table-cell">
                           <Badge variant="secondary">

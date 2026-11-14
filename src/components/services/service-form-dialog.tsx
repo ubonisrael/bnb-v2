@@ -112,7 +112,7 @@ export function ServiceFormDialog({
           Add Service
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] overflow-y-auto max-h-screen">
+      <DialogContent className="sm:max-w-[900px] overflow-y-auto max-h-screen">
         <DialogHeader>
           <DialogTitle>
             {service ? "Edit Service" : "Add New Service"}
@@ -126,13 +126,13 @@ export function ServiceFormDialog({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-4"
+            className="grid gap-4 lg:grid-cols-2"
           >
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="lg:col-start-1">
                   <FormLabel>Service Name</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Haircut, Manicure" {...field} />
@@ -146,7 +146,7 @@ export function ServiceFormDialog({
               control={form.control}
               name="CategoryId"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="lg:col-start-1">
                   <FormLabel>Category</FormLabel>
                   <Select
                     onValueChange={(value) => field.onChange(Number(value))}
@@ -182,7 +182,7 @@ export function ServiceFormDialog({
               )}
             />
 
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-4 lg:col-start-1">
               <FormField
                 control={form.control}
                 name="fullPrice"
@@ -239,11 +239,12 @@ export function ServiceFormDialog({
               control={form.control}
               name="description"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="lg:col-start-2 lg:row-start-1 lg:row-span-5 lg:flex lg:flex-col">
                   <FormLabel>Description (Optional)</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Brief description of the service"
+                      className="min-h-[360px] lg:h-full"
                       {...field}
                     />
                   </FormControl>
@@ -252,7 +253,7 @@ export function ServiceFormDialog({
               )}
             />
 
-            <div className="space-y-2">
+            <div className="space-y-2 lg:col-start-1">
               <FormLabel>Available Days</FormLabel>
               <FormDescription>
                 Select the days when this service is available
@@ -294,7 +295,7 @@ export function ServiceFormDialog({
               control={form.control}
               name="staff_ids"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="lg:col-start-1">
                   <FormLabel>Assign Staff</FormLabel>
                   <FormDescription>
                     Select staff members who can provide this service (at least
@@ -396,7 +397,7 @@ export function ServiceFormDialog({
               )}
             />
 
-            <DialogFooter>
+            <DialogFooter className="lg:col-span-2">
               <Button
                 type="button"
                 variant="outline"

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Search, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import ServiceCard from "./service-card";
 
@@ -84,17 +85,23 @@ export default function ServicesSection({ serviceCategories, index, gotoTab }: S
                       <span className="font-semibold text-slate-800">
                         {category.name}
                       </span>
-                      {category.description?.trim() && (
-                        <span className="mt-1 text-sm font-normal text-slate-500">
-                          {category.description}
-                        </span>
-                      )}
                     </div>
                   </div>
                   <span className="bg-primary text-white px-3 py-2 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium">
                     {category.services.length}
                   </span>
                 </CollapsibleTrigger>
+                {category.description?.trim() && (
+                  <div className="border-t border-slate-200 bg-white px-3 py-2 sm:px-6">
+                    <Textarea
+                      aria-label={`${category.name} description`}
+                      readOnly
+                      rows={2}
+                      className="resize-none border-0 bg-transparent p-0 text-sm text-slate-600 shadow-none focus-visible:ring-0"
+                      value={category.description}
+                    />
+                  </div>
+                )}
                 <CollapsibleContent className="sm:px-6 sm:py-4 bg-slate-100">
                   <div className="grid gap-4">
                     {category.services.map((service) => (
