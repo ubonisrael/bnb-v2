@@ -2,9 +2,9 @@ import { useState } from "react";
 import { Search, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import ServiceCard from "./service-card";
+import { AutoResizeDescription } from "./auto-resize-description";
 
 interface ServicesSectionProps {
   serviceCategories: ServiceCategory[];
@@ -93,11 +93,9 @@ export default function ServicesSection({ serviceCategories, index, gotoTab }: S
                 </CollapsibleTrigger>
                 {category.description?.trim() && (
                   <div className="border-t border-slate-200 bg-white px-3 py-2 sm:px-6">
-                    <Textarea
-                      aria-label={`${category.name} description`}
-                      readOnly
-                      rows={2}
-                      className="resize-none border-0 bg-transparent p-0 text-sm text-slate-600 shadow-none focus-visible:ring-0"
+                    <AutoResizeDescription
+                      label={`${category.name} description`}
+                      className="resize-none overflow-hidden border-0 bg-transparent p-0 text-sm text-slate-600 shadow-none focus-visible:ring-0"
                       value={category.description}
                     />
                   </div>

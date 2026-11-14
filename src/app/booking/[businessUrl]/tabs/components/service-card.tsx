@@ -1,7 +1,7 @@
 import { Clock, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { useApp } from "@/contexts/AppContext";
+import { AutoResizeDescription } from "./auto-resize-description";
 
 interface ServiceCardProps {
   service: ServiceFrontend;
@@ -37,11 +37,9 @@ const ServiceCard = ({ service, index, gotoBooking }: ServiceCardProps) => {
               {service.name}
             </h3>
             {service.description && (
-              <Textarea
-                aria-label={`${service.name} description`}
-                readOnly
-                rows={3}
-                className="resize-none border-0 bg-transparent p-0 text-sm leading-relaxed text-slate-600 shadow-none focus-visible:ring-0 dark:text-gray-300"
+              <AutoResizeDescription
+                label={`${service.name} description`}
+                className="resize-none overflow-hidden border-0 bg-transparent p-0 text-sm leading-relaxed text-slate-600 shadow-none focus-visible:ring-0 dark:text-gray-300"
                 value={service.description}
               />
             )}
