@@ -34,7 +34,7 @@ export default function ServicesPage() {
     null
   );
   const [editingCategory, setEditingCategory] =
-    useState<ServiceCategory | null>(null);
+    useState<CategoryData | null>(null);
 
   // Pagination and search state for categories
   const [categoryPage, setCategoryPage] = useState(1);
@@ -127,8 +127,8 @@ export default function ServicesPage() {
     }
   };
 
-  const handleCategoryEdit = (category: { id: number; name: string }) => {
-    setEditingCategory(category as ServiceCategory);
+  const handleCategoryEdit = (category: CategoryData) => {
+    setEditingCategory(category);
     setShowCategoryModal(true);
   };
 

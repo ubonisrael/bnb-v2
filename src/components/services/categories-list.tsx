@@ -39,7 +39,7 @@ interface CategoriesListProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onPageChange: (page: number) => void;
-  onEdit: (category: { id: number; name: string }) => void;
+  onEdit: (category: CategoryData) => void;
   onDelete: (categoryId: number) => void;
   onBulkDelete: (categoryIds: number[]) => void;
   isDeleting: boolean;
@@ -259,7 +259,7 @@ export function CategoriesList({
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem
                     onClick={() =>
-                      onEdit({ id: category.id, name: category.name })
+                      onEdit(category)
                     }
                   >
                     <Edit className="mr-2 h-4 w-4" />

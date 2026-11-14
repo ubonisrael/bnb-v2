@@ -15,6 +15,7 @@ interface BusinessInfoData {
 interface ServiceCategory {
   id: number;
   name: string;
+  description?: string | null;
 }
 
 interface ServicesSetupData {

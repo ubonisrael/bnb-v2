@@ -75,6 +75,11 @@ export function BusinessLanding(props: BusinessDataResponse) {
                       <h3 className="text-lg capitalize font-semibold text-slate-800 mb-2">
                         {category.name}
                       </h3>
+                      {category.description?.trim() && (
+                        <p className="mb-2 text-sm text-slate-600">
+                          {category.description}
+                        </p>
+                      )}
                       <ul className="grid md:grid-cols-2 xl:grid-cols-3">
                         {category.services.map((service) => (
                           <li
