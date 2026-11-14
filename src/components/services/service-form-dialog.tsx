@@ -193,7 +193,7 @@ export function ServiceFormDialog({
                       <FormControl>
                         <Input
                           type="number"
-                          min="1"
+                          min="0"
                           step="0.01"
                           placeholder="0.00"
                           className="w-full pl-8"
