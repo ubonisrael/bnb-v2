@@ -425,6 +425,7 @@ interface ServiceFrontend {
 interface ServiceCategory {
   id: number;
   name: string;
+  description?: string | null;
   services: ServiceFrontend[];
 }
 

@@ -80,7 +80,16 @@ export default function ServicesSection({ serviceCategories, index, gotoTab }: S
                         openAccordions.has(i) ? 'rotate-90' : ''
                       }`}
                     />
-                    <span className="font-semibold text-slate-800">{category.name}</span>
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-slate-800">
+                        {category.name}
+                      </span>
+                      {category.description?.trim() && (
+                        <span className="mt-1 text-sm font-normal text-slate-500">
+                          {category.description}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <span className="bg-primary text-white px-3 py-2 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium">
                     {category.services.length}
